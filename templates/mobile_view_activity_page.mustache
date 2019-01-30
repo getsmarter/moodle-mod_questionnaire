@@ -60,7 +60,7 @@
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                     <ion-radio<%#value%> checked="true"<%/value%>
                                     value="<%choice_id%>"
-                                    onclick="window.clicked_input([ 12, 14])"
+                                    onclick="window.clicked_input([ 12, 12 ])"
                                     data-finalrequired="12"
                                     data-currentrequired="10"
                                     <%#completed%> disabled="true"<%/completed%>></ion-radio>
@@ -167,7 +167,7 @@
                             confirmMessage="{{ 'plugin.mod_questionnaire.areyousure' | translate }}"
                             refreshOnSuccess="true"
                             type="submit"
-                            disabled="true"
+                            hidden="true"
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
