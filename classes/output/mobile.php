@@ -171,6 +171,13 @@ class mobile {
             $data['emptypage'] = true;
             $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
         }
+
+        //getting js file ready for injection... thanks JJ
+        $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_2.js';
+        $handle = fopen($questionnairejs, "r");
+        $questionnairejs = fread($handle, filesize($questionnairejs));
+        fclose($handle);
+
         return [
             'templates' => [
                 [
@@ -178,7 +185,7 @@ class mobile {
                     'html' => $OUTPUT->render_from_template('mod_questionnaire/mobile_view_activity_page', $data)
                 ],
             ],
-            //'javascript' => file_get_contents($jsfilepath),
+            'javascript' => $questionnairejs,
             'otherdata' => [
                 'fields' => json_encode($questionnaire['fields']),
                 'questionsinfo' => json_encode($questionnaire['questionsinfo']),
