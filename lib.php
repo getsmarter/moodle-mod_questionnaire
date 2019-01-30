@@ -510,7 +510,7 @@ function get_questionnaire_data($cmid, $userid = false) {
     ];
     $sql = 'SELECT qq.*,qqt.response_table FROM '
         . '{questionnaire_question} qq LEFT JOIN {questionnaire_question_type} qqt '
-        . 'ON qq.type_id = qqt.typeid WHERE qq.survey_id = ? AND qq.deleted = ? '
+        . 'ON qq.type_id = qqt.typeid WHERE qq.surveyid = ? AND qq.deleted = ? '
         . 'ORDER BY qq.position';
     if ($questions = $DB->get_records_sql($sql, [$questionnaire->sid, 'n'])) {
         require_once('classes/question/base.php');
