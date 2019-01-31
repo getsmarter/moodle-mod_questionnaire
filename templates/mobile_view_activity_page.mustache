@@ -93,7 +93,7 @@
                                 <core-format-text text="<%content%>"></core-format-text>
                                 <ion-badge item-end>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
                             </ion-list-header>
-                            <span class="click-me-<%info.current_required_resp%>" onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
+                            <span onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
                                 <ion-item>
                                     <ion-range min="<%min%>" max="<%max%>"
                                                 snaps="true" pin="true" color="secondary"
