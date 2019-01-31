@@ -190,7 +190,7 @@ class mobile {
             $pagequestion['info']['final_required_resp'] = $currentRequiredResponse;
         }
         //getting js file ready for injection... thanks JJ
-        $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_2.js';
+        $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
         $handle = fopen($questionnairejs, "r");
         $questionnairejs = fread($handle, filesize($questionnairejs));
         fclose($handle);
