@@ -60,9 +60,7 @@
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                     <ion-radio<%#value%> checked="true"<%/value%>
                                     value="<%choice_id%>"
-                                    onclick="window.clicked_input([ 12, 12 ])"
-                                    data-finalrequired="12"
-                                    data-currentrequired="10"
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
                                     <%#completed%> disabled="true"<%/completed%>></ion-radio>
                                 </ion-item>
                             <%/choices%>
