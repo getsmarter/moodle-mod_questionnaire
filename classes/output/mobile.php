@@ -172,7 +172,7 @@ class mobile {
             $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
         }
         /**
-         *let each field know it's current required step, and fill up the final required step
+         *let each pagequestions know it's current required step, and fill up the final required step
          *logic states that we get all the required steps and give them an counter,
          *we get the final required count and check it againts the input once it's sent to a js file
          *if its the final required count we display the button
@@ -185,7 +185,7 @@ class mobile {
                 $pagequestion['info']['current_required_resp'] = $currentRequiredResponse;
             }
         }
-        //let each field know what the final required field is 
+        //let each pagequestions know what the final required field is 
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentRequiredResponse;
         }
