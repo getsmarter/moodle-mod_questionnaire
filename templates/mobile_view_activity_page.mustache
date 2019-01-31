@@ -39,7 +39,8 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%></ion-option>
+                                <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
+                                 onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
@@ -48,7 +49,8 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>"></ion-radio>
+                                    <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
@@ -73,7 +75,7 @@
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                 <ion-checkbox<%#value%> checked="true"<%/value%>
                                 value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>
-                                ></ion-checkbox>
+                                > onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
@@ -91,14 +93,16 @@
                                 <core-format-text text="<%content%>"></core-format-text>
                                 <ion-badge item-end>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
                             </ion-list-header>
-                            <ion-item>
-                                <ion-range min="<%min%>" max="<%max%>"
-                                           snaps="true" pin="true" color="secondary"
-                                           [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']">
-                                <ion-label range-left><%minstr%></ion-label>
-                                <ion-label range-right><%#na%><ion-icon name="eye-off"></ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
-                                </ion-range>
-                            </ion-item>
+                            <span class="click-me-<%info.current_required_resp%>" onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
+                                <ion-item>
+                                    <ion-range min="<%min%>" max="<%max%>"
+                                                snaps="true" pin="true" color="secondary"
+                                                [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']">
+                                    <ion-label range-left><%minstr%></ion-label>
+                                    <ion-label range-right><%#na%><ion-icon name="eye-off"></ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
+                                    </ion-range>
+                                </ion-item>
+                            </span>
                         <%/choices%>
                     <%/info.israte%>
                 <%/pagequestions%>
@@ -165,7 +169,6 @@
                             confirmMessage="{{ 'plugin.mod_questionnaire.areyousure' | translate }}"
                             refreshOnSuccess="true"
                             type="submit"
-                            hidden="true"
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
