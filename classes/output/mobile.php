@@ -171,6 +171,30 @@ class mobile {
             $data['emptypage'] = true;
             $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
         }
+        /**
+         *let each pagequestions know it's current required step, and fill up the final required step
+         *logic states that we get all the required steps and give them an counter,
+         *we get the final required count and check it againts the input once it's sent to a js file
+         *if its the final required count we display the button
+        */
+        $currentRequiredResponse = 0;
+        foreach( $data['pagequestions'] as &$pagequestion ) {
+            
+            if($pagequestion['info']['required'] == 'y') {
+                $currentRequiredResponse++;
+                $pagequestion['info']['current_required_resp'] = $currentRequiredResponse;
+            }
+        }
+        //let each pagequestions know what the final required field is 
+        foreach( $data['pagequestions'] as &$pagequestion ) {
+            $pagequestion['info']['final_required_resp'] = $currentRequiredResponse;
+        }
+        //getting js file ready for injection... thanks JJ
+        $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
+        $handle = fopen($questionnairejs, "r");
+        $questionnairejs = fread($handle, filesize($questionnairejs));
+        fclose($handle);
+
         return [
             'templates' => [
                 [
@@ -178,7 +202,7 @@ class mobile {
                     'html' => $OUTPUT->render_from_template('mod_questionnaire/mobile_view_activity_page', $data)
                 ],
             ],
-            //'javascript' => file_get_contents($jsfilepath),
+            'javascript' => $questionnairejs,
             'otherdata' => [
                 'fields' => json_encode($questionnaire['fields']),
                 'questionsinfo' => json_encode($questionnaire['questionsinfo']),
@@ -190,7 +214,7 @@ class mobile {
                 'prevpage' => $data['prevpage'],
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
-                'string_required' => get_string('required')
+                'string_required' => get_string('required'),
             ],
             'files' => null
         ];
