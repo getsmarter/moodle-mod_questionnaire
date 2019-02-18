@@ -49,7 +49,6 @@ class mobile {
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
-        //$jsfilepath = $CFG->wwwroot . '/mod/questionnaire/javascript/mobile.js';
         $data = [
             'questionnaire' => $questionnaire,
             'cmid' => $cmid,
@@ -105,14 +104,8 @@ class mobile {
                     'userid' => $USER->id
                 ]);
             if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
-                // Maybe for future
-                //$qnumplus = 0;
-                // Search for the next page to output
                 while (!$questionnaireobj->eligible_questions_on_page($pagenum, $rid)) {
                     if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
-                        /*if ($questionnaire['questionnaire']['autonumquestions']) {
-                            $qnumplus += count($questionnaire['questions'][$pagenum]);
-                        }*/
                         $pagenum++;
                     } else {
                         $cmid = 0;
@@ -177,17 +170,17 @@ class mobile {
          *we get the final required count and check it againts the input once it's sent to a js file
          *if its the final required count we display the button
         */
-        $currentRequiredResponse = 0;
+        $currentrequiredresponse = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             
             if($pagequestion['info']['required'] == 'y') {
-                $currentRequiredResponse++;
-                $pagequestion['info']['current_required_resp'] = $currentRequiredResponse;
+                $currentrequiredresponse++;
+                $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
             }
         }
         //let each pagequestions know what the final required field is 
         foreach( $data['pagequestions'] as &$pagequestion ) {
-            $pagequestion['info']['final_required_resp'] = $currentRequiredResponse;
+            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
         }
         //getting js file ready for injection... thanks JJ
         $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
