@@ -468,6 +468,7 @@ function questionnaire_scale_used_anywhere($scaleid) {
 
 /**
  * Get questionnaire data
+ * for mobile only kurvin hendricks
  *
  * @global object $DB
  * @param int $cmid
@@ -527,7 +528,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                 $ret['questionsinfo'][$pagenum][$question->id] =
                 $ret['fields'][$fieldkey] = [
                     'id' => $question->id,
-                    'survey_id' => $question->survey_id,
+                    'survey_id' => $question->surveyid, //surveyid not survey_id
                     'name' => $question->name,
                     'type_id' => $question->type_id,
                     'length' => $question->length,
@@ -1648,4 +1649,30 @@ function mod_questionnaire_core_calendar_provide_event_action(calendar_event $ev
             true
     );
 }
+
+/**
+ * custom version of functions required for mobile
+ */
+function get_mobile_response($userid, $rid = 0, $qid = 0) {
+    global $DB;
+
+    $rid = intval($rid);
+    if ($rid != 0) {
+        // Check for valid rid.
+        $fields = 'id, userid';
+        $params = ['id' => $rid, 'questionnaireid' => $qid, 'userid' => $userid, 'complete' => 'n'];
+        return ($DB->get_record('questionnaire_response', $params, $fields) !== false) ? $rid : '';
+
+    } else {
+        // Find latest in progress rid.
+        $params = ['questionnaireid' => $qid, 'userid' => $userid, 'complete' => 'n'];
+        if ($records = $DB->get_records('questionnaire_response', $params, 'submitted DESC', 'id,questionnaireid', 0, 1)) {
+            $rec = reset($records);
+            return $rec->id;
+        } else {
+            return '';
+        }
+    }
+}
+
 
