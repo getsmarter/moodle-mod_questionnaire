@@ -52,33 +52,83 @@ class mobile {
         $questionnaire_dependency_flag = false;
         $pagebreaks = true; //for the sake of testing 
         //need to know if there are pagebreaks for the js logic
-
-        /*trying to find out of questionnaire has any dependencies above
-        and then working on moving functionality over from desktop to better
-        understand how to get branching to work on mobile*/
-
-        $questionnaireobj = new \questionnaire($questionnaire['questionnaire']['id'], null,
-        $DB->get_record('course', ['id' => $cm->course]), $cm);
-       
-        $resumeedQuestionnaire = get_mobile_response($USER->id, null, $questionnaire['questionnaire']['id']);
-        if(!empty($resumeedQuestionnaire)) {
-            //then we need to complete the quesitonnaire
-        }
+        // $counter = 1;
+        // foreach($questionnaire['questionsinfo'] as $questioninfo) {
+        //     $qi = array_shift($questioninfo);
+        //     if(!empty($questionnaire['answered'][$qi['id']])) {
+        //         $questionnaire['questionsinfo'][$counter][$qi['id']]['answered'] = $questionnaire['answered'][$qi['id']];
+        //     } 
+        //     $counter++;
+        // }
 
         if(!empty($questionnaire['questionsinfo'][1])) {
             $surveyinfo = $questionnaire['questionsinfo'][1];
             $surveyinfo = array_shift($surveyinfo);
-            $sid = $surveyinfo['survey_id'];
+            $sid = $surveyinfo['surveyid'];
         }
+        /**
+         * checking whether we are resuming or starting a questionnaire
+         */
+        // $questionnaireobj = new \questionnaire($questionnaire['questionnaire']['id'], null,
+        // $DB->get_record('course', ['id' => $cm->course]), $cm);
+        // $resumeedQuestionnaire = get_mobile_response($USER->id, null, $questionnaire['questionnaire']['id']);
+        // if(!empty($resumeedQuestionnaire)) {
+        //     //then we need to complete the quesitonnaire
+        // }
+        /*trying to find out of questionnaire has any dependencies above
+        and then working on moving functionality over from desktop to better
+        understand how to get branching to work on mobile*/
+
+        // print_r($questionnaire);
+        // return;
+
         
-        $questionnaire_dependency = $DB->count_records('questionnaire_dependency', ['surveyid' => $sid]);
-        if($questionnaire_dependency > 0) {
-            $questionnaire_dependency_flag = true; //questionnaire has dependencies
-        }
+
+        // var_dump($pagenum);
+        
+        // return;
+        // print_r($questionnaire_dependency);
+
+        // if($questionnaire_dependency_flag == true) {
+        //     foreach($questionnaire['fields'] as $question ) {
+        //         if( $question['qnum'] == $pagenum ) {
+        //             print_r($question);
+        //         }
+        //     }
+        // }
+
+        // $pagenum = 3;
+        // var_dump($pagenum);
 
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
+
+        $questionnaire_dependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
+        if($questionnaire_dependency > 0 && $pagenum != 1) {
+            $questionnaire_dependency_flag = true; //questionnaire has dependencies
+            foreach($questionnaire['fields'] as $question ) {
+                if( $question['qnum'] == $pagenum ) {
+                    foreach($questionnaire_dependency as $dependency) {
+                        if($dependency->questionid == $question['id']) {
+                            $answereddependency = ($questionnaire['responses'][$dependency->dependquestionid]['response'] == 'y' ? 1 : 0); 
+                            if( $answereddependency == $dependency->dependlogic) {
+                                //find next question that does not have dependency
+                                // $pagenum = 4;
+                                // $nextpage = $pagenum + 1;
+                                // $prevpage = $pagenum - 1;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        $pagenum = 1;
+        var_dump($pagenum);
+        
+
         //$jsfilepath = $CFG->wwwroot . '/mod/questionnaire/javascript/mobile.js';
         $data = [
             'questionnaire' => $questionnaire,
@@ -86,10 +136,21 @@ class mobile {
             'courseid' => intval($cm->course),
             'pagenum' => $pagenum,
             'userid' => $USER->id,
-            'nextpage' => 0,
-            'prevpage' => 0,
+            'nextpage' => 0, //fornow 
+            'prevpage' => 0, //fornow
             'emptypage' => false
         ];
+        
+        /**
+         * need to change the page num based on 
+         * the check for required questions
+         * that's the logic I am thinking about
+         * eg page num is 3 if you have never done a course
+         */
+        // die( array_shift($questionnaire['answered']) );
+        // if(!empty(array_shift($questionnaire['answered']))) {
+        //     $pagenum = 3;
+        // }
 
         /**
          * looks like the check for required fields is causing issues with the branching as well
@@ -166,6 +227,7 @@ class mobile {
         //         }
         //     }
         // }
+        // checking for completion below
         if ($cmid) {
             $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
             $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
@@ -200,13 +262,14 @@ class mobile {
                     $data['nextpage'] = $pagenum+1;
                 }
                 if ($prevpage) {
-                    $data['prevpage'] = $prevpage;
+                    $data['prevpage'] = $pagenum-1;
                 }
             }
         } else {
             $data['emptypage'] = true;
             $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
         }
+
         /**
          *let each pagequestions know it's current required step, and fill up the final required step
          *logic states that we get all the required steps and give them an counter,
@@ -225,10 +288,9 @@ class mobile {
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentRequiredResponse;
         }
-
-        die(print_r($data));
         //getting js file ready for injection... thanks JJ
         $questionnairejs = '';
+        $pagebreaks = true;
         if($pagebreaks == false) {
             $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
             $handle = fopen($questionnairejs, "r");

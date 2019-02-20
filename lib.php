@@ -528,7 +528,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                 $ret['questionsinfo'][$pagenum][$question->id] =
                 $ret['fields'][$fieldkey] = [
                     'id' => $question->id,
-                    'survey_id' => $question->surveyid, //surveyid not survey_id
+                    'surveyid' => $question->surveyid, //surveyid not survey_id
                     'name' => $question->name,
                     'type_id' => $question->type_id,
                     'length' => $question->length,
@@ -543,7 +543,8 @@ function get_questionnaire_data($cmid, $userid = false) {
                     'fieldkey' => $fieldkey,
                     'precise' => $question->precise,
                     'qnum' => $qnum,
-                    'errormessage' => get_string('required') . ': ' . $question->name
+                    'errormessage' => get_string('required') . ': ' . $question->name,
+                    
                 ];
             }
             $std = new \stdClass();
@@ -690,6 +691,11 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $qnum--;
                     continue;
             }
+            // $sql = 'SELECT * FROM moodle35_githubonline_campus_fresh.mdl_questionnaire_dependency WHERE questionid = ?';
+            // $dependency = $DB->get_records_sql($sql, [$question->id]);
+            // if(!empty($dependency)) {
+            //     $ret['questionsinfo'][$pagenum]['question_dependency'][$question->id] = $dependency;
+            // }
             $ret['questionsinfo'][$pagenum][$question->id]['qnum'] = $qnum;
             if ($ret['questionnaire']['autonumquestions']) {
                 $ret['questionsinfo'][$pagenum][$question->id]['content'] =
@@ -725,9 +731,11 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     if ($value->choice_id == 'y') {
                                                         $ret['questions'][$pagenum][$questionid][1]->value = 'y';
                                                         $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'y';
+                                                        $ret['responses'][$questionid]['response'] = 'y';
                                                     } else {
                                                         $ret['questions'][$pagenum][$questionid][0]->value = 'n';
                                                         $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'n';
+                                                        $ret['responses'][$questionid]['response'] = 'n';
                                                     }
                                                 }
                                             }
@@ -738,6 +746,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                 $ret['answered'][$questionid] = true;
                                                 $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
                                                 $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
+                                                $ret['responses'][$questionid]['response'] = $value->response;
                                             }
                                             break;
                                         case QUESRADIO: // Radiobutton
@@ -752,6 +761,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                             $ret['answered'][$questionid] = true;
                                                             $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
                                                             $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = intval($item->id);
+                                                            $ret['responses'][$questionid]['response'] = intval($item->id);
                                                         }
                                                     }
                                                 }
