@@ -46,43 +46,14 @@ class mobile {
         self::require_capability($cm, $context, 'mod/questionnaire:view');
         // Set some variables we are going to be using.
         $questionnaire = get_questionnaire_data($cmid, $USER->id);
-        $surveyinfo = [];
-        $sid = 0;
-        $questionnaire_dependency_flag = false;
+        
+        // $surveyinfo = [];
+        // $sid = 0;
+        // $questionnaire_dependency_flag = false;
         // $pagebreaks = true; //for the sake of testing 
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
-
-        if(!empty($questionnaire['questionsinfo'][1])) {
-            $surveyinfo = $questionnaire['questionsinfo'][1];
-            $surveyinfo = array_shift($surveyinfo);
-            $sid = $surveyinfo['surveyid'];
-        }
-
-        $questionnaire_dependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
-        if($questionnaire_dependency > 0 && $pagenum != 1) {
-            $questionnaire_dependency_flag = true; //questionnaire has dependencies
-            foreach($questionnaire['fields'] as $question ) {
-                if( $question['qnum'] == $pagenum ) {
-                    foreach($questionnaire_dependency as $dependency) {
-                        if($dependency->questionid == $question['id']) {
-                            $answereddependency = ($questionnaire['responses'][$dependency->dependquestionid]['response'] == 'y' ? 1 : 0); 
-                            if( $answereddependency == $dependency->dependlogic) {
-                                //find next question that does not have dependency
-                                $pagenum = 4;
-                                // $nextpage = $pagenum + 1;
-                                // $prevpage = $pagenum - 1;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        var_dump($pagenum);
-
         //$jsfilepath = $CFG->wwwroot . '/mod/questionnaire/javascript/mobile.js';
         $data = [
             'questionnaire' => $questionnaire,
@@ -94,283 +65,142 @@ class mobile {
             'prevpage' => 0,
             'emptypage' => false
         ];
-        
-        /**
-         * need to change the page num based on 
-         * the check for required questions
-         * that's the logic I am thinking about
-         * eg page num is 3 if you have never done a course
-         */
+
+        $branching = check_mobile_branching_logic($questionnaire);
         /**
          * looks like the check for required fields is causing issues with the branching as well
          * just need to add branching logic based on input, easier said than done
          */
 
-        if(!$questionnaire_dependency_flag) {
-            var_dump('normal display');
-            // Check for required fields filled
-            $break = false;
-            if (($pagenum - 1) > 0 && isset($questionnaire['questions'][$pagenum - 1]) && !empty($questionnaire['questions'][$pagenum - 1])) {
-                $prepn = $pagenum - 1;
-                $cnt = 0;
-                while (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
-                    if (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
-                        $keys = array_keys($questionnaire['questions'][$prepn]);
-                        foreach ($keys as $questionid) {
-                            if (isset($questionnaire['questionsinfo'][$prepn][$questionid]) &&
-                                $questionnaire['questionsinfo'][$prepn][$questionid]['required'] === 'y' &&
-                                (!isset($questionnaire['answered'][$questionid]) || empty($questionnaire['answered'][$questionid]))) {
-                                $pagenum = $prepn;
-                                $prepn = 0;
-                                $break = true;
-                                break;
-                            } else {
-                                $cnt++;
-                                if (count($keys) == $cnt) {
-                                    $break = true;
-                                }
-                            }
-                        }
-                        if ($break) {
+        // Check for required fields filled
+        $break = false;
+        if (($pagenum - 1) > 0 && isset($questionnaire['questions'][$pagenum - 1]) && !empty($questionnaire['questions'][$pagenum - 1])) {
+            $prepn = $pagenum - 1;
+            $cnt = 0;
+            while (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
+                if (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
+                    $keys = array_keys($questionnaire['questions'][$prepn]);
+                    foreach ($keys as $questionid) {
+                        if (isset($questionnaire['questionsinfo'][$prepn][$questionid]) &&
+                            $questionnaire['questionsinfo'][$prepn][$questionid]['required'] === 'y' &&
+                            (!isset($questionnaire['answered'][$questionid]) || empty($questionnaire['answered'][$questionid]))) {
+                            $pagenum = $prepn;
+                            $prepn = 0;
+                            $break = true;
                             break;
+                        } else {
+                            $cnt++;
+                            if (count($keys) == $cnt) {
+                                $break = true;
+                            }
                         }
                     }
                     if ($break) {
                         break;
                     }
                 }
-            }
-            if (intval($args->pagenum) == $pagenum) {
-                if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
-                    $prevpage = $pagenum-1;
+                if ($break) {
+                    break;
                 }
-                $questionnaireobj = new \questionnaire($questionnaire['questionnaire']['id'], null,
-                    $DB->get_record('course', ['id' => $cm->course]), $cm);
-                $rid = $DB->get_field('questionnaire_response', 'id',
-                    [
-                        'questionnaireid' => $questionnaire['questionnaire']['questionnaireid'],
-                        'complete' => 'n',
-                        'userid' => $USER->id
-                    ]);
-                if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
-                    // Maybe for future
-                    //$qnumplus = 0;
-                    // Search for the next page to output
-                    while (!$questionnaireobj->eligible_questions_on_page($pagenum, $rid)) {
-                        if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
-                            /*if ($questionnaire['questionnaire']['autonumquestions']) {
-                                $qnumplus += count($questionnaire['questions'][$pagenum]);
-                            }*/
-                            $pagenum++;
-                        } else {
-                            $cmid = 0;
-                            break;
-                        }
-                    }
-                }
-                if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
-                    while (!$questionnaireobj->eligible_questions_on_page($prevpage, $rid)) {
-                        if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
-                            $prevpage--;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-            //checking for completion below
-            if ($cmid) {
-                $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
-                $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
-                    userdate($questionnaire['response']['submitted']) : '';
-                if (isset($questionnaire['questions'][$pagenum])) {
-                    $i = 0;
-                    foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
-                        if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
-                            $data['questions'][$pagenum][$i]['info'] = $questionnaire['questionsinfo'][$pagenum][$questionid];
-                            if ($data['questions'][$pagenum][$i]['info']['required'] == 'n') {
-                                unset($data['questions'][$pagenum][$i]['info']['required']);
-                            }
-                            $ii = 0;
-                            foreach ($choices as $k => $v) {
-                                $data['questions'][$pagenum][$i]['choices'][$ii] = (array) $v;
-                                $ii++;
-                            }
-                            if (count($choices) == 1) {
-                                $data['questions'][$pagenum][$i]['value'] = $data['questions'][$pagenum][$i]['choices'][0]['value'];
-                            }
-                            $i++;
-                        }
-                    }
-                    if (isset($data['questions'][$pagenum]) && !empty($data['questions'][$pagenum])) {
-                        $i = 0;
-                        foreach ($data['questions'][$pagenum] as $arr) {
-                            $data['pagequestions'][$i] = $arr;
-                            $i++;
-                        }
-                    }
-                    if (isset($questionnaire['questions'][$pagenum+1]) && !empty($questionnaire['questions'][$pagenum+1])) {
-                        $data['nextpage'] = $pagenum+1;
-                    }
-                    if ($prevpage) {
-                        $data['prevpage'] = $prevpage;
-                    }
-                }
-            } else {
-                $data['emptypage'] = true;
-                $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
-            }
-        } else {
-            //logic for branching will appear here
-            var_dump('dependent logic');
-            $break = false;
-            // if (($pagenum - 1) > 0 && isset($questionnaire['questions'][$pagenum - 1]) && !empty($questionnaire['questions'][$pagenum - 1])) {
-            //     $prepn = $pagenum - 1;
-            //     $cnt = 0;
-            //     // while (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
-            //     //     if (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
-            //     //         $keys = array_keys($questionnaire['questions'][$prepn]);
-            //     //         foreach ($keys as $questionid) {
-            //     //             if (isset($questionnaire['questionsinfo'][$prepn][$questionid]) &&
-            //     //                 $questionnaire['questionsinfo'][$prepn][$questionid]['required'] === 'y' &&
-            //     //                 (!isset($questionnaire['answered'][$questionid]) || empty($questionnaire['answered'][$questionid]))) {
-            //     //                 $pagenum = $prepn;
-            //     //                 $prepn = 0;
-            //     //                 $break = true;
-            //     //                 break;
-            //     //             } else {
-            //     //                 $cnt++;
-            //     //                 if (count($keys) == $cnt) {
-            //     //                     $break = true;
-            //     //                 }
-            //     //             }
-            //     //         }
-            //     //         if ($break) {
-            //     //             break;
-            //     //         }
-            //     //     }
-            //     //     if ($break) {
-            //     //         break;
-            //     //     }
-            //     // }
-                
-            // }
-            // if (intval($args->pagenum) == $pagenum) {
-            //     // if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
-            //     //     $prevpage = $pagenum-1;
-            //     // }
-            //     // $questionnaireobj = new \questionnaire($questionnaire['questionnaire']['id'], null,
-            //     //     $DB->get_record('course', ['id' => $cm->course]), $cm);
-            //     // $rid = $DB->get_field('questionnaire_response', 'id',
-            //     //     [
-            //     //         'questionnaireid' => $questionnaire['questionnaire']['questionnaireid'],
-            //     //         'complete' => 'n',
-            //     //         'userid' => $USER->id
-            //     //     ]);
-            //     // if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
-            //     //     // Maybe for future
-            //     //     //$qnumplus = 0;
-            //     //     // Search for the next page to output
-            //     //     while (!$questionnaireobj->eligible_questions_on_page($pagenum, $rid)) {
-            //     //         if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
-            //     //             /*if ($questionnaire['questionnaire']['autonumquestions']) {
-            //     //                 $qnumplus += count($questionnaire['questions'][$pagenum]);
-            //     //             }*/
-            //     //             $pagenum++;
-            //     //         } else {
-            //     //             $cmid = 0;
-            //     //             break;
-            //     //         }
-            //     //     }
-            //     // }
-            //     // if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
-            //     //     while (!$questionnaireobj->eligible_questions_on_page($prevpage, $rid)) {
-            //     //         if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
-            //     //             $prevpage--;
-            //     //         } else {
-            //     //             break;
-            //     //         }
-            //     //     }
-            //     // }
-            // }
-            //checking for completion below
-            if ($cmid) {
-
-                // var_dump('completion logic');
-
-                $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
-                $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
-                    userdate($questionnaire['response']['submitted']) : '';
-                if (isset($questionnaire['questions'][$pagenum])) {
-
-                    
-                    $data['pagequestions'] = $questionnaire['questions'][$pagenum];
-                    // print_r($questionnaire['questions'][1]);
-                    // return '1234567';
-
-                    // print_r( $questionnaire['questions'][$pagenum] );
-
-                    // $i = 0;
-                    // foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
-                    //     if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
-                    //         $data['questions'][$pagenum][$i]['info'] = $questionnaire['questionsinfo'][$pagenum][$questionid];
-                    //         if ($data['questions'][$pagenum][$i]['info']['required'] == 'n') {
-                    //             unset($data['questions'][$pagenum][$i]['info']['required']);
-                    //         }
-                    //         $ii = 0;
-                    //         foreach ($choices as $k => $v) {
-                    //             $data['questions'][$pagenum][$i]['choices'][$ii] = (array) $v;
-                    //             $ii++;
-                    //         }
-                    //         if (count($choices) == 1) {
-                    //             $data['questions'][$pagenum][$i]['value'] = $data['questions'][$pagenum][$i]['choices'][0]['value'];
-                    //         }
-                    //         $i++;
-                    //     }
-                    // }
-                    // if (isset($data['questions'][$pagenum]) && !empty($data['questions'][$pagenum])) {
-                    //     $i = 0;
-                    //     foreach ($data['questions'][$pagenum] as $arr) {
-                    //         $data['pagequestions'][$i] = $arr;
-                    //         $i++;
-                    //     }
-                    // }
-                    // print_r($data['completed']);
-                    // return 'random text';
-                    if (isset($questionnaire['questions'][$pagenum+1]) && !empty($questionnaire['questions'][$pagenum+1])) {
-                        $data['nextpage'] = $pagenum+1;
-                    }
-                    if ($prevpage) {
-                        $data['prevpage'] = $pagenum;
-                    }
-                }
-            } else {
-                $data['emptypage'] = true;
-                $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
             }
         }
-
-        // print_r($data);
-        // print_r($data['pagequestions']);  
-        // print_r($questionnaire['questions']);
-        // return;
+        if (intval($args->pagenum) == $pagenum) {
+            if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
+                $prevpage = $pagenum-1;
+            }
+            $questionnaireobj = new \questionnaire($questionnaire['questionnaire']['id'], null,
+                $DB->get_record('course', ['id' => $cm->course]), $cm);
+            $rid = $DB->get_field('questionnaire_response', 'id',
+                [
+                    'questionnaireid' => $questionnaire['questionnaire']['questionnaireid'],
+                    'complete' => 'n',
+                    'userid' => $USER->id
+                ]);
+            if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
+                // Maybe for future
+                //$qnumplus = 0;
+                // Search for the next page to output
+                while (!$questionnaireobj->eligible_questions_on_page($pagenum, $rid)) {
+                    if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
+                        /*if ($questionnaire['questionnaire']['autonumquestions']) {
+                            $qnumplus += count($questionnaire['questions'][$pagenum]);
+                        }*/
+                        $pagenum++;
+                    } else {
+                        $cmid = 0;
+                        break;
+                    }
+                }
+            }
+            if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
+                while (!$questionnaireobj->eligible_questions_on_page($prevpage, $rid)) {
+                    if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
+                        $prevpage--;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        //checking for completion below
+        if ($cmid) {
+            $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
+            $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
+                userdate($questionnaire['response']['submitted']) : '';
+            if (isset($questionnaire['questions'][$pagenum])) {
+                $i = 0;
+                foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
+                    if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
+                        $data['questions'][$pagenum][$i]['info'] = $questionnaire['questionsinfo'][$pagenum][$questionid];
+                        if ($data['questions'][$pagenum][$i]['info']['required'] == 'n') {
+                            unset($data['questions'][$pagenum][$i]['info']['required']);
+                        }
+                        $ii = 0;
+                        foreach ($choices as $k => $v) {
+                            $data['questions'][$pagenum][$i]['choices'][$ii] = (array) $v;
+                            $ii++;
+                        }
+                        if (count($choices) == 1) {
+                            $data['questions'][$pagenum][$i]['value'] = $data['questions'][$pagenum][$i]['choices'][0]['value'];
+                        }
+                        $i++;
+                    }
+                }
+                if (isset($data['questions'][$pagenum]) && !empty($data['questions'][$pagenum])) {
+                    $i = 0;
+                    foreach ($data['questions'][$pagenum] as $arr) {
+                        $data['pagequestions'][$i] = $arr;
+                        $i++;
+                    }
+                }
+                if (isset($questionnaire['questions'][$pagenum+1]) && !empty($questionnaire['questions'][$pagenum+1])) {
+                    $data['nextpage'] = $pagenum+1;
+                }
+                if ($prevpage) {
+                    $data['prevpage'] = $prevpage;
+                }
+            }
+        } else {
+            $data['emptypage'] = true;
+            $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
+        }
         /**
          *let each pagequestions know it's current required step, and fill up the final required step
          *logic states that we get all the required steps and give them an counter,
          *we get the final required count and check it againts the input once it's sent to a js file
          *if its the final required count we display the button
         */
-        $currentRequiredResponse = 0;
+        $currentrequiredresponse = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             
             if($pagequestion['info']['required'] == 'y') {
-                $currentRequiredResponse++;
-                $pagequestion['info']['current_required_resp'] = $currentRequiredResponse;
+                $currentrequiredresponse++;
+                $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
             }
         }
         //let each pagequestions know what the final required field is 
         foreach( $data['pagequestions'] as &$pagequestion ) {
-            $pagequestion['info']['final_required_resp'] = $currentRequiredResponse;
+            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
         }
         //getting js file ready for injection... thanks JJ
         $questionnairejs = '';
@@ -382,16 +212,16 @@ class mobile {
             fclose($handle);
         }
 
-        // var_dump('allgwed');
-        // print_r($questionnaire['fields']);
-        // print_r($questionnaire['responses']);
-        // return;
+        $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
+        if($branching) {
+            $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_branching_page';
+        }
 
         return [
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template('mod_questionnaire/mobile_view_activity_page', $data)
+                    'html' => $OUTPUT->render_from_template($mobileviewactivity, $data)
                 ],
             ],
             'javascript' => $questionnairejs,
@@ -422,5 +252,220 @@ class mobile {
     protected static function require_capability(\stdClass $cm, \context $context, string $cap) {
         require_login($cm->course, false, $cm, true, true);
         require_capability($cap, $context);
+    }
+
+    public static function next($args) {
+        global $OUTPUT, $USER, $CFG, $DB;
+
+        require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
+        $args = (object) $args;
+        $cmid = $args->cmid;
+        $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
+        $prevpage = 0;
+        // Capabilities check.
+        $cm = get_coursemodule_from_id('questionnaire', $cmid);
+        $context = \context_module::instance($cmid);
+        self::require_capability($cm, $context, 'mod/questionnaire:view');
+        // Set some variables we are going to be using.
+        $questionnaire = get_questionnaire_data($cmid, $USER->id);
+        
+        // $surveyinfo = [];
+        // $sid = 0;
+        // $questionnaire_dependency_flag = false;
+        // $pagebreaks = true; //for the sake of testing 
+        if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
+            $prevpage = $pagenum-1;
+        }
+        //$jsfilepath = $CFG->wwwroot . '/mod/questionnaire/javascript/mobile.js';
+        $data = [
+            'questionnaire' => $questionnaire,
+            'cmid' => $cmid,
+            'courseid' => intval($cm->course),
+            'pagenum' => $pagenum,
+            'userid' => $USER->id,
+            'nextpage' => 0, 
+            'prevpage' => 0,
+            'emptypage' => false
+        ];
+
+        $branching = check_mobile_branching_logic($questionnaire);
+        /**
+         * looks like the check for required fields is causing issues with the branching as well
+         * just need to add branching logic based on input, easier said than done
+         */
+
+        // Check for required fields filled
+        $break = false;
+        if (($pagenum - 1) > 0 && isset($questionnaire['questions'][$pagenum - 1]) && !empty($questionnaire['questions'][$pagenum - 1])) {
+            $prepn = $pagenum - 1;
+            $cnt = 0;
+            while (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
+                if (($prepn) > 0 && isset($questionnaire['questions'][$prepn]) && !empty($questionnaire['questions'][$prepn])) {
+                    $keys = array_keys($questionnaire['questions'][$prepn]);
+                    foreach ($keys as $questionid) {
+                        if (isset($questionnaire['questionsinfo'][$prepn][$questionid]) &&
+                            $questionnaire['questionsinfo'][$prepn][$questionid]['required'] === 'y' &&
+                            (!isset($questionnaire['answered'][$questionid]) || empty($questionnaire['answered'][$questionid]))) {
+                            $pagenum = $prepn;
+                            $prepn = 0;
+                            $break = true;
+                            break;
+                        } else {
+                            $cnt++;
+                            if (count($keys) == $cnt) {
+                                $break = true;
+                            }
+                        }
+                    }
+                    if ($break) {
+                        break;
+                    }
+                }
+                if ($break) {
+                    break;
+                }
+            }
+        }
+        if (intval($args->pagenum) == $pagenum) {
+            if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
+                $prevpage = $pagenum-1;
+            }
+            $questionnaireobj = new \questionnaire($questionnaire['questionnaire']['id'], null,
+                $DB->get_record('course', ['id' => $cm->course]), $cm);
+            $rid = $DB->get_field('questionnaire_response', 'id',
+                [
+                    'questionnaireid' => $questionnaire['questionnaire']['questionnaireid'],
+                    'complete' => 'n',
+                    'userid' => $USER->id
+                ]);
+            if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
+                // Maybe for future
+                //$qnumplus = 0;
+                // Search for the next page to output
+                while (!$questionnaireobj->eligible_questions_on_page($pagenum, $rid)) {
+                    if (isset($questionnaire['questions'][$pagenum]) && !empty($questionnaire['questions'][$pagenum])) {
+                        /*if ($questionnaire['questionnaire']['autonumquestions']) {
+                            $qnumplus += count($questionnaire['questions'][$pagenum]);
+                        }*/
+                        $pagenum++;
+                    } else {
+                        $cmid = 0;
+                        break;
+                    }
+                }
+            }
+            if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
+                while (!$questionnaireobj->eligible_questions_on_page($prevpage, $rid)) {
+                    if ($prevpage > 0 && isset($questionnaire['questions'][$prevpage]) && !empty($questionnaire['questions'][$prevpage])) {
+                        $prevpage--;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        //checking for completion below
+        if ($cmid) {
+            $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
+            $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
+                userdate($questionnaire['response']['submitted']) : '';
+            if (isset($questionnaire['questions'][$pagenum])) {
+                $i = 0;
+                foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
+                    if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
+                        $data['questions'][$pagenum][$i]['info'] = $questionnaire['questionsinfo'][$pagenum][$questionid];
+                        if ($data['questions'][$pagenum][$i]['info']['required'] == 'n') {
+                            unset($data['questions'][$pagenum][$i]['info']['required']);
+                        }
+                        $ii = 0;
+                        foreach ($choices as $k => $v) {
+                            $data['questions'][$pagenum][$i]['choices'][$ii] = (array) $v;
+                            $ii++;
+                        }
+                        if (count($choices) == 1) {
+                            $data['questions'][$pagenum][$i]['value'] = $data['questions'][$pagenum][$i]['choices'][0]['value'];
+                        }
+                        $i++;
+                    }
+                }
+                if (isset($data['questions'][$pagenum]) && !empty($data['questions'][$pagenum])) {
+                    $i = 0;
+                    foreach ($data['questions'][$pagenum] as $arr) {
+                        $data['pagequestions'][$i] = $arr;
+                        $i++;
+                    }
+                }
+                if (isset($questionnaire['questions'][$pagenum+1]) && !empty($questionnaire['questions'][$pagenum+1])) {
+                    $data['nextpage'] = $pagenum+1;
+                }
+                if ($prevpage) {
+                    $data['prevpage'] = $prevpage;
+                }
+            }
+        } else {
+            $data['emptypage'] = true;
+            $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
+        }
+        /**
+         *let each pagequestions know it's current required step, and fill up the final required step
+         *logic states that we get all the required steps and give them an counter,
+         *we get the final required count and check it againts the input once it's sent to a js file
+         *if its the final required count we display the button
+        */
+        $currentrequiredresponse = 0;
+        foreach( $data['pagequestions'] as &$pagequestion ) {
+            
+            if($pagequestion['info']['required'] == 'y') {
+                $currentrequiredresponse++;
+                $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+            }
+        }
+        //let each pagequestions know what the final required field is 
+        foreach( $data['pagequestions'] as &$pagequestion ) {
+            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
+        }
+        //getting js file ready for injection... thanks JJ
+        $questionnairejs = '';
+        $pagebreaks = false;
+        if($pagebreaks == false) {
+            $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
+            $handle = fopen($questionnairejs, "r");
+            $questionnairejs = fread($handle, filesize($questionnairejs));
+            fclose($handle);
+        }
+
+        var_dump('hello is it me youre looking for, I can see it your eyes, I can see it your smile');
+        return;
+
+        $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
+        if($branching) {
+            $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_branching_page';
+            $data['nextpage'] = 4;
+            $data['prevpage'] = 0;
+        }
+
+        return [
+            'templates' => [
+                [
+                    'id' => 'main',
+                    'html' => $OUTPUT->render_from_template($mobileviewactivity, $data)
+                ],
+            ],
+            'javascript' => $questionnairejs,
+            'otherdata' => [
+                'fields' => json_encode($questionnaire['fields']),
+                'questionsinfo' => json_encode($questionnaire['questionsinfo']),
+                'questions' => json_encode($questionnaire['questions']),
+                'pagequestions' => json_encode($data['pagequestions']),
+                'responses' => json_encode($questionnaire['responses']),
+                'pagenum' => $pagenum,
+                'nextpage' => $data['nextpage'],
+                'prevpage' => $data['prevpage'],
+                'completed' => $data['completed'],
+                'intro' => $questionnaire['questionnaire']['intro'],
+                'string_required' => get_string('required'),
+            ],
+            'files' => null
+        ];
     }
 }
