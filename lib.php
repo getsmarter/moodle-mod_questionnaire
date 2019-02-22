@@ -1685,31 +1685,40 @@ function get_mobile_response($userid, $rid = 0, $qid = 0) {
     }
 }
 
-function render_mobile_questionnaire() {
-
+function render_mobile_questionnaire($questionnaire) {
+    global $DB;
     /**
          * need to change the page num based on 
          * the check for required questions
          * that's the logic I am thinking about
          * eg page num is 3 if you have never done a course
          */
+    $pagenum = 0;
 
     if(!empty($questionnaire['questionsinfo'][1])) {
         $surveyinfo = $questionnaire['questionsinfo'][1];
         $surveyinfo = array_shift($surveyinfo);
         $sid = $surveyinfo['surveyid'];
+
     }
 
     $questionnaire_dependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
+    
+    var_dump($questionnaire['answered']);
 
-    if($questionnaire_dependency > 0 && $pagenum > 1) {
+    if($questionnaire_dependency > 0) {
         $questionnaire_dependency_flag = true; //questionnaire has dependencies
         foreach($questionnaire['fields'] as $question ) {
+            var_dump($question);
+            return;
             if( $question['qnum'] == $pagenum ) {
                 foreach($questionnaire_dependency as $dependency) {
                     if($dependency->questionid == $question['id']) {
                         $answereddependency = ($questionnaire['responses'][$dependency->dependquestionid]['response'] == 'y' ? 1 : 0); 
                         if( $answereddependency == $dependency->dependlogic) {
+                            var_dump($questionnaire_dependency);
+                            var_dump($dependency);
+                            return;
                             //find next question that does not have dependency
                             $pagenum = 4;
                             // $nextpage = $pagenum + 1;

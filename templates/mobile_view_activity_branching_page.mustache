@@ -26,6 +26,12 @@
     </ion-card>
     <%/completed%>
     <div>
+    000000000000000000000
+    0   000000000000   00
+    0   000000000000   00
+    0   000000000000   00
+    000000000000000000000
+    000000000000000000000
         <ion-card>
             <ion-list>
             <%^emptypage%>
@@ -136,8 +142,13 @@
                     core-site-plugins-new-content 
                     component="mod_questionnaire" 
                     method="next" 
-                    [args]="{cmid: <%cmid%>,  pagenum: <%prevpage%>}">
-                    Next
+                    [args]="{cmid: <%cmid%>, 
+                            pagenum: <%pagenum%>,  
+                            completed: <%completed%>,
+                            questionnaireid: <%questionnaire.questionnaire.id%>,
+                            surveyid: <%questionnaire.questionnaire.questionnaireid%>, 
+                            userid: <%userid%>}">
+                    Next ----->>>>>>
                 </button>
             <%/nextpage%>
             <%^completed%>
