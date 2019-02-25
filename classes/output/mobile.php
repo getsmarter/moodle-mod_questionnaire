@@ -54,7 +54,7 @@ class mobile {
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
-        //$jsfilepath = $CFG->wwwroot . '/mod/questionnaire/javascript/mobile.js';
+        
         $data = [
             'questionnaire' => $questionnaire,
             'cmid' => $cmid,
@@ -255,7 +255,6 @@ class mobile {
     }
 
     public static function next($args) {
-        
         global $OUTPUT, $USER, $CFG, $DB;
 
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
@@ -277,29 +276,20 @@ class mobile {
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
-        //$jsfilepath = $CFG->wwwroot . '/mod/questionnaire/javascript/mobile.js';
         $data = [
             'questionnaire' => $questionnaire,
             'cmid' => $cmid,
             'courseid' => intval($cm->course),
-            'pagenum' => 5,
+            'pagenum' => $pagenum,
             'userid' => $USER->id,
             'nextpage' => 0, 
             'prevpage' => 0,
             'emptypage' => false
         ];
 
-        var_dump($questionnaire);
-        return;
-
         $branching = check_mobile_branching_logic($questionnaire);
-        $pagenum = 5; //hardcoded testing
-
-        $newpagenum = render_mobile_questionnaire($questionnaire);
-
-        var_dump($pagenum);
-        return;
-
+        $pagenum = render_mobile_questionnaire($questionnaire, $pagenum);
+        
         /**
          * looks like the check for required fields is causing issues with the branching as well
          * just need to add branching logic based on input, easier said than done
@@ -376,7 +366,8 @@ class mobile {
         //     }
         // }
         // //checking for completion below
-        // if ($cmid) {
+
+        if ($cmid) {
             $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
             $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
                 userdate($questionnaire['response']['submitted']) : '';
@@ -413,16 +404,17 @@ class mobile {
                     $data['prevpage'] = $prevpage;
                 }
             }
-        // } else {
-        //     $data['emptypage'] = true;
-        //     $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
-        // }
+        } else {
+            $data['emptypage'] = true;
+            $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
+        }
         /**
          *let each pagequestions know it's current required step, and fill up the final required step
          *logic states that we get all the required steps and give them an counter,
          *we get the final required count and check it againts the input once it's sent to a js file
          *if its the final required count we display the button
         */
+
         $currentrequiredresponse = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             
@@ -451,7 +443,7 @@ class mobile {
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template($mobileviewactivity, $data)
+                    'html' => $OUTPUT->render_from_template('mod_questionnaire/mobile_view_activity_branching_page', $data)
                 ],
             ],
             'javascript' => $questionnairejs,

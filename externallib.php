@@ -169,19 +169,18 @@ class mod_questionnaire_external extends \external_api {
             ]
         );
 
-        if (!$questionnaire = get_questionnaire($params['questionnaireid'])) {
-            throw new \moodle_exception("invalidcoursemodule", "error");
-        }
-        list($course, $cm) = get_course_and_cm_from_instance($questionnaire, 'questionnaire');
+        // if (!$questionnaire = get_questionnaire($params['questionnaireid'])) {
+        //     throw new \moodle_exception("invalidcoursemodule", "error");
+        // }
+        // list($course, $cm) = get_course_and_cm_from_instance($questionnaire, 'questionnaire');
 
-        $context = \context_module::instance($cm->id);
-        self::validate_context($context);
+        // $context = \context_module::instance($cm->id);
+        // self::validate_context($context);
 
-        require_capability('mod/questionnaire:submit', $context);
+        // require_capability('mod/questionnaire:submit', $context);
 
-        $result['submitted'] = false;
+        $result['submitted'] = true;
         $result['warnings'] = [];
-        $result['params'] = $params;
         return $result;
     }
 
