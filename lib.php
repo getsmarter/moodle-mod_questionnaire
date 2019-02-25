@@ -1685,7 +1685,7 @@ function get_mobile_response($userid, $rid = 0, $qid = 0) {
     }
 }
 
-function render_mobile_questionnaire($questionnaire, $pagenum) {
+function render_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireresponses) {
     global $DB;
     /**
          * need to change the page num based on 
@@ -1693,6 +1693,7 @@ function render_mobile_questionnaire($questionnaire, $pagenum) {
          * that's the logic I am thinking about
          * eg page num is 3 if you have never done a course
          */
+    $quesitonnaireresponses = json_decode(json_decode($quesitonnaireresponses));
 
     if(!empty($questionnaire['questionsinfo'][1])) {
         $surveyinfo = $questionnaire['questionsinfo'][1];
@@ -1709,13 +1710,14 @@ function render_mobile_questionnaire($questionnaire, $pagenum) {
             if( $question['qnum'] == $pagenum ) {
                 foreach($questionnaire_dependency as $dependency) {
                     if($dependency->dependquestionid == $question['id']) {
-                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->id.'_'.$dependency->dependquestionid] == 'y' ? 1 : 0);
+                        $objectaddress = 'response_'.$dependency->id.'_'.$dependency->dependquestionid;
+                        $answereddependency = ($quesitonnaireresponses->objectaddress == 'n' ? 1 : 0);
                         if( $answereddependency == $dependency->dependlogic) {
                             //find next question that does not have dependency
                             return $pagenum+1;
                         } else {
                             //need to get page next page num without any dependencies
-                            return 5;
+                            return 4;
                         }
                     }
                 }
