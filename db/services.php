@@ -45,9 +45,9 @@ $functions = [
         'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE]
     ],
     'mod_questionnaire_submit_questionnaire_branching' => [
-        'classname' => 'mod_questionnaire_external',
-        'methodname' => 'submit_questionnaire_branching',
-        'classpath' => 'mod/questionnaire/externallib.php',
+        'classname' => 'mobile',
+        'methodname' => 'next',
+        'classpath' => 'mod/questionnaire/output/mobile.php',
         'description' => 'Questionnaire Branching submit',
         'type' => 'write',
         'capabilities' => 'mod/questionnaire:submit',
