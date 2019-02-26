@@ -731,11 +731,11 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     if ($value->choice_id == 'y') {
                                                         $ret['questions'][$pagenum][$questionid][1]->value = 'y';
                                                         $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'y';
-                                                        $ret['responses'][$questionid]['response'] = 'y';
+                                                        // $ret['responses'][$questionid]['response'] = 'y';
                                                     } else {
                                                         $ret['questions'][$pagenum][$questionid][0]->value = 'n';
                                                         $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'n';
-                                                        $ret['responses'][$questionid]['response'] = 'n';
+                                                        // $ret['responses'][$questionid]['response'] = 'n';
                                                     }
                                                 }
                                             }
@@ -746,7 +746,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                 $ret['answered'][$questionid] = true;
                                                 $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
                                                 $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
-                                                $ret['responses'][$questionid]['response'] = $value->response;
+                                                // $ret['responses'][$questionid]['response'] = $value->response;
                                             }
                                             break;
                                         case QUESRADIO: // Radiobutton
@@ -761,7 +761,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                             $ret['answered'][$questionid] = true;
                                                             $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
                                                             $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = intval($item->id);
-                                                            $ret['responses'][$questionid]['response'] = intval($item->id);
+                                                            // $ret['responses'][$questionid]['response'] = intval($item->id);
                                                         }
                                                     }
                                                 }
@@ -898,6 +898,110 @@ function save_questionnaire_data($questionnaireid, $surveyid, $userid, $cmid, $s
                 ['questionnaireid' => $surveyid, 'complete' => 'n',
                     'userid' => $userid]), $userid);
     }
+    return $ret;
+}
+
+function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, array $responses) {
+
+    global $DB, $CFG; //do not delete $CFG!!!
+    $ret = [
+        'responses' => [],
+        'warnings' => []
+    ];
+    if (!$completed) {
+        require_once('questionnaire.class.php');
+        $cm = get_coursemodule_from_id('questionnaire', $cmid);
+        $questionnaire = new \questionnaire($questionnaireid, null,
+            $DB->get_record('course', ['id' => $cm->course]), $cm);
+        $rid = $questionnaire->delete_insert_response(
+            $DB->get_field('questionnaire_response', 'id',
+                ['questionnaireid' => $surveyid, 'complete' => 'n',
+                    'userid' => $userid]), $sec, $userid);
+        $questionnairedata = get_questionnaire_data($cmid, $userid);
+        $pagequestions = isset($questionnairedata['questions'][$sec]) ? $questionnairedata['questions'][$sec] : [];
+        if (!empty($pagequestions)) {
+            $pagequestionsids = array_keys($pagequestions);
+            $missingquestions = $warningmessages = [];
+            foreach ($pagequestionsids as $questionid) {
+                $missingquestions[$questionid] = $questionid;
+            }
+            foreach ($pagequestionsids as $questionid) {
+                foreach ($responses as $response) {
+                    $args = explode('_', $response['name']);
+                    if (count($args) >= 3) {
+                        $typeid = intval($args[1]);
+                        $rquestionid = intval($args[2]);
+                        if (in_array($rquestionid, $pagequestionsids)) {
+                            unset($missingquestions[$rquestionid]);
+                            if ($rquestionid == $questionid) {
+                                if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
+                                    if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
+                                        switch ($questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
+                                            case QUESRATE:
+                                                if (isset($args[3]) && !empty($args[3])) {
+                                                    $choiceid = intval($args[3]);
+                                                    $value = intval($response['value']) - 1;
+                                                    $rec = new \stdClass();
+                                                    $rec->response_id = $rid;
+                                                    $rec->question_id = intval($rquestionid);
+                                                    $rec->choice_id = $choiceid;
+                                                    $rec->rankvalue = $value;
+                                                    if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['precise'] == 1) {
+                                                        if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max) {
+                                                            $rec->rank = -1;
+                                                        }
+                                                    }
+                                                    $DB->insert_record('questionnaire_response_rank', $rec);
+                                                }
+                                                break;
+                                            default:
+                                                if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['required'] == 'n'
+                                                    || ($questionnairedata['questionsinfo'][$sec][$rquestionid]['required'] == 'y'
+                                                        && !empty($response['value']))) {
+                                                    $questionobj = \mod_questionnaire\question\base::question_builder(
+                                                        $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
+                                                        $questionnairedata['questionsinfo'][$sec][$rquestionid]);
+                                                    if ($questionobj->insert_response($rid, $response['value'])) {
+                                                        $ret['responses'][$rid][$questionid] = $response['value'];
+                                                    }
+                                                } else {
+                                                    $ret['warnings'][] = [
+                                                        'item' => 'mod_questionnaire_question',
+                                                        'itemid' => $questionid,
+                                                        'warningcode' => 'required',
+                                                        'message' => s(get_string('required') . ': ' . $questionnairedata['questionsinfo'][$sec][$questionid]['name'])
+                                                    ];
+                                                }
+                                        }
+                                    } else {
+                                        $missingquestions[$rquestionid] = $rquestionid;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($missingquestions) {
+                foreach ($missingquestions as $questionid) {
+                    if ($questionnairedata['questionsinfo'][$sec][$questionid]['required'] == 'y') {
+                        $ret['warnings'][] = [
+                            'item' => 'mod_questionnaire_question',
+                            'itemid' => $questionid,
+                            'warningcode' => 'required',
+                            'message' => s(get_string('required') . ': ' . $questionnairedata['questionsinfo'][$sec][$questionid]['name'])
+                        ];
+                    }
+                }
+            }
+        }
+    }
+    // if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
+    //     $questionnaire->commit_submission_response(
+    //         $DB->get_field('questionnaire_response', 'id',
+    //             ['questionnaireid' => $surveyid, 'complete' => 'n',
+    //                 'userid' => $userid]), $userid);
+    // }
     return $ret;
 }
 
@@ -1685,7 +1789,7 @@ function get_mobile_response($userid, $rid = 0, $qid = 0) {
     }
 }
 
-function render_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireresponses) {
+function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireresponses = []) {
     global $DB;
     /**
          * need to change the page num based on 
@@ -1693,7 +1797,7 @@ function render_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireres
          * that's the logic I am thinking about
          * eg page num is 3 if you have never done a course
          */
-    $quesitonnaireresponses = json_decode(json_decode($quesitonnaireresponses));
+    // $quesitonnaireresponses = json_decode(json_decode($quesitonnaireresponses));
 
     if(!empty($questionnaire['questionsinfo'][1])) {
         $surveyinfo = $questionnaire['questionsinfo'][1];
@@ -1702,6 +1806,8 @@ function render_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireres
 
     }
 
+    
+
     $questionnaire_dependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
     
     if($questionnaire_dependency > 0) {
@@ -1709,12 +1815,11 @@ function render_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireres
         foreach($questionnaire['fields'] as $question ) {
             if( $question['qnum'] == $pagenum ) {
                 foreach($questionnaire_dependency as $dependency) {
-                    if($dependency->dependquestionid == $question['id']) {
-                        $objectaddress = 'response_'.$dependency->id.'_'.$dependency->dependquestionid;
-                        $answereddependency = ($quesitonnaireresponses->objectaddress == 'n' ? 1 : 0);
+                    if($dependency->questionid == $question['id']) {
+                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->id.'_'.$dependency->dependquestionid] == 'n' ? 1 : 0);
                         if( $answereddependency == $dependency->dependlogic) {
                             //find next question that does not have dependency
-                            return $pagenum+1;
+                            return $pagenum;
                         } else {
                             //need to get page next page num without any dependencies
                             return 4;
