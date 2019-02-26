@@ -38,8 +38,13 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
-                                 onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
+                                <%#pagebreak%>
+                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
+                                <%/pagebreak%>
+                                <%^pagebreak%>
+                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%></ion-option>
+                                <%/pagebreak%>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
@@ -48,8 +53,13 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
+                                    <%#pagebreak%>
+                                        <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
+                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
+                                    <%/pagebreak%>
+                                    <%^pagebreak%>
+                                        <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>"></ion-radio>
+                                    <%/pagebreak%>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
@@ -59,10 +69,17 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <ion-radio<%#value%> checked="true"<%/value%>
-                                    value="<%choice_id%>"
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
-                                    <%#completed%> disabled="true"<%/completed%>></ion-radio>
+                                    <%#pagebreak%>
+                                        <ion-radio<%#value%> checked="true"<%/value%>
+                                        value="<%choice_id%>"
+                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
+                                        <%#completed%> disabled="true"<%/completed%>></ion-radio>
+                                    <%/pagebreak%>
+                                    <%^pagebreak%>
+                                        <ion-radio<%#value%> checked="true"<%/value%>
+                                        value="<%choice_id%>"
+                                        <%#completed%> disabled="true"<%/completed%>></ion-radio>
+                                    <%/pagebreak%>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
@@ -134,6 +151,7 @@
             <%#nextpage%>
                 <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content
                     name="mod_questionnaire_submit_questionnaire_branching"
+                    method="next"
                     [params]="{
                                         questionnaireid: <%questionnaire.questionnaire.id%>,
                                         surveyid: <%questionnaire.questionnaire.questionnaireid%>,
@@ -141,7 +159,7 @@
                                         cmid: <%cmid%>,
                                         sec: <%pagenum%>,
                                         completed: <%completed%>,
-                                        submit: 1,
+                                        submit: 0,
                                         responses: CoreUtilsProvider.objectToArrayOfObjects(CONTENT_OTHERDATA.responses, 'name', 'value')
                                     }"
                     [args]="{
@@ -149,13 +167,15 @@
                                         pagenum: <%nextpage%>,
                                         branching: 1
                                     }"
+                    [preSets]="{getFromCache: 0, saveToCache: 0}"
+                    refreshOnSuccess="true"
                     type="submit"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }} >>>>>>> <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
                 <%^nextpage%>
                     <button ion-button block core-site-plugins-call-ws
-                            name="mod_questionnaire_submit_questionnaire_branching"
+                            name="mod_questionnaire_submit_questionnaire_response"
                             [params]="{
                                                 questionnaireid: <%questionnaire.questionnaire.id%>,
                                                 surveyid: <%questionnaire.questionnaire.questionnaireid%>,
