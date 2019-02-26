@@ -909,6 +909,9 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
         'warnings' => []
     ];
     if (!$completed) {
+
+        
+
         require_once('questionnaire.class.php');
         $cm = get_coursemodule_from_id('questionnaire', $cmid);
         $questionnaire = new \questionnaire($questionnaireid, null,
@@ -920,21 +923,40 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
         $questionnairedata = get_questionnaire_data($cmid, $userid);
         $pagequestions = isset($questionnairedata['questions'][$sec]) ? $questionnairedata['questions'][$sec] : [];
         if (!empty($pagequestions)) {
+
             $pagequestionsids = array_keys($pagequestions);
             $missingquestions = $warningmessages = [];
             foreach ($pagequestionsids as $questionid) {
                 $missingquestions[$questionid] = $questionid;
             }
             foreach ($pagequestionsids as $questionid) {
+
+                // var_dump('here');
+
                 foreach ($responses as $response) {
                     $args = explode('_', $response['name']);
                     if (count($args) >= 3) {
+
+                        // var_dump($response);
+                        // var_dump('dontneed');
+
                         $typeid = intval($args[1]);
                         $rquestionid = intval($args[2]);
-                        if (in_array($rquestionid, $pagequestionsids)) {
+
+                        // var_dump($rquestionid);
+                        // var_dump($pagequestionsids);
+                        // var_dump($questionid);
+                        // return;
+
+                        // if (in_array($rquestionid, $pagequestionsids)) {
+
+                            // var_dump('jetfuel');
+
                             unset($missingquestions[$rquestionid]);
                             if ($rquestionid == $questionid) {
+
                                 if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
+
                                     if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
                                         switch ($questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
                                             case QUESRATE:
@@ -951,10 +973,12 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                                             $rec->rank = -1;
                                                         }
                                                     }
-                                                    $DB->insert_record('questionnaire_response_rank', $rec);
+                                                    var_dump( $DB->insert_record('questionnaire_response_rank', $rec));
                                                 }
                                                 break;
                                             default:
+
+
                                                 if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['required'] == 'n'
                                                     || ($questionnairedata['questionsinfo'][$sec][$rquestionid]['required'] == 'y'
                                                         && !empty($response['value']))) {
@@ -978,7 +1002,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                     }
                                 }
                             }
-                        }
+                        // }
                     }
                 }
             }

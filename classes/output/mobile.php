@@ -294,14 +294,7 @@ class mobile {
             'emptypage' => false
         ];
 
-        $branching = check_mobile_branching_logic($questionnaire);
-        // var_dump($branching);
-        // var_dump($questionnaire);
-        // var_dump($pagenum);
-        // var_dump($quesitonnaireresponses);
-        // var_dump($questionnaire['responses']);
-        // var_dump($pagenum);
-        
+        $branching = check_mobile_branching_logic($questionnaire);        
         $pagenum = get_mobile_questionnaire($questionnaire, $pagenum);
         // var_dump($pagenum);
         // return;
