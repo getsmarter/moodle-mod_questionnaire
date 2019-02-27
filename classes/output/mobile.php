@@ -296,7 +296,6 @@ class mobile {
 
         $branching = check_mobile_branching_logic($questionnaire);        
         $pagenum = get_mobile_questionnaire($questionnaire, $pagenum);
-        // var_dump($pagenum);
         // return;
         $newpagenum = $pagenum;
 
