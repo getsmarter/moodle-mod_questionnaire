@@ -180,6 +180,7 @@ class mod_questionnaire_external extends \external_api {
         require_capability('mod/questionnaire:submit', $context);
 
         $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses);
+
         $result['submitted'] = false;
         $result['warnings'] = [];
         return $result;

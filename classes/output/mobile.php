@@ -283,6 +283,16 @@ class mobile {
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
+        
+
+        $branching = check_mobile_branching_logic($questionnaire);        
+        $pagenum = get_mobile_questionnaire($questionnaire, $pagenum);
+        $newpagenum = $pagenum['pagenum'];
+        $newprevpagenum = $pagenum['prevpage'];
+        $newnextpagenum = $pagenum['nextpage'];
+        $pagenum = $newpagenum;
+
+
         $data = [
             'questionnaire' => $questionnaire,
             'cmid' => $cmid,
@@ -293,15 +303,6 @@ class mobile {
             'prevpage' => 0,
             'emptypage' => false
         ];
-
-        $branching = check_mobile_branching_logic($questionnaire);        
-        $pagenum = get_mobile_questionnaire($questionnaire, $pagenum);
-        // var_dump($pagenum);
-        // return;
-        $newpagenum = $pagenum['pagenum'];
-        $newprevpagenum = $pagenum['prevpage'];
-        $newnextpagenum = $pagenum['nextpage'];
-        $pagenum = $newpagenum;
         // var_dump($pagenum);
        
         /**

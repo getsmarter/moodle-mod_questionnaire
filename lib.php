@@ -981,40 +981,45 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
 
                         // if (in_array($rquestionid, $pagequestionsids)) {
 
-                            // unset($missingquestions[$rquestionid]);
-                            // // if ($rquestionid == $questionid) {
+                            unset($missingquestions[$rquestionid]);
+                            // if ($rquestionid == $questionid) {
 
-                        if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
+                                if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
 
-                            if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
+                                    if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
+                                        
 
-                                $questionobj = \mod_questionnaire\question\base::question_builder(
-                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
-                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]);
-                                if ($questionobj->insert_response($rid, $response['value'])) {
-                                    $ret['responses'][$rid][$questionid] = $response['value'];
+                                         //         && !empty($response['value']))) {
+                                        $questionobj = \mod_questionnaire\question\base::question_builder(
+                                            $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
+                                            $questionnairedata['questionsinfo'][$sec][$rquestionid]);
+                                        if ($questionobj->insert_response($rid, $response['value'])) {
+                                            $ret['responses'][$rid][$questionid] = $response['value'];
+                                        }
+
+                                    } else {
+                                        $missingquestions[$rquestionid] = $rquestionid;
+                                    }
                                 }
-                            } else {
-                                $missingquestions[$rquestionid] = $rquestionid;
-                            }
-                        }
+                            // }
+                        // }
                     }
                 }
             }
 
-            // if ($missingquestions) {
+            if ($missingquestions) {
                 
-            //     foreach ($missingquestions as $questionid) {
-            //         if ($questionnairedata['questionsinfo'][$sec][$questionid]['required'] == 'y') {
-            //             $ret['warnings'][] = [
-            //                 'item' => 'mod_questionnaire_question',
-            //                 'itemid' => $questionid,
-            //                 'warningcode' => 'required',
-            //                 'message' => s(get_string('required') . ': ' . $questionnairedata['questionsinfo'][$sec][$questionid]['name'])
-            //             ];
-            //         }
-            //     }
-            // }
+                foreach ($missingquestions as $questionid) {
+                    if ($questionnairedata['questionsinfo'][$sec][$questionid]['required'] == 'y') {
+                        $ret['warnings'][] = [
+                            'item' => 'mod_questionnaire_question',
+                            'itemid' => $questionid,
+                            'warningcode' => 'required',
+                            'message' => s(get_string('required') . ': ' . $questionnairedata['questionsinfo'][$sec][$questionid]['name'])
+                        ];
+                    }
+                }
+            }
         }
     }
     // if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
