@@ -1882,6 +1882,7 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
             'qnum' => $question['qnum']
         );
     }
+    
 
     foreach($questionnaire_dependency as $dependency) {
         if(!empty($non_dependent_questions[$dependency->questionid])) {
@@ -1895,8 +1896,6 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
             }
         }
     }
-    var_dump($questionnaire['answered']);    
-    // var_dump($non_dependent_questions);
     
     if(sizeof($questionnaire_dependency) > 0) {
         $questionnaire_dependency_flag = true; //questionnaire has dependencies
@@ -1904,26 +1903,62 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
             if( $question['qnum'] == $pagenum ) {
                 foreach($questionnaire_dependency as $dependency) {
                     if($dependency->questionid == $question['id']) {
-                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->id.'_'.$dependency->dependquestionid] == 'y' ? 0 : 1);
+
+
+                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->id.'_'.$dependency->dependquestionid] == 'n' ? 1 : 0);
                         //the dependelogic is an id 0 = y and 1 = no, quesitonnaire is weird
                         if( $answereddependency == $dependency->dependlogic) {
                             //find next question that does not have dependency
+                            $pagenums = array(
+                                'prevpage' => $pagenum - 1,
+                                'pagenum' => $pagenum,
+                                'nextpage' => $pagenum + 1,
+                            );
                             
-                            // $pagenum = array_shift($dependency_questions);
-                            // var_dump($dependency_questions);
-                            // return $pagenum['qnum'];
-                            return $pagenum;
+                            return $pagenums;
+
                         } else {
+
+                            $nextpage = array_shift(array_slice($non_dependent_questions, 1, 1, true));
                             $pagenum = array_shift($non_dependent_questions);
-                            return $pagenum['qnum'] - 1;
+
+                            if($pagenum['qnum'] == 1) {
+                                $prevpage = null;
+                                $pagenum = 1;
+                                $nextpage = $nextpage['qnum'] - 1;
+                            } else {
+                                $prevpage = $pagenum['qnum'] - 2; //fornow
+                                $pagenum = $pagenum['qnum'] - 1;
+                                $nextpage = $nextpage['qnum'] - 1;
+                            }
+
+                            $pagenums = array(
+                                'prevpage' => $prevpage,
+                                'pagenum' => $pagenum,
+                                'nextpage' => $nextpage,
+                            );
+
+                            return $pagenums;
                             //need to get page next page num without any dependencies
                         }
+                    } else {
+                        $pagenums = array(
+                            'prevpage' => $pagenum - 1,
+                            'pagenum' => $pagenum,
+                            'nextpage' => $pagenum + 1,
+                        );
+                        return $pagenums;
                     }
                 }
             }
         }
     } else {
-        return $pagenum;
+        $pagenums = array(
+            'prevpage' => $pagenum - 1,
+            'pagenum' => $pagenum,
+            'nextpage' => $pagenum + 1,
+        );
+        return $pagenums;
     }
 }
 

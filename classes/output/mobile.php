@@ -296,9 +296,12 @@ class mobile {
 
         $branching = check_mobile_branching_logic($questionnaire);        
         $pagenum = get_mobile_questionnaire($questionnaire, $pagenum);
+        // var_dump($pagenum);
         // return;
-        $newpagenum = $pagenum;
-
+        $newpagenum = $pagenum['pagenum'];
+        $newprevpagenum = $pagenum['prevpage'];
+        $newnextpagenum = $pagenum['nextpage'];
+        $pagenum = $newpagenum;
         // var_dump($pagenum);
        
         /**
@@ -468,8 +471,8 @@ class mobile {
                 'responses' => json_encode($questionnaire['responses']),
                 'responses2' => json_encode($data['responses2']),
                 'pagenum' => $pagenum,
-                'nextpage' => $pagenum+1,
-                'prevpage' => $data['prevpage'],
+                'nextpage' => $newnextpagenum,
+                'prevpage' => $newprevpagenum,
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
