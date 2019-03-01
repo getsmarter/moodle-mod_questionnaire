@@ -691,11 +691,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $qnum--;
                     continue;
             }
-            // $sql = 'SELECT * FROM moodle35_githubonline_campus_fresh.mdl_questionnaire_dependency WHERE questionid = ?';
-            // $dependency = $DB->get_records_sql($sql, [$question->id]);
-            // if(!empty($dependency)) {
-            //     $ret['questionsinfo'][$pagenum]['question_dependency'][$question->id] = $dependency;
-            // }
             $ret['questionsinfo'][$pagenum][$question->id]['qnum'] = $qnum;
             if ($ret['questionnaire']['autonumquestions']) {
                 $ret['questionsinfo'][$pagenum][$question->id]['content'] =
@@ -718,25 +713,12 @@ function get_questionnaire_data($cmid, $userid = false) {
 
                 foreach ($ret['questionsinfo'] as $pagenum => $data1) {
                     foreach ($data1 as $questionid => $data2) {
-
-                        // $type = $DB->get_records_sql('SELECT * FROM {questionnaire_question_type} WHERE typeid = ?', [$data2['type_id']]);
-
-                        // var_dump($type);
-
                         $ret['answered'][$questionid] = false;
                         if (isset($data2['response_table']) && !empty($data2['response_table'])) {
-                            // var_dump($data2['type_id']);
-                            // var_dump($data2['response_table']);
-                            // var_dump($data2['response_table']);
-                            // var_dump($data2);
                             if ($values = $DB->get_records_sql('SELECT * FROM {questionnaire_'
                                 . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
                                 [$response->id, $questionid])) {
-
-                                    // var_dump($values);
-
                                 foreach ($values as $value) {
-                                    // var_dump($data2['type_id']);
                                     switch($data2['type_id']) {
                                         case 1: // Yes/No bool
                                             if (isset($ret['questions'][$pagenum][$questionid])) {
@@ -952,7 +934,6 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
         'warnings' => []
     ];
     if (!$completed) {
-
         require_once('questionnaire.class.php');
         $cm = get_coursemodule_from_id('questionnaire', $cmid);
         $questionnaire = new \questionnaire($questionnaireid, null,
@@ -964,49 +945,33 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
         $questionnairedata = get_questionnaire_data($cmid, $userid);
         $pagequestions = isset($questionnairedata['questions'][$sec]) ? $questionnairedata['questions'][$sec] : [];
         if (!empty($pagequestions)) {
-
             $pagequestionsids = array_keys($pagequestions);
             $missingquestions = $warningmessages = [];
             foreach ($pagequestionsids as $questionid) {
                 $missingquestions[$questionid] = $questionid;
             }
             foreach ($pagequestionsids as $questionid) {
-
                 foreach ($responses as $response) {
                     $args = explode('_', $response['name']);
                     if (count($args) >= 3) {
-
                         $typeid = intval($args[1]);
                         $rquestionid = intval($args[2]);
-
-                        // if (in_array($rquestionid, $pagequestionsids)) {
-
-                            unset($missingquestions[$rquestionid]);
-                            // if ($rquestionid == $questionid) {
-
-                                if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
-
-                                    if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
-                                        
-
-                                         //         && !empty($response['value']))) {
-                                        $questionobj = \mod_questionnaire\question\base::question_builder(
-                                            $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
-                                            $questionnairedata['questionsinfo'][$sec][$rquestionid]);
-                                        if ($questionobj->insert_response($rid, $response['value'])) {
-                                            $ret['responses'][$rid][$questionid] = $response['value'];
-                                        }
-
-                                    } else {
-                                        $missingquestions[$rquestionid] = $rquestionid;
+                        unset($missingquestions[$rquestionid]);
+                        if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
+                            if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
+                                $questionobj = \mod_questionnaire\question\base::question_builder(
+                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
+                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]);
+                                    if ($questionobj->insert_response($rid, $response['value'])) {
+                                        $ret['responses'][$rid][$questionid] = $response['value'];
                                     }
-                                }
-                            // }
-                        // }
+                            } else {
+                                $missingquestions[$rquestionid] = $rquestionid;
+                            }
+                        }
                     }
                 }
             }
-
             if ($missingquestions) {
                 
                 foreach ($missingquestions as $questionid) {
@@ -1022,12 +987,12 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
             }
         }
     }
-    // if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
-    //     $questionnaire->commit_submission_response(
-    //         $DB->get_field('questionnaire_response', 'id',
-    //             ['questionnaireid' => $surveyid, 'complete' => 'n',
-    //                 'userid' => $userid]), $userid);
-    // }
+    if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
+        $questionnaire->commit_submission_response(
+            $DB->get_field('questionnaire_response', 'id',
+                ['questionnaireid' => $surveyid, 'complete' => 'n',
+                    'userid' => $userid]), $userid);
+    }
     return $ret;
 }
 

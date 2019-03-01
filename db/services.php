@@ -26,14 +26,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// $services = [
-//     'mod_questionnaire_ws' => [
-//         'functions' => ['mod_questionnaire_submit_questionnaire_response'],
-//         'requiredcapability' => '',
-//         'enabled' => 1
-//     ]
-// ];
-
 $functions = [
     'mod_questionnaire_submit_questionnaire_response' => [
         'classname' => 'mod_questionnaire_external',

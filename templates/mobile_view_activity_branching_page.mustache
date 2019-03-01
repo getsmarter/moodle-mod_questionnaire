@@ -146,7 +146,7 @@
                                         pagenum: <%prevpage%>
                                     }"
                         type="submit"
-                ><ion-icon name="arrow-back"></ion-icon> <<<<<< {{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
+                ><ion-icon name="arrow-back"></ion-icon>{{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
             <%/prevpage%>
             <%#nextpage%>
                 <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content
@@ -168,7 +168,7 @@
                                         responses: CONTENT_OTHERDATA.responses2
                                     }"
                     type="submit"
-                >{{ 'plugin.mod_questionnaire.nextpage' | translate }} >>>>>>> <ion-icon name="arrow-forward"></ion-icon></button>
+                >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
                 <%^nextpage%>
