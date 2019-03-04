@@ -143,7 +143,7 @@
                                     }"
                         [args]="{
                                         cmid: <%cmid%>,
-                                        pagenum: <%prevpage%>
+                                        pagenum: CONTENT_OTHERDATA.prevpage
                                     }"
                         type="submit"
                 ><ion-icon name="arrow-back"></ion-icon>{{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
@@ -151,7 +151,7 @@
             <%#nextpage%>
                 <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content
                     name="mod_questionnaire_submit_questionnaire_branching"
-                    method="next"
+                    method="mobile_view_activity_branching"
                     [params]="{
                                         questionnaireid: <%questionnaire.questionnaire.id%>,
                                         surveyid: <%questionnaire.questionnaire.questionnaireid%>,
@@ -164,8 +164,7 @@
                                     }"
                     [args]="{
                                         cmid: <%cmid%>,
-                                        pagenum: <%nextpage%>,
-                                        responses: CONTENT_OTHERDATA.responses2
+                                        pagenum: <%nextpage%>
                                     }"
                     type="submit"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>

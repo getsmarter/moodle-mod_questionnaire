@@ -38,7 +38,7 @@ $functions = [
     ],
     'mod_questionnaire_submit_questionnaire_branching' => [
         'classname' => 'mobile',
-        'methodname' => 'next',
+        'methodname' => 'mobile_view_activity_branching',
         'classpath' => 'mod/questionnaire/output/mobile.php',
         'description' => 'Questionnaire Branching submit',
         'type' => 'write',
