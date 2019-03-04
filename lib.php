@@ -553,7 +553,7 @@ function get_questionnaire_data($cmid, $userid = false) {
             $std->content = '';
             $std->value = null;
             switch ($question->type_id) {
-                case QUESYESNO: // Yes/No bool
+                case 1: // Yes/No bool
                     $stdyes = new \stdClass();
                     $stdyes->id = 1;
                     $stdyes->choice_id = 'y';
@@ -577,28 +577,29 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $ret['questionsinfo'][$pagenum][$question->id]['isbool'] = true;
                     $ret['responses']['response_'.$question->type_id.'_'.$question->id] = 'n';
                     break;
-                case QUESTEXT: // Text
-                case QUESESSAY: // Essay
+                case 2: // Text
+                case 3: // Essay
                     $ret['questions'][$pagenum][$question->id][0] = $std;
                     $ret['questionsinfo'][$pagenum][$question->id]['istextessay'] = true;
                     break;
-                case QUESRADIO: // Radiobutton
-                case QUESCHECK: // Checkbox
-                case QUESDROP: // Select
-                case QUESRATE: // Rate 1-NN
+                case 4: // Radiobutton
+                case 5: // Checkbox
+                case 6: // Select
+                case 8: // Rate 1-NN
+
                     $excludes = [];
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                         ['question_id' => $question->id])) {
-                        if ($question->type_id == QUESRADIO) {
+                        if ($question->type_id == 4) {
                             $ret['questionsinfo'][$pagenum][$question->id]['isradiobutton'] = true;
                         }
-                        if ($question->type_id == QUESCHECK) {
+                        if ($question->type_id == 5) {
                             $ret['questionsinfo'][$pagenum][$question->id]['ischeckbox'] = true;
                         }
-                        if ($question->type_id == QUESDROP) {
+                        if ($question->type_id == 6) {
                             $ret['questionsinfo'][$pagenum][$question->id]['isselect'] = true;
                         }
-                        if ($question->type_id == QUESRATE) {
+                        if ($question->type_id == 8) {
                             $ret['questionsinfo'][$pagenum][$question->id]['israte'] = true;
                             $vals = $extracontents = [];
                             foreach ($items as $item) {
@@ -684,7 +685,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
-                case QUESPAGEBREAK:
+                case 99:
                     $ret['questionscount']--;
                     $ret['pagescount']++;
                     $pagenum++;
@@ -1780,7 +1781,7 @@ function get_mobile_response($userid, $rid = 0, $qid = 0) {
     }
 }
 
-function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnaireresponses = []) {
+function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
     global $DB;
     /**
          * need to change the page num based on 
@@ -1788,14 +1789,24 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
          * that's the logic I am thinking about
          * eg page num is 3 if you have never done a course
          */
-    // $quesitonnaireresponses = json_decode(json_decode($quesitonnaireresponses));
-
     if(!empty($questionnaire['questionsinfo'][1])) {
         $surveyinfo = $questionnaire['questionsinfo'][1];
         $surveyinfo = array_shift($surveyinfo);
         $sid = $surveyinfo['surveyid'];
 
     }
+    
+    /**
+     * logic for resuming questionnaire for mobile
+     */
+    $prevpage = 1;
+    $responses = $questionnaire['responses'];
+    foreach($responses as $key => $response) {
+        $args = explode('_', $key);
+        if($args[1] == 1 || $args[1] != $pagenum) {
+            $prevpage = (int)$args[1];
+        }
+    }    
 
     $questionnaire_dependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
     $non_dependent_questions = array();
@@ -1807,14 +1818,11 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
             'qnum' => $question['qnum']
         );
     }
-    
 
     foreach($questionnaire_dependency as $dependency) {
         if(!empty($non_dependent_questions[$dependency->questionid])) {
-            $dependency_questions[$dependency->questionid] = $non_dependent_questions[$dependency->questionid];
             unset($non_dependent_questions[$dependency->questionid]);
         }
-
         foreach($non_dependent_questions as $non_dependent) {
             if($questionnaire['answered'][$non_dependent['id']] === true) {
                 unset($non_dependent_questions[$non_dependent['id']]);
@@ -1832,43 +1840,36 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
                         $answereddependency = ($questionnaire['responses']['response_'.$dependency->id.'_'.$dependency->dependquestionid] == 'n' ? 1 : 0);
                         //the dependelogic is an id 0 = y and 1 = no, quesitonnaire is weird
                         if( $answereddependency == $dependency->dependlogic) {
-
                             //find next question that does not have dependency
                             $pagenums = array(
                                 'prevpage' => $pagenum - 1,
                                 'pagenum' => $pagenum,
-                                'nextpage' => $pagenum + 1,
+                                'nextpage' => $pagenum + 1 
                             );
-                            
                             return $pagenums;
-
                         } else {
 
                             $nextpage = array_shift(array_slice($non_dependent_questions, 1, 1, true));
                             $pagenum = array_shift($non_dependent_questions);
-
                             if($pagenum['qnum'] == 1) {
                                 $prevpage = null;
                                 $pagenum = 1;
                                 $nextpage = $nextpage['qnum'] - 1;
                             } else {
-                                $prevpage = $pagenum['qnum'] - 2; //fornow
                                 $pagenum = $pagenum['qnum'] - 1;
                                 $nextpage = $nextpage['qnum'] - 1;
                             }
-
                             $pagenums = array(
                                 'prevpage' => $prevpage,
                                 'pagenum' => $pagenum,
                                 'nextpage' => $nextpage,
                             );
-
                             return $pagenums;
                             //need to get page next page num without any dependencies
                         }
                     } else {
                         $pagenums = array(
-                            'prevpage' => $pagenum - 1,
+                            'prevpage' => $prevpage,
                             'pagenum' => $pagenum,
                             'nextpage' => $pagenum + 1,
                         );
@@ -1879,7 +1880,7 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $quesitonnairerespon
         }
     } else {
         $pagenums = array(
-            'prevpage' => $pagenum - 1,
+            'prevpage' => $prevpage,
             'pagenum' => $pagenum,
             'nextpage' => $pagenum + 1,
         );

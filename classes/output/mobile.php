@@ -62,7 +62,7 @@ class mobile {
         // Check for required fields filled
         $pagebreaks = false;
         $branching = check_mobile_branching_logic($questionnaire);
-        if($branching > 0) {
+        if($branching) {
             $pagebreaks = true;
         }
         /**
@@ -196,7 +196,7 @@ class mobile {
         }
         //getting js file ready for injection... thanks JJ
         $questionnairejs = '';
-        if($pagebreaks == true) {
+        if($pagebreaks == false) { //checking for pagebreaks
             $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
             $handle = fopen($questionnairejs, "r");
             $questionnairejs = fread($handle, filesize($questionnairejs));
@@ -208,7 +208,6 @@ class mobile {
             $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_branching_page';
         }
 
-        $data['responses2'] = json_encode( $questionnaire['responses'] ); //I have to encode it twice
         $data['pagebreak'] = $pagebreaks;
 
         return [
@@ -225,7 +224,6 @@ class mobile {
                 'questions' => json_encode($questionnaire['questions']),
                 'pagequestions' => json_encode($data['pagequestions']),
                 'responses' => json_encode($questionnaire['responses']),
-                'responses2' => json_encode($data['responses2']),
                 'pagenum' => $pagenum,
                 'nextpage' => $data['nextpage'],
                 'prevpage' => $data['prevpage'],
@@ -249,7 +247,7 @@ class mobile {
         require_capability($cap, $context);
     }
 
-    public static function next($args) {
+    public static function mobile_view_activity_branching($args) {
         global $OUTPUT, $USER, $CFG, $DB;
 
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
@@ -260,6 +258,7 @@ class mobile {
         $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
         $prevpage = 0;
         $quesitonnaireresponses = (!empty($args->responses)) ? $args->responses : [];
+        $branching = (isset($args->branching) && !empty($args->branching)) ? intval($args->branching) : 0;
         // Capabilities check.
         $cm = get_coursemodule_from_id('questionnaire', $cmid);
         $context = \context_module::instance($cmid);
@@ -270,10 +269,9 @@ class mobile {
         if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
             $prevpage = $pagenum-1;
         }
-        
 
         $branching = check_mobile_branching_logic($questionnaire);        
-        $pagenum = get_mobile_questionnaire($questionnaire, $pagenum);
+        $pagenum = get_mobile_questionnaire($questionnaire, $pagenum, $branching);
         $newpagenum = $pagenum['pagenum'];
         $newprevpagenum = $pagenum['prevpage'];
         $newnextpagenum = $pagenum['nextpage'];
@@ -354,7 +352,6 @@ class mobile {
             fclose($handle);
         }
 
-        $data['responses2'] = json_encode( $questionnaire['responses'] ); //I have to encode it twice
         $data['pagebreak'] = $pagebreaks;
 
         return [
@@ -371,14 +368,12 @@ class mobile {
                 'questions' => json_encode($questionnaire['questions']),
                 'pagequestions' => json_encode($data['pagequestions']),
                 'responses' => json_encode($questionnaire['responses']),
-                'responses2' => json_encode($data['responses2']),
                 'pagenum' => $pagenum,
                 'nextpage' => $newnextpagenum,
                 'prevpage' => $newprevpagenum,
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
-                'pagebreak' => false
             ],
             'files' => null
         ];
