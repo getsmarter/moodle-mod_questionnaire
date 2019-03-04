@@ -483,6 +483,9 @@ function get_questionnaire_data($cmid, $userid = false) {
             throw new \moodle_exception("invalidcoursemodule", "error");
         }
     }
+    $resumedsql = 'SELECT id FROM '
+    . '{questionnaire_response} '
+    . ' WHERE questionnaireid = ? AND userid = ? AND complete = ? AND submitted <= ?';
     $ret = [
         'questionnaire' => [
             'id' => $questionnaire->id,
@@ -508,6 +511,8 @@ function get_questionnaire_data($cmid, $userid = false) {
         'responses' => [],
         'questionscount' => 0,
         'pagescount' => 1,
+        'resumed' => $DB->get_records_sql($resumedsql, 
+            [$q->instance, $USER->id, 'n', ($time - (60 * 10))]),
     ];
     $sql = 'SELECT qq.*,qqt.response_table FROM '
         . '{questionnaire_question} qq LEFT JOIN {questionnaire_question_type} qqt '
@@ -1824,8 +1829,11 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
             unset($non_dependent_questions[$dependency->questionid]);
         }
         foreach($non_dependent_questions as $non_dependent) {
-            if($questionnaire['answered'][$non_dependent['id']] === true) {
+            if($questionnaire['answered'][$non_dependent['id']] === true && !empty($questionnaire['resumed'])) { //resuming questionnaire here
                 unset($non_dependent_questions[$non_dependent['id']]);
+            } else {
+                array_shift($non_dependent_questions);
+                break;
             }
         }
     }
