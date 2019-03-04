@@ -139,7 +139,7 @@ class mobile {
             $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
             $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
                 userdate($questionnaire['response']['submitted']) : '';
-            if (isset($questionnaire['questions'][$pagenum])) {
+            if (isset($questionnaire['questions'][$pagenum]) && !$branching) { //branching specific logic
                 $i = 0;
                 foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
                     if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
@@ -171,11 +171,58 @@ class mobile {
                 if ($prevpage) {
                     $data['prevpage'] = $prevpage;
                 }
+            } else {
+                
+                $pagecounter = 1;
+                foreach($questionnaire['questions'] as $question) {
+                    $i = 0;
+                    foreach ($questionnaire['questions'][$pagecounter] as $questionid => $choices) {
+                        // var_dump($questionnaire['questionsinfo'][$pagecounter][$questionid]);
+                        if (isset($questionnaire['questionsinfo'][$pagecounter][$questionid]) && !empty($questionnaire['questionsinfo'][$pagecounter][$questionid])) {
+                            $data['questions'][$pagecounter][$i]['info'] = $questionnaire['questionsinfo'][$pagecounter][$questionid];
+                            if ($data['questions'][$pagecounter][$i]['info']['required'] == 'n') {
+                                unset($data['questions'][$pagecounter][$i]['info']['required']);
+                            }
+                            $ii = 0;
+                            foreach ($choices as $k => $v) {
+                                $data['questions'][$pagecounter][$i]['choices'][$ii] = (array) $v;
+                                $ii++;
+                            }
+                            if (count($choices) == 1) {
+                                $data['questions'][$pagecounter][$i]['value'] = $data['questions'][$pagecounter][$i]['choices'][0]['value'];
+                            }
+                            $i++;
+                        }
+
+                        $pagecounter++;
+                        if($pagecounter > sizeof($questionnaire['questions'])){
+                            break; //exit condition
+                        }
+                    }
+                    
+                    $i = 0;
+                    $counter = 1;
+                    foreach($data['questions'] as $dataq){
+                        
+                        foreach ($dataq as $arr) {
+                            $data['pagequestions'][$i] = $arr;
+                            $i++;
+                            $counter++;
+                            if($counter > sizeof($questionnaire['questions'])){
+                                break; //exit condition
+                            }
+                        }
+                    }
+                }
+
+                $data['prevpage'] = 0;
+                $data['nextpage'] = 0;
             }
         } else {
             $data['emptypage'] = true;
             $data['emptypage_content'] = get_string('questionnaire:submit', 'questionnaire');
         }
+
         /**
          *let each pagequestions know it's current required step, and fill up the final required step
          *logic states that we get all the required steps and give them an counter,

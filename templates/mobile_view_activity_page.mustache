@@ -39,11 +39,11 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <%#pagebreak%>
+                                <%^pagebreak%>
                                     <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
                                     onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
                                 <%/pagebreak%>
-                                <%^pagebreak%>
+                                <%#pagebreak%>
                                     <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%></ion-option>
                                 <%/pagebreak%>
                             <%/choices%>
@@ -54,11 +54,11 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%#pagebreak%>
+                                    <%^pagebreak%>
                                         <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
                                         onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
                                     <%/pagebreak%>
-                                    <%^pagebreak%>
+                                    <%#pagebreak%>
                                         <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>"></ion-radio>
                                     <%/pagebreak%>
                                 </ion-item>
@@ -70,13 +70,13 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%#pagebreak%>
+                                    <%^pagebreak%>
                                         <ion-radio<%#value%> checked="true"<%/value%>
                                         value="<%choice_id%>"
                                         onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
                                         <%#completed%> disabled="true"<%/completed%>></ion-radio>
                                     <%/pagebreak%>
-                                    <%^pagebreak%>
+                                    <%#pagebreak%>
                                         <ion-radio<%#value%> checked="true"<%/value%>
                                         value="<%choice_id%>"
                                         <%#completed%> disabled="true"<%/completed%>></ion-radio>
@@ -91,8 +91,7 @@
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                 <ion-checkbox<%#value%> checked="true"<%/value%>
-                                value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>
-                                > onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-checkbox>
+                                value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>"</ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
