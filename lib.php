@@ -486,6 +486,7 @@ function get_questionnaire_data($cmid, $userid = false) {
     $resumedsql = 'SELECT id FROM '
     . '{questionnaire_response} '
     . ' WHERE questionnaireid = ? AND userid = ? AND complete = ? AND submitted <= ?';
+    $params = ['userid' => $userid, 'questionnaireid' => $q->instance, 'complete' => 'y'];
     $ret = [
         'questionnaire' => [
             'id' => $questionnaire->id,
@@ -513,6 +514,7 @@ function get_questionnaire_data($cmid, $userid = false) {
         'pagescount' => 1,
         'resumed' => $DB->get_records_sql($resumedsql, 
             [$q->instance, $USER->id, 'n', ($time - (60 * 10))]),
+        'completed' => $DB->record_exists('questionnaire_response', $params),
     ];
     $sql = 'SELECT qq.*,qqt.response_table FROM '
         . '{questionnaire_question} qq LEFT JOIN {questionnaire_question_type} qqt '

@@ -69,7 +69,6 @@ class mobile {
          * looks like the check for required fields is causing issues with the branching as well
          * just need to add branching logic based on input, easier said than done
          */
-
         // Check for required fields filled
         $break = false;
         if (($pagenum - 1) > 0 && isset($questionnaire['questions'][$pagenum - 1]) && !empty($questionnaire['questions'][$pagenum - 1])) {
@@ -139,7 +138,7 @@ class mobile {
             $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
             $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
                 userdate($questionnaire['response']['submitted']) : '';
-            if (isset($questionnaire['questions'][$pagenum]) && !$branching) { //branching specific logic
+            if (isset($questionnaire['questions'][$pagenum]) && $questionnaire['completed'] == false) { 
                 $i = 0;
                 foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
                     if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
@@ -171,8 +170,8 @@ class mobile {
                 if ($prevpage) {
                     $data['prevpage'] = $prevpage;
                 }
-            } else {
-                
+            } elseif( $branching && $questionnaire['completed'] == true) { //branching specific logic
+                //if we are branching and the questionnaire is complete, display all the responses on one page
                 $pagecounter = 1;
                 foreach($questionnaire['questions'] as $question) {
                     $i = 0;
