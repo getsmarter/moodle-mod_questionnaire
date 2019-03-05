@@ -138,7 +138,39 @@ class mobile {
             $data['completed'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ? 1 : 0;
             $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
                 userdate($questionnaire['response']['submitted']) : '';
-            if (isset($questionnaire['questions'][$pagenum]) && $questionnaire['completed'] == false) { 
+            if (isset($questionnaire['questions'][$pagenum]) && $branching == false) { 
+                $i = 0;
+                foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
+                    if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
+                        $data['questions'][$pagenum][$i]['info'] = $questionnaire['questionsinfo'][$pagenum][$questionid];
+                        if ($data['questions'][$pagenum][$i]['info']['required'] == 'n') {
+                            unset($data['questions'][$pagenum][$i]['info']['required']);
+                        }
+                        $ii = 0;
+                        foreach ($choices as $k => $v) {
+                            $data['questions'][$pagenum][$i]['choices'][$ii] = (array) $v;
+                            $ii++;
+                        }
+                        if (count($choices) == 1) {
+                            $data['questions'][$pagenum][$i]['value'] = $data['questions'][$pagenum][$i]['choices'][0]['value'];
+                        }
+                        $i++;
+                    }
+                }
+                if (isset($data['questions'][$pagenum]) && !empty($data['questions'][$pagenum])) {
+                    $i = 0;
+                    foreach ($data['questions'][$pagenum] as $arr) {
+                        $data['pagequestions'][$i] = $arr;
+                        $i++;
+                    }
+                }
+                if (isset($questionnaire['questions'][$pagenum+1]) && !empty($questionnaire['questions'][$pagenum+1])) {
+                    $data['nextpage'] = $pagenum+1;
+                }
+                if ($prevpage) {
+                    $data['prevpage'] = $prevpage;
+                }
+            } elseif(isset($questionnaire['questions'][$pagenum]) && $branching == true && $questionnaire['completed'] == false ) {
                 $i = 0;
                 foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
                     if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
@@ -176,7 +208,6 @@ class mobile {
                 foreach($questionnaire['questions'] as $question) {
                     $i = 0;
                     foreach ($questionnaire['questions'][$pagecounter] as $questionid => $choices) {
-                        // var_dump($questionnaire['questionsinfo'][$pagecounter][$questionid]);
                         if (isset($questionnaire['questionsinfo'][$pagecounter][$questionid]) && !empty($questionnaire['questionsinfo'][$pagecounter][$questionid])) {
                             $data['questions'][$pagecounter][$i]['info'] = $questionnaire['questionsinfo'][$pagecounter][$questionid];
                             if ($data['questions'][$pagecounter][$i]['info']['required'] == 'n') {
@@ -243,10 +274,7 @@ class mobile {
         //getting js file ready for injection... thanks JJ
         $questionnairejs = '';
         if($pagebreaks == false) { //checking for pagebreaks
-            $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
-            $handle = fopen($questionnairejs, "r");
-            $questionnairejs = fread($handle, filesize($questionnairejs));
-            fclose($handle);
+            $questionnairejs = file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js');
         }
 
         $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
