@@ -16,9 +16,8 @@
 }}
 {{=<% %>=}}
 <div>
-    <core-course-module-description description="<%questionnaire.questionnaire.intro%>"
-                                    component="mod_questionnaire" componentId="<%cmid%>"
-                                    pagenum="<%pagenum%>"></core-course-module-description>
+    <core-course-module-description description="<%questionnaire.questionnaire.intro%>">
+    </core-course-module-description>
     <%#completed%>
     <ion-card>
         <ion-card-content>
@@ -39,11 +38,11 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <%^pagebreak%>
+                                <%#pagebreak%>
                                     <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
                                     onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
                                 <%/pagebreak%>
-                                <%#pagebreak%>
+                                <%^pagebreak%>
                                     <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%></ion-option>
                                 <%/pagebreak%>
                             <%/choices%>
@@ -54,11 +53,11 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%^pagebreak%>
+                                    <%#pagebreak%>
                                         <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
                                         onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
                                     <%/pagebreak%>
-                                    <%#pagebreak%>
+                                    <%^pagebreak%>
                                         <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>"></ion-radio>
                                     <%/pagebreak%>
                                 </ion-item>
@@ -70,13 +69,13 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%^pagebreak%>
+                                    <%#pagebreak%>
                                         <ion-radio<%#value%> checked="true"<%/value%>
                                         value="<%choice_id%>"
                                         onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
                                         <%#completed%> disabled="true"<%/completed%>></ion-radio>
                                     <%/pagebreak%>
-                                    <%#pagebreak%>
+                                    <%^pagebreak%>
                                         <ion-radio<%#value%> checked="true"<%/value%>
                                         value="<%choice_id%>"
                                         <%#completed%> disabled="true"<%/completed%>></ion-radio>
@@ -86,13 +85,13 @@
                         </ion-list>
                     <%/info.isradiobutton%>
                     <%#info.ischeckbox%>
-                        <ion-list item-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
+                        <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                         <%#choices%>
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                 <ion-checkbox>
                                 value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>
-                                </ion-checkbox>
+                                > onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
@@ -131,7 +130,7 @@
             <%/emptypage%>
             <%#prevpage%>
                 <button ion-button item-end outline icon-start block core-site-plugins-call-ws-new-content
-                        name="mod_questionnaire_submit_questionnaire_response"
+                        name="mod_questionnaire_submit_questionnaire_branching"
                         [params]="{
                                         questionnaireid: <%questionnaire.questionnaire.id%>,
                                         surveyid: <%questionnaire.questionnaire.questionnaireid%>,
@@ -144,10 +143,10 @@
                                     }"
                         [args]="{
                                         cmid: <%cmid%>,
-                                        pagenum: <%prevpage%>
+                                        pagenum: CONTENT_OTHERDATA.prevpage
                                     }"
                         type="submit"
-                ><ion-icon name="arrow-back"></ion-icon> {{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
+                ><ion-icon name="arrow-back"></ion-icon>{{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
             <%/prevpage%>
             <%#nextpage%>
                 <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content

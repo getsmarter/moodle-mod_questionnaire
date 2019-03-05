@@ -130,4 +130,69 @@ class mod_questionnaire_external extends \external_api {
             ]
         );
     }
+
+    public static function submit_questionnaire_branching_parameters() {
+        return new \external_function_parameters(
+            [
+                'questionnaireid' => new \external_value(PARAM_INT, 'Questionnaire instance id'),
+                'surveyid' => new \external_value(PARAM_INT, 'Survey id'),
+                'userid' => new \external_value(PARAM_INT, 'User id'),
+                'cmid' => new \external_value(PARAM_INT, 'Course module id'),
+                'sec' => new \external_value(PARAM_INT, 'Section number'),
+                'completed' => new \external_value(PARAM_INT, 'Completed survey or not'),
+                'submit' => new \external_value(PARAM_INT, 'Submit survey or not'),
+                'responses' => new \external_multiple_structure(
+                    new \external_single_structure(
+                        [
+                            'name' => new \external_value(PARAM_RAW, 'data key'),
+                            'value' => new \external_value(PARAM_RAW, 'data value')
+                        ]
+                    ),
+                    'The data to be saved', VALUE_DEFAULT, []
+                )
+            ]
+        );
+    }
+
+    public static function submit_questionnaire_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses) {
+
+        $params = self::validate_parameters(self::submit_questionnaire_response_parameters(),
+            [
+                'questionnaireid' => $questionnaireid,
+                'surveyid' => $surveyid,
+                'userid' => $userid,
+                'cmid' => $cmid,
+                'sec' => $sec,
+                'completed' => $completed,
+                'submit' => $submit,
+                'responses' => $responses
+            ]
+        );
+
+        if (!$questionnaire = get_questionnaire($params['questionnaireid'])) {
+            throw new \moodle_exception("invalidcoursemodule", "error");
+        }
+        list($course, $cm) = get_course_and_cm_from_instance($questionnaire, 'questionnaire');
+
+        $context = \context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/questionnaire:submit', $context);
+
+        $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses);
+
+        $result['submitted'] = false;
+        $result['warnings'] = [];
+        return $result;
+    }
+
+    public static function submit_questionnaire_branching_returns() {
+        return new \external_single_structure(
+            [
+                'submitted' => new \external_value(PARAM_BOOL, 'submitted', true, false, false),
+                'warnings' => new \external_warnings(), 
+                'params' => new \external_warnings(),
+            ]
+        );
+    }
 }
