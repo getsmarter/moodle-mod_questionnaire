@@ -1889,7 +1889,7 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
         }
     } else {
         $pagenums = array(
-            'prevpage' => $prevpage,
+            'prevpage' => $pagenum - 1,
             'pagenum' => $pagenum,
             'nextpage' => $pagenum + 1,
         );

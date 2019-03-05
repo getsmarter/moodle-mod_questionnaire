@@ -86,7 +86,7 @@
                         </ion-list>
                     <%/info.isradiobutton%>
                     <%#info.ischeckbox%>
-                        <ion-list checkbox-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
+                        <ion-list item-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                         <%#choices%>
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>

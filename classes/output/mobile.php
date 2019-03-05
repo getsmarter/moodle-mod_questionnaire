@@ -139,7 +139,6 @@ class mobile {
             $data['complete_userdate'] = (isset($questionnaire['response']['complete']) && $questionnaire['response']['complete'] == 'y') ?
                 userdate($questionnaire['response']['submitted']) : '';
             if (isset($questionnaire['questions'][$pagenum]) && $branching == false) { 
-
                 $i = 0;
                 foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
                     if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
@@ -172,7 +171,6 @@ class mobile {
                     $data['prevpage'] = $prevpage;
                 }
             } elseif(isset($questionnaire['questions'][$pagenum]) && $branching == true && $questionnaire['completed'] == false ) {
-
                 $i = 0;
                 foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
                     if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
