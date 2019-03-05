@@ -735,22 +735,25 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     if ($value->choice_id == 'y') {
                                                         $ret['questions'][$pagenum][$questionid][1]->value = 'y';
                                                         $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'y';
-                                                        // $ret['responses'][$questionid]['response'] = 'y';
                                                     } else {
                                                         $ret['questions'][$pagenum][$questionid][0]->value = 'n';
                                                         $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'n';
-                                                        // $ret['responses'][$questionid]['response'] = 'n';
                                                     }
                                                 }
                                             }
                                             break;
                                         case 2: // Text
+                                            if (isset($value->response) && !empty($value->response)) {
+                                                $ret['answered'][$questionid] = true;
+                                                $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
+                                                $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
+                                            }
+                                            break;
                                         case 3: // Essay
                                             if (isset($value->response) && !empty($value->response)) {
                                                 $ret['answered'][$questionid] = true;
                                                 $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
                                                 $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
-                                                // $ret['responses'][$questionid]['response'] = $value->response;
                                             }
                                             break;
                                         case 4: // Radiobutton
@@ -763,7 +766,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                             $ret['answered'][$questionid] = true;
                                                             $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
                                                             $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = intval($item->id);
-                                                            // $ret['responses'][$questionid]['response'] = intval($item->id);
                                                         }
                                                     }
                                                 }
@@ -779,7 +781,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                             $ret['answered'][$questionid] = true;
                                                             $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
                                                             $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = intval($item->id);
-                                                            // $ret['responses'][$questionid]['response'] = intval($item->id);
                                                         }
                                                     }
                                                 }
@@ -794,7 +795,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                             $ret['answered'][$questionid] = true;
                                                             $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
                                                             $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = intval($item->id);
-                                                            // $ret['responses'][$questionid]['response'] = intval($item->id);
                                                         }
                                                     }
                                                 }
@@ -935,7 +935,6 @@ function save_questionnaire_data($questionnaireid, $surveyid, $userid, $cmid, $s
 }
 
 function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, array $responses) {
-
     global $DB, $CFG; //do not delete $CFG!!!
     $ret = [
         'responses' => [],

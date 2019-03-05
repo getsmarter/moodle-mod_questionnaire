@@ -86,12 +86,13 @@
                         </ion-list>
                     <%/info.isradiobutton%>
                     <%#info.ischeckbox%>
-                        <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
+                        <ion-list checkbox-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                         <%#choices%>
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                <ion-checkbox<%#value%> checked="true"<%/value%>
-                                value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>"</ion-checkbox>
+                                <ion-checkbox>
+                                value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>
+                                </ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
@@ -150,8 +151,9 @@
             <%/prevpage%>
             <%#nextpage%>
                 <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content
-                        name="mod_questionnaire_submit_questionnaire_response"
-                        [params]="{
+                    name="mod_questionnaire_submit_questionnaire_branching"
+                    method="mobile_view_activity_branching"
+                    [params]="{
                                         questionnaireid: <%questionnaire.questionnaire.id%>,
                                         surveyid: <%questionnaire.questionnaire.questionnaireid%>,
                                         userid: <%userid%>,
@@ -161,11 +163,11 @@
                                         submit: 0,
                                         responses: CoreUtilsProvider.objectToArrayOfObjects(CONTENT_OTHERDATA.responses, 'name', 'value')
                                     }"
-                        [args]="{
+                    [args]="{
                                         cmid: <%cmid%>,
                                         pagenum: <%nextpage%>
                                     }"
-                        type="submit"
+                    type="submit"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
