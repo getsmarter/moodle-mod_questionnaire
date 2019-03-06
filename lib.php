@@ -1845,8 +1845,7 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
             if( $question['qnum'] == $pagenum ) {
                 foreach($questionnaire_dependency as $dependency) {
                     if($dependency->questionid == $question['id']) {
-
-                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->id.'_'.$dependency->dependquestionid] == 'n' ? 1 : 0);
+                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->dependchoiceid.'_'.$dependency->dependquestionid] == 'n' ? 1 : 0);
                         //the dependelogic is an id 0 = y and 1 = no, quesitonnaire is weird
                         if( $answereddependency == $dependency->dependlogic) {
                             //find next question that does not have dependency
@@ -1857,7 +1856,6 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
                             );
                             return $pagenums;
                         } else {
-
                             $nextpage = array_shift(array_slice($non_dependent_questions, 1, 1, true));
                             $pagenum = array_shift($non_dependent_questions);
                             if($pagenum['qnum'] == 1) {
