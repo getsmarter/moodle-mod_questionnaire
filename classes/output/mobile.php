@@ -223,25 +223,22 @@ class mobile {
                             }
                             $i++;
                         }
-
-                        $pagecounter++;
                         if($pagecounter > sizeof($questionnaire['questions'])){
                             break; //exit condition
                         }
                     }
-                    
-                    $i = 0;
-                    $counter = 1;
+                    $pagecounter++;
+                    $x = 0;
+                    $questioncounter = 1;
                     foreach($data['questions'] as $dataq){
-                        
                         foreach ($dataq as $arr) {
-                            $data['pagequestions'][$i] = $arr;
-                            $i++;
-                            $counter++;
-                            if($counter > sizeof($questionnaire['questions'])){
+                            $data['pagequestions'][$x] = $arr;
+                            $x++;
+                            if($questioncounter >= sizeof($questionnaire['questions'])){
                                 break; //exit condition
                             }
                         }
+                        $questioncounter++;
                     }
                 }
 
@@ -419,12 +416,8 @@ class mobile {
         $questionnairejs = '';
         $pagebreaks = false;
         if($pagebreaks == true) {
-            $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
-            $handle = fopen($questionnairejs, "r");
-            $questionnairejs = fread($handle, filesize($questionnairejs));
-            fclose($handle);
+            $questionnairejs = file_get_contents('/mod/questionnaire/javascript/mobile_questionnaire.js');
         }
-
         $data['pagebreak'] = $pagebreaks;
 
         return [

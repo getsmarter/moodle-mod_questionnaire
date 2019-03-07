@@ -590,23 +590,86 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $ret['questionsinfo'][$pagenum][$question->id]['istextessay'] = true;
                     break;
                 case 4: // Radiobutton
-                case 5: // Checkbox
-                case 6: // Select
-                case 8: // Rate 1-NN
+                    $ret['questionsinfo'][$pagenum][$question->id]['isradiobutton'] = true;
+                    if ($items = $DB->get_records('questionnaire_quest_choice',
+                    ['question_id' => $question->id])) {
 
+                        foreach ($items as $item) {
+                            if (!in_array($item->id, $excludes)) {
+                                $item->choice_id = $item->id;
+                                if ($item->value == null) {
+                                    $item->value = '';
+                                }
+                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                                if ($question->type_id != 8) {
+                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
+                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
+                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
+                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
+                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 5: // Checkbox
+                    $ret['questionsinfo'][$pagenum][$question->id]['ischeckbox'] = true;
+            
+                    if ($items = $DB->get_records('questionnaire_quest_choice',
+                    ['question_id' => $question->id])) {
+
+                        foreach ($items as $item) {
+                            if (!in_array($item->id, $excludes)) {
+                                $item->choice_id = $item->id;
+                                if ($item->value == null) {
+                                    $item->value = '';
+                                }
+                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                                if ($question->type_id != 8) {
+                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
+                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
+                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
+                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
+                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 6: // Select
+                    $ret['questionsinfo'][$pagenum][$question->id]['isselect'] = true;
+                
+                    if ($items = $DB->get_records('questionnaire_quest_choice',
+                    ['question_id' => $question->id])) {
+
+                        foreach ($items as $item) {
+                            if (!in_array($item->id, $excludes)) {
+                                $item->choice_id = $item->id;
+                                if ($item->value == null) {
+                                    $item->value = '';
+                                }
+                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                                if ($question->type_id != 9) {
+                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
+                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
+                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
+                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
+                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 8: // Rate 1-NN
                     $excludes = [];
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                         ['question_id' => $question->id])) {
-                        if ($question->type_id == 4) {
-                            $ret['questionsinfo'][$pagenum][$question->id]['isradiobutton'] = true;
-                        }
-                        if ($question->type_id == 5) {
-                            $ret['questionsinfo'][$pagenum][$question->id]['ischeckbox'] = true;
-                        }
-                        if ($question->type_id == 6) {
-                            $ret['questionsinfo'][$pagenum][$question->id]['isselect'] = true;
-                        }
-                        if ($question->type_id == 8) {
                             $ret['questionsinfo'][$pagenum][$question->id]['israte'] = true;
                             $vals = $extracontents = [];
                             foreach ($items as $item) {
@@ -671,7 +734,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                 $extrahtml .= '</ul>';
                                 $ret['questionsinfo'][$pagenum][$question->id]['content'] .= format_text($extrahtml, FORMAT_HTML, $options);
                             }
-                        }
+                        
                         foreach ($items as $item) {
                             if (!in_array($item->id, $excludes)) {
                                 $item->choice_id = $item->id;
@@ -819,6 +882,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     }
                                                 }
                                             }
+                                        default:
                                             break;
                                     }
                                 }
@@ -966,12 +1030,41 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                         unset($missingquestions[$rquestionid]);
                         if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
                             if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
-                                $questionobj = \mod_questionnaire\question\base::question_builder(
+                                if( $typeid == 5) { //if checkbox handle differently because we need to check if question value is set to true
+                                    if (isset($args[3]) && !empty($args[3])) {
+                                        $choiceid = intval($args[3]);
+                                        $rec = new \stdClass();
+                                        $rec->response_id = $rid;
+                                        $rec->question_id = intval($rquestionid);
+                                        $rec->choice_id = $choiceid;
+                                        $DB->insert_record('questionnaire_resp_multiple', $rec);
+                                    }
+                                } elseif($typeid == 8) { //questionranking saving
+                                    if (isset($args[3]) && !empty($args[3])) {
+                                        $choiceid = intval($args[3]);
+                                        $value = intval($response['value']) - 1;
+                                        $rec = new \stdClass();
+                                        $rec->response_id = $rid;
+                                        $rec->question_id = intval($rquestionid);
+                                        $rec->choice_id = $choiceid;
+                                        $rec->rankvalue = $value;
+                                        if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['precise'] == 1) {
+                                            if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max) {
+                                                $rec->rank = -1;
+                                            }
+                                        }
+                                        $DB->insert_record('questionnaire_response_rank', $rec);
+                                    }
+                                } else {
+                                    $questionobj = \mod_questionnaire\question\base::question_builder(
                                     $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
                                     $questionnairedata['questionsinfo'][$sec][$rquestionid]);
                                     if ($questionobj->insert_response($rid, $response['value'])) {
                                         $ret['responses'][$rid][$questionid] = $response['value'];
                                     }
+                                }
+
+                                
                             } else {
                                 $missingquestions[$rquestionid] = $rquestionid;
                             }
