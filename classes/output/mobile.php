@@ -419,12 +419,8 @@ class mobile {
         $questionnairejs = '';
         $pagebreaks = false;
         if($pagebreaks == true) {
-            $questionnairejs = $CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js';
-            $handle = fopen($questionnairejs, "r");
-            $questionnairejs = fread($handle, filesize($questionnairejs));
-            fclose($handle);
+            $questionnairejs = file_get_contents('/mod/questionnaire/javascript/mobile_questionnaire.js');
         }
-
         $data['pagebreak'] = $pagebreaks;
 
         return [
