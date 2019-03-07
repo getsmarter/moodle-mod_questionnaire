@@ -223,25 +223,22 @@ class mobile {
                             }
                             $i++;
                         }
-
-                        $pagecounter++;
                         if($pagecounter > sizeof($questionnaire['questions'])){
                             break; //exit condition
                         }
                     }
-                    
-                    $i = 0;
-                    $counter = 1;
+                    $pagecounter++;
+                    $x = 0;
+                    $questioncounter = 1;
                     foreach($data['questions'] as $dataq){
-                        
                         foreach ($dataq as $arr) {
-                            $data['pagequestions'][$i] = $arr;
-                            $i++;
-                            $counter++;
-                            if($counter > sizeof($questionnaire['questions'])){
+                            $data['pagequestions'][$x] = $arr;
+                            $x++;
+                            if($questioncounter >= sizeof($questionnaire['questions'])){
                                 break; //exit condition
                             }
                         }
+                        $questioncounter++;
                     }
                 }
 

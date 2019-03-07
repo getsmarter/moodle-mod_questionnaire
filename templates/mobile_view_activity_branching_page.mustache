@@ -87,10 +87,13 @@
                     <%#info.ischeckbox%>
                         <ion-list>
                         <%#choices%>
+                        
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" value="<%choice_id%>">
-                                </ion-checkbox>
+                                    <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
+                                        <%#completed%>disabled="true"<%/completed%>
+                                        <%#value%>checked="true"<%/value%>
+                                    ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
