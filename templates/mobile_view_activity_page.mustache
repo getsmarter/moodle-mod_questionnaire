@@ -86,13 +86,14 @@
                         </ion-list>
                     <%/info.isradiobutton%>
                     <%#info.ischeckbox%>
-                        <ion-list item-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
+                       <ion-list>
                         <%#choices%>
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                <ion-checkbox>
-                                value="<%choice_id%>"<%#completed%> disabled="true"<%/completed%>
-                                </ion-checkbox>
+                                    <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
+                                        <%#completed%>disabled="true"<%/completed%>
+                                        <%#value%>checked="true" class="questionnaire-checkbox-checked"<%/value%>
+                                    ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
@@ -110,16 +111,17 @@
                                 <core-format-text text="<%content%>"></core-format-text>
                                 <ion-badge item-end>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
                             </ion-list-header>
-                            <span onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
-                                <ion-item>
-                                    <ion-range min="<%min%>" max="<%max%>"
-                                                snaps="true" pin="true" color="secondary"
-                                                [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']">
+                            <ion-item>
+                                <ion-range min="<%min%>" max="<%max%>"
+                                    snaps="true" pin="true" color="secondary"
+                                    [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']"
+                                    value="1"
+                                    <%#value%> disabled <%/value%>
+                                    >
                                     <ion-label range-left><%minstr%></ion-label>
                                     <ion-label range-right><%#na%><ion-icon name="eye-off"></ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
-                                    </ion-range>
-                                </ion-item>
-                            </span>
+                                </ion-range>
+                            </ion-item>
                         <%/choices%>
                     <%/info.israte%>
                 <%/pagequestions%>
@@ -190,6 +192,7 @@
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
+            <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}"></div>
             </ion-list>
         </ion-card>
     </div>
