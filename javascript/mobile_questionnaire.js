@@ -1,12 +1,19 @@
 setTimeout(function() { 
     var button = document.getElementsByClassName("button button-md button-default button-default-md button-block button-block-md");
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    var allRangeCheck = document.getElementsByClassName("hidden-submit-button-check-false");
+
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && allRangeCheck.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     }
     var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e, requiredInputs);
     };
+    var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked');
+    for(var i = 0; i < checkboxes.length; i++) {  
+        checkboxes[i].childNodes[0].className+= ' ' + 'checkbox-checked';
+    };
+
 }, 300);
 
 function checkIfFinalRequiredResponse (e, requiredInputs) {
