@@ -244,6 +244,7 @@ class mobile {
 
                 $data['prevpage'] = 0;
                 $data['nextpage'] = 0;
+                $pagebreaks = false;
             }
         } else {
             $data['emptypage'] = true;
@@ -258,15 +259,23 @@ class mobile {
         */
         $currentrequiredresponse = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
-            
             if($pagequestion['info']['required'] == 'y') {
                 $currentrequiredresponse++;
                 $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
             }
         }
         //let each pagequestions know what the final required field is 
+        $disableSaveButton = true;
+        $questionCounter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
+            if( $pagequestion['info']['type_id'] == 8) {//rate range slider only
+                $questionCounter++;
+            }
+        }
+
+        if($questionCounter == sizeof($data['pagequestions'])) {
+            $disableSaveButton = false;
         }
         //getting js file ready for injection... thanks JJ
         $questionnairejs = '';
@@ -301,6 +310,7 @@ class mobile {
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
+                'disable_save' => $disableSaveButton,
             ],
             'files' => null
         ];
