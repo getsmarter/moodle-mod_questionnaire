@@ -111,7 +111,8 @@
                         <%#choices%>
                             <ion-list-header text-wrap>
                                 <core-format-text text="<%content%>"></core-format-text>
-                                <ion-badge item-end>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
+                                <ion-badge item-end <%#na%>class="na-applicable"<%/na%>>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
+                                <span class="range-ranges">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</span>
                             </ion-list-header>
                             <ion-item>
                                 <ion-range min="<%min%>" max="<%max%>"
@@ -121,7 +122,7 @@
                                     <%#value%> disabled <%/value%>
                                     >
                                     <ion-label range-left><%minstr%></ion-label>
-                                    <ion-label range-right><%#na%><ion-icon name="eye-off"></ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
+                                    <ion-label range-right><%#na%><ion-icon name="eye-off">n/a</ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
                                 </ion-range>
                             </ion-item>
                         <%/choices%>
