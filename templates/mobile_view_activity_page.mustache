@@ -109,7 +109,7 @@
                         <%#choices%>
                             <ion-list-header text-wrap>
                                 <core-format-text text="<%content%>"></core-format-text>
-                                <ion-badge item-end <%#na%>class="na-applicable"<%/na%> data-final="<%max%>">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
+                                <ion-badge item-end <%#na%>class="na-applicable <%#value%>na-completed<%/value%>" <%/na%> data-final="<%max%>">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
                                 <span class="range-ranges">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</span>
                             </ion-list-header>
                             <ion-item>
