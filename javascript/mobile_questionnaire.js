@@ -1,18 +1,12 @@
 setTimeout(function() { 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
     var allRangeCheck = document.getElementsByClassName('hidden-submit-button-check-false');
-    var rangeSliderNaCheck = document.getElementById('range-ranges');
     var allSliders = document.getElementsByClassName('range range-md');
 
     if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && allRangeCheck.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     }
-    if(typeof(rangeSliderNaCheck) != 'undefined' && typeof(rangeSliderNaCheck) != null) {
-        var allNaApplicableSliders = document.getElementsByClassName('na-applicable');
-        for(var x = 0; x < allNaApplicableSliders.length; x++) {
-            allNaApplicableSliders[x].innerHTML = 'n/a';
-        }
-    }
+
     var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e, requiredInputs);
@@ -26,14 +20,17 @@ setTimeout(function() {
     var observerOptions = {
       childList: true,
       attributes: true,
-      subtree: true //Omit or set to false to observe only changes to the parent node.
+      subtree: true, //Omit or set to false to observe only changes to the parent node.
+      characterData: true,
     }
 
-    for(x = 0; x < targetNodes.length; x++) {
-        var observer = new MutationObserver(callback);
-        observer.observe(targetNodes[x], observerOptions);
+    var allNaApplicableSliders = document.getElementsByClassName('na-applicable');
+    if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
+        for(var x = 0; x < allNaApplicableSliders.length; x++) {
+            var observer = new MutationObserver(callback);
+            observer.observe(allNaApplicableSliders[x], observerOptions);
+        }
     }
-
     
 
     }, 300);
@@ -67,18 +64,12 @@ function checkIfFinalRequiredResponse (e, requiredInputs) {
 function callback(mutationList, observer) {
   mutationList.forEach((mutation) => {
     switch(mutation.type) {
-      case 'childList':
-      console.log('childlist');
-        /* One or more children have been added to and/or removed
-           from the tree; see mutation.addedNodes and
-           mutation.removedNodes */
-        break;
-      case 'attributes':
-      console.log('childlist');
-        /* An attribute value changed on the element in
-           mutation.target; the attribute name is in
-           mutation.attributeName and its previous value is in
-           mutation.oldValue */
+        case 'characterData':
+        var restingNaValue = mutation.target.parentElement.getAttribute('data-final');
+        var currentNaValue = mutation.target.data;
+        if(currentNaValue == restingNaValue) {
+            mutation.target.data = 'n/a';
+        }
         break;
     }
   });
