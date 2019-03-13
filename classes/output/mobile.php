@@ -285,11 +285,6 @@ class mobile {
         if($questionCounter == sizeof($data['pagequestions'])) {
             $disableSaveButton = false;
         }
-        //getting js file ready for injection... thanks JJ
-        $questionnairejs = '';
-        // if($pagebreaks == false) { //checking for pagebreaks
-            $questionnairejs = file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js');
-        // }
 
         $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
         if($branching) {
@@ -305,7 +300,7 @@ class mobile {
                     'html' => $OUTPUT->render_from_template($mobileviewactivity, $data)
                 ],
             ],
-            'javascript' => $questionnairejs,
+            'javascript' => file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js'),
             'otherdata' => [
                 'fields' => json_encode($questionnaire['fields']),
                 'questionsinfo' => json_encode($questionnaire['questionsinfo']),
@@ -439,11 +434,7 @@ class mobile {
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
         }
-        //getting js file ready for injection... thanks JJ
-        $questionnairejs = '';
-        // if($pagebreaks == false) {
-        $questionnairejs = file_get_contents('/mod/questionnaire/javascript/mobile_questionnaire.js');
-        // }
+
         $data['pagebreak'] = $pagebreaks;
 
         return [
@@ -453,7 +444,7 @@ class mobile {
                     'html' => $OUTPUT->render_from_template('mod_questionnaire/mobile_view_activity_branching_page', $data)
                 ],
             ],
-            'javascript' => $questionnairejs,
+            'javascript' => file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js'),
             'otherdata' => [
                 'fields' => json_encode($questionnaire['fields']),
                 'questionsinfo' => json_encode($questionnaire['questionsinfo']),
