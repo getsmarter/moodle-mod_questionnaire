@@ -33,13 +33,21 @@ class mobile {
      * @return array HTML, javascript and other data
      */
     public static function mobile_view_activity($args) {
-        global $OUTPUT, $USER, $CFG, $DB;
+        global $OUTPUT, $USER, $CFG, $DB, $SESSION;
 
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
         $args = (object) $args;
         $cmid = $args->cmid;
         $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
-        $prevpage = 0;
+        $prevpage = $SESSION->prevpage;
+        if(!$prevpage) {
+            $SESSION->prevpage = $pagenum;
+            if($pagenum == 1) {
+                $prevpage = 0;
+            } else {
+                $prevpage = $pagenum;
+            }
+        }
         // Capabilities check.
         $cm = get_coursemodule_from_id('questionnaire', $cmid);
         $context = \context_module::instance($cmid);
@@ -277,11 +285,6 @@ class mobile {
         if($questionCounter == sizeof($data['pagequestions'])) {
             $disableSaveButton = false;
         }
-        //getting js file ready for injection... thanks JJ
-        $questionnairejs = '';
-        if($pagebreaks == false) { //checking for pagebreaks
-            $questionnairejs = file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js');
-        }
 
         $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
         if($branching) {
@@ -297,7 +300,7 @@ class mobile {
                     'html' => $OUTPUT->render_from_template($mobileviewactivity, $data)
                 ],
             ],
-            'javascript' => $questionnairejs,
+            'javascript' => file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js'),
             'otherdata' => [
                 'fields' => json_encode($questionnaire['fields']),
                 'questionsinfo' => json_encode($questionnaire['questionsinfo']),
@@ -329,7 +332,7 @@ class mobile {
     }
 
     public static function mobile_view_activity_branching($args) {
-        global $OUTPUT, $USER, $CFG, $DB;
+        global $OUTPUT, $USER, $CFG, $DB, $SESSION;
 
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
         require_once($CFG->dirroot . '/mod/questionnaire/lib.php');
@@ -337,7 +340,15 @@ class mobile {
         $args = (object) $args;
         $cmid = $args->cmid;
         $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
-        $prevpage = 0;
+        $prevpage = $SESSION->prevpage;
+        if(!$prevpage) {
+            $SESSION->prevpage = $pagenum;
+            if($pagenum == 1) {
+                $prevpage = 0;
+            } else {
+                $prevpage = $pagenum;
+            }
+        }
         $quesitonnaireresponses = (!empty($args->responses)) ? $args->responses : [];
         $branching = (isset($args->branching) && !empty($args->branching)) ? intval($args->branching) : 0;
         // Capabilities check.
@@ -353,7 +364,7 @@ class mobile {
         $branching = check_mobile_branching_logic($questionnaire);        
         $pagenum = get_mobile_questionnaire($questionnaire, $pagenum, $branching);
         $newpagenum = $pagenum['pagenum'];
-        $newprevpagenum = $pagenum['prevpage'];
+        $newprevpagenum = $prevpage;
         $newnextpagenum = $pagenum['nextpage'];
         $pagenum = $newpagenum;
 
@@ -422,12 +433,7 @@ class mobile {
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
         }
-        //getting js file ready for injection... thanks JJ
-        $questionnairejs = '';
-        $pagebreaks = false;
-        if($pagebreaks == true) {
-            $questionnairejs = file_get_contents('/mod/questionnaire/javascript/mobile_questionnaire.js');
-        }
+
         $data['pagebreak'] = $pagebreaks;
 
         return [
@@ -437,7 +443,7 @@ class mobile {
                     'html' => $OUTPUT->render_from_template('mod_questionnaire/mobile_view_activity_branching_page', $data)
                 ],
             ],
-            'javascript' => $questionnairejs,
+            'javascript' => file_get_contents($CFG->dirroot . '/mod/questionnaire/javascript/mobile_questionnaire.js'),
             'otherdata' => [
                 'fields' => json_encode($questionnaire['fields']),
                 'questionsinfo' => json_encode($questionnaire['questionsinfo']),
