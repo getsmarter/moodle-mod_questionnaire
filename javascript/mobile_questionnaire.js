@@ -1,4 +1,5 @@
-setTimeout(function() { 
+setTimeout(function() {
+
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
     var allRangeCheck = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
@@ -19,12 +20,16 @@ setTimeout(function() {
     var allNaApplicableSliders = document.getElementsByClassName('na-applicable');
     if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
         var completedSliders = document.getElementsByClassName('na-applicable na-completed');
-
         if(typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
-            for(var i = 0; i < completedSliders.length; i++) {
-                completedSliders[i].innerHTML = 'n/a';
+            for(var i = 0; i < completedSliders.length; i++){
+                for(var x = 0; x < allSliders.length; x++) {
+                    if(allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
+                        completedSliders[x].innerHTML = 'N/A';
+                    }
+                }
+                break;
             }
-            return;
+            
         }
 
         var observerOptions = {
@@ -36,6 +41,26 @@ setTimeout(function() {
         for(var x = 0; x < allNaApplicableSliders.length; x++) {
             var observer = new MutationObserver(callback);
             observer.observe(allNaApplicableSliders[x], observerOptions);
+        }
+    }
+
+    if(typeof(allSliders) != 'undefined' && allSliders.length > 0) {
+        for(var x = 0; x < allSliders.length; x++) {
+            var counter = 1;
+            //here I need to check if it is na applicable
+            var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
+            for(var i = 0; i < allSliders[x].childNodes[1].children.length - 3; i++) {
+
+                if(naCheck && allSliders[x].getAttribute('max') == i + 1) {
+                    allSliders[x].childNodes[1].children[i].innerHTML = '<p style="margin-left: -15px; width: 25px;">N/A</p>';
+                } else {
+                    allSliders[x].childNodes[1].children[i].innerHTML = counter;
+                }
+                
+                allSliders[x].childNodes[1].children[i].style.paddingTop = '10px';
+                allSliders[x].childNodes[1].children[i].style.width = '0px';
+                counter++;
+            }
         }
     }
     
