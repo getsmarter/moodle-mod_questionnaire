@@ -3,8 +3,7 @@ setTimeout(function() {
     var allRangeCheck = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
 
-
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && allRangeCheck.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && allRangeCheck.length > 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     }
 
