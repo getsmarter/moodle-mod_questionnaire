@@ -384,7 +384,6 @@ class mobile {
         if (isset($questionnaire['questions'][$pagenum])) {
             $i = 0;
             foreach ($questionnaire['questions'][$pagenum] as $questionid => $choices) {
-
                 if (isset($questionnaire['questionsinfo'][$pagenum][$questionid]) && !empty($questionnaire['questionsinfo'][$pagenum][$questionid])) {
                     $data['questions'][$pagenum][$i]['info'] = $questionnaire['questionsinfo'][$pagenum][$questionid];
                     if ($data['questions'][$pagenum][$i]['info']['required'] == 'n') {

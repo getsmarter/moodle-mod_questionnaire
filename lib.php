@@ -697,8 +697,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                                     }
                                     $ret['questions'][$pagenum][$question->id][$item->id]->max = intval($question->length) + 1;
                                     $ret['questions'][$pagenum][$question->id][$item->id]->na = true;
-                                    $extracontents[] = $ret['questions'][$pagenum][$question->id][$item->id]->max
-                                        . ' = ' . get_string('notapplicable', 'mod_questionnaire');
                                 } else if ($question->precise > 1) {
                                     $excludes[$item->id] = $item->id;
                                     if ($item->value == null) {
