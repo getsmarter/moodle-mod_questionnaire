@@ -560,7 +560,7 @@ function get_questionnaire_data($cmid, $userid = false) {
             $std->content = '';
             $std->value = null;
             switch ($question->type_id) {
-                case 1: // Yes/No bool
+                case QUESYESNO: // Yes/No bool
                     $stdyes = new \stdClass();
                     $stdyes->id = 1;
                     $stdyes->choice_id = 'y';
@@ -584,12 +584,12 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $ret['questionsinfo'][$pagenum][$question->id]['isbool'] = true;
                     $ret['responses']['response_'.$question->type_id.'_'.$question->id] = 'n';
                     break;
-                case 2: // Text
-                case 3: // Essay
+                case QUESTEXT: // Text
+                case QUESESSAY: // Essay
                     $ret['questions'][$pagenum][$question->id][0] = $std;
                     $ret['questionsinfo'][$pagenum][$question->id]['istextessay'] = true;
                     break;
-                case 4: // Radiobutton
+                case QUESRADIO: // Radiobutton
                     $ret['questionsinfo'][$pagenum][$question->id]['isradiobutton'] = true;
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                     ['question_id' => $question->id])) {
@@ -614,7 +614,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
-                case 5: // Checkbox
+                case QUESCHECK: // Checkbox
                     $ret['questionsinfo'][$pagenum][$question->id]['ischeckbox'] = true;
             
                     if ($items = $DB->get_records('questionnaire_quest_choice',
@@ -640,7 +640,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
-                case 6: // Select
+                case QUESDROP: // Select
                     $ret['questionsinfo'][$pagenum][$question->id]['isselect'] = true;
                 
                     if ($items = $DB->get_records('questionnaire_quest_choice',
@@ -666,7 +666,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
-                case 8: // Rate 1-NN
+                case QUESRATE: // Rate 1-NN
                     $excludes = [];
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                         ['question_id' => $question->id])) {
@@ -755,7 +755,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
-                case 99:
+                case QUESPAGEBREAK:
                     $ret['questionscount']--;
                     $ret['pagescount']++;
                     $pagenum++;
@@ -791,7 +791,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                 [$response->id, $questionid])) {
                                 foreach ($values as $value) {
                                     switch($data2['type_id']) {
-                                        case 1: // Yes/No bool
+                                        case QUESYESNO: // Yes/No bool
                                             if (isset($ret['questions'][$pagenum][$questionid])) {
                                                 if (isset($value->choice_id) && !empty($value->choice_id)) {
                                                     $ret['answered'][$questionid] = true;
@@ -805,21 +805,21 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                 }
                                             }
                                             break;
-                                        case 2: // Text
+                                        case QUESTEXT: // Text
                                             if (isset($value->response) && !empty($value->response)) {
                                                 $ret['answered'][$questionid] = true;
                                                 $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
                                                 $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
                                             }
                                             break;
-                                        case 3: // Essay
+                                        case QUESESSAY: // Essay
                                             if (isset($value->response) && !empty($value->response)) {
                                                 $ret['answered'][$questionid] = true;
                                                 $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
                                                 $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
                                             }
                                             break;
-                                        case 4: // Radiobutton
+                                        case QUESRADIO: // Radiobutton
                                             if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
                                                 . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
                                                 [$response->id, $questionid])) {
@@ -834,7 +834,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                 }
                                             }
                                             break;
-                                        case 5: // Checkbox
+                                        case QUESCHECK: // Checkbox
                                             if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
                                                 . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
                                                 [$response->id, $questionid])) {
@@ -848,7 +848,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     }
                                                 }
                                             }
-                                        case 6: // Select
+                                        case QUESDROP: // Select
                                             if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
                                                 . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
                                                 [$response->id, $questionid])) {
@@ -863,7 +863,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                 }
                                             }
                                             break;
-                                        case 8: // Rate 1-NN
+                                        case QUESRATE: // Rate 1-NN
                                             if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
                                                 . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
                                                 [$response->id, $questionid])) {
@@ -940,8 +940,8 @@ function save_questionnaire_data($questionnaireid, $surveyid, $userid, $cmid, $s
                                                     $rec->choice_id = $choiceid;
                                                     $rec->rankvalue = $value;
                                                     if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['precise'] == 1) {
-                                                        if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max) {
-                                                            $rec->rank = -1;
+                                                        if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max - 1) {
+                                                            $rec->rankvalue = -1;
                                                         }
                                                     }
                                                     $DB->insert_record('questionnaire_response_rank', $rec);
@@ -1030,7 +1030,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                         unset($missingquestions[$rquestionid]);
                         if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
                             if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
-                                if( $typeid == 5) { //if checkbox handle differently because we need to check if question value is set to true
+                                if( $typeid == QUESCHECK) { //if checkbox handle differently because we need to check if question value is set to true
                                     if (isset($args[3]) && !empty($args[3])) {
                                         $choiceid = intval($args[3]);
                                         $rec = new \stdClass();
@@ -1039,7 +1039,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                         $rec->choice_id = $choiceid;
                                         $DB->insert_record('questionnaire_resp_multiple', $rec);
                                     }
-                                } elseif($typeid == 8) { //questionranking saving
+                                } elseif($typeid == QUESRATE) { //questionranking saving
                                     if (isset($args[3]) && !empty($args[3])) {
                                         $choiceid = intval($args[3]);
                                         $value = intval($response['value']) - 1;
@@ -1049,8 +1049,8 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                         $rec->choice_id = $choiceid;
                                         $rec->rankvalue = $value;
                                         if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['precise'] == 1) {
-                                            if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max) {
-                                                $rec->rank = -1;
+                                            if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max - 1) {
+                                                $rec->rankvalue = -1;
                                             }
                                         }
                                         $DB->insert_record('questionnaire_response_rank', $rec);
