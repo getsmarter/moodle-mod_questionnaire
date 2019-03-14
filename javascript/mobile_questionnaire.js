@@ -4,7 +4,7 @@ setTimeout(function() {
     var allRangeCheck = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
 
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && allRangeCheck.length > 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && !allRangeCheck) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     }
 
@@ -17,19 +17,19 @@ setTimeout(function() {
         checkboxes[i].childNodes[0].className+= ' ' + 'checkbox-checked';
     };
 
-    var allNaApplicableSliders = document.getElementsByClassName('na-applicable');
+    var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); //when a user chooses N/A on slider
     if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
         var completedSliders = document.getElementsByClassName('na-applicable na-completed');
         if(typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
             for(var i = 0; i < completedSliders.length; i++){
                 for(var x = 0; x < allSliders.length; x++) {
+                    var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
                     if(allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
                         completedSliders[x].innerHTML = 'N/A';
                     }
                 }
                 break;
             }
-            
         }
 
         var observerOptions = {
@@ -44,14 +44,14 @@ setTimeout(function() {
         }
     }
 
-    if(typeof(allSliders) != 'undefined' && allSliders.length > 0) {
+    if(typeof(allSliders) != 'undefined' && allSliders.length > 0) { //NA onload 
         for(var x = 0; x < allSliders.length; x++) {
             var counter = 1;
             //here I need to check if it is na applicable
-            var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
+            var naCheck = allSliders[x].getAttribute('data-na');
             for(var i = 0; i < allSliders[x].childNodes[1].children.length - 3; i++) {
 
-                if(naCheck && allSliders[x].getAttribute('max') == i + 1) {
+                if(naCheck && allSliders[x].getAttribute('max') == (i + 1)) {
                     allSliders[x].childNodes[1].children[i].innerHTML = '<p style="margin-left: -15px; width: 25px;">N/A</p>';
                 } else {
                     allSliders[x].childNodes[1].children[i].innerHTML = counter;
@@ -63,9 +63,7 @@ setTimeout(function() {
             }
         }
     }
-    
-
-    }, 300);
+}, 300);
 
 function checkIfFinalRequiredResponse (e, requiredInputs) {
     if(!requiredInputs.includes(e[0])) {
