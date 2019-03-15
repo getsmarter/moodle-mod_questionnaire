@@ -627,11 +627,10 @@ function get_questionnaire_data($cmid, $userid = false) {
                                     $item->value = '';
                                 }
                                 $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($question->type_id != 8) {
+                                if ($question->type_id != QUESRATE) {
                                     if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
                                         if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
                                             $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
                                             $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
                                         }
                                     }
