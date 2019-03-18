@@ -3,11 +3,11 @@ var requireSliderInputs = [];
 setTimeout(function() {
 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-    var allRangeCheck = document.getElementsByClassName('hidden-submit-button-check-false');
+    var disableSaveButton = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
     var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
-
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    console.log(disableSaveButton);
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && !disableSaveButton) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     } else if(typeof(nextButton) != 'undefined') {
         for(var i = 0; i < nextButton.length; i++){
