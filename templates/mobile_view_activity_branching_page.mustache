@@ -115,7 +115,7 @@
                                 <span class="range-ranges" hidden>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</span>
                                 <span class="range-max" hidden><%max%></span>
                             </ion-list-header>
-                            <ion-item>
+                           <ion-item>
                                 <ion-range min="<%min%>" max="<%max%>"
                                     snaps="true" pin="true" color="secondary"
                                     [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']"
@@ -124,7 +124,7 @@
                                     data-final="<%max%>"
                                     <%#na%>data-na="true"<%/na%>
                                     data-finalinput="<%info.final_required_resp%>"
-                                    data-currentinput="<%info.current_required_resp%>"
+                                    data-currentinput="<%current_required_resp%>"
                                     >
                                     <ion-label range-left hidden><%minstr%></ion-label>
                                     <ion-label range-right hidden><%#na%><ion-icon name="eye-off">n/a</ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
@@ -140,8 +140,8 @@
                 </ion-list-header>
             <%/emptypage%>
             <%#prevpage%>
-                <button ion-button item-end outline icon-start block core-site-plugins-call-ws-new-content
-                        name="mod_questionnaire_submit_questionnaire_branching"
+                <button ion-button item-end outline icon-start block core-site-plugins-call-ws-new-content 
+                        name="mod_questionnaire_submit_questionnaire_response"
                         [params]="{
                                         questionnaireid: <%questionnaire.questionnaire.id%>,
                                         surveyid: <%questionnaire.questionnaire.questionnaireid%>,
@@ -160,7 +160,7 @@
                 ><ion-icon name="arrow-back"></ion-icon>{{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
             <%/prevpage%>
             <%#nextpage%>
-                <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content
+                <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content next-page
                     name="mod_questionnaire_submit_questionnaire_branching"
                     method="mobile_view_activity_branching"
                     [params]="{
