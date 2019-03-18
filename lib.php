@@ -1084,6 +1084,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
             }
         }
     }
+
     if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
         $questionnaire->commit_submission_response(
             $DB->get_field('questionnaire_response', 'id',

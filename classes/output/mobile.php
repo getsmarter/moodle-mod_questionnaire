@@ -498,6 +498,7 @@ class mobile {
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
+                'disable_save' => $disableSaveButton,
             ],
             'files' => null
         ];
