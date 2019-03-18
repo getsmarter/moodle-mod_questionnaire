@@ -123,6 +123,8 @@
                                     <%#value%> disabled <%/value%>
                                     data-final="<%max%>"
                                     <%#na%>data-na="true"<%/na%>
+                                    data-finalinput="<%info.final_required_resp%>"
+                                    data-currentinput="<%info.current_required_resp%>"
                                     >
                                     <ion-label range-left hidden><%minstr%></ion-label>
                                     <ion-label range-right hidden><%#na%><ion-icon name="eye-off">n/a</ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
@@ -176,6 +178,7 @@
                                         pagenum: <%nextpage%>
                                     }"
                     type="submit"
+                    class="next-button"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>

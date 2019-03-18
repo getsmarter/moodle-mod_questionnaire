@@ -268,8 +268,14 @@ class mobile {
         $currentrequiredresponse = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
-                $currentrequiredresponse++;
-                $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                if(!$pagequestion['info']['response_table'] == 'response_rank') {
+                    $currentrequiredresponse++;
+                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                } else {
+                    $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
+                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                }
+                
             }
         }
         //let each pagequestions know what the final required field is 
