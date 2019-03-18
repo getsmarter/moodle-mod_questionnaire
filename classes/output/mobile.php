@@ -266,18 +266,27 @@ class mobile {
          *if its the final required count we display the button
         */
         $currentrequiredresponse = 0;
+        $counter = 1;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
                 if(!$pagequestion['info']['response_table'] == 'response_rank') {
-                    $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                    $currentrequiredresponse++;
                 } else {
+                    
+                    if(!empty($pagequestion['choices'])) {
+                        foreach($pagequestion['choices'] as &$choice) {
+                            $choice['current_required_resp'] = $counter;
+                            $counter++;
+                        }
+                    }
+
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                 }
-                
             }
         }
+
         //let each pagequestions know what the final required field is 
         $disableSaveButton = true;
         $questionCounter = 0;
@@ -428,12 +437,39 @@ class mobile {
          *if its the final required count we display the button
         */
         $currentrequiredresponse = 0;
+        $counter = 1;
         foreach( $data['pagequestions'] as &$pagequestion ) {
-            
             if($pagequestion['info']['required'] == 'y') {
-                $currentrequiredresponse++;
-                $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                if(!$pagequestion['info']['response_table'] == 'response_rank') {
+                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                    $currentrequiredresponse++;
+                } else {
+                    
+                    if(!empty($pagequestion['choices'])) {
+                        foreach($pagequestion['choices'] as &$choice) {
+                            $choice['current_required_resp'] = $counter;
+                            $counter++;
+                        }
+                    }
+
+                    $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
+                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                }
             }
+        }
+
+        //let each pagequestions know what the final required field is 
+        $disableSaveButton = true;
+        $questionCounter = 0;
+        foreach( $data['pagequestions'] as &$pagequestion ) {
+            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
+            if( $pagequestion['info']['type_id'] == 8) {//rate range slider only
+                $questionCounter++;
+            }
+        }
+
+        if($questionCounter == sizeof($data['pagequestions'])) {
+            $disableSaveButton = false;
         }
         //let each pagequestions know what the final required field is 
         foreach( $data['pagequestions'] as &$pagequestion ) {
