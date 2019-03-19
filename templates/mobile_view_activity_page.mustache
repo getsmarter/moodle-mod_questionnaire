@@ -39,13 +39,8 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <%^pagebreak%>
                                     <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
                                     onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
-                                <%/pagebreak%>
-                                <%#pagebreak%>
-                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%></ion-option>
-                                <%/pagebreak%>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
@@ -54,45 +49,37 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%^pagebreak%>
-                                        <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
-                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
-                                    <%/pagebreak%>
-                                    <%#pagebreak%>
-                                        <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>"></ion-radio>
-                                    <%/pagebreak%>
+                                        <ion-radio<%#value%> checked="true"<%/value%>
+                                        value="<%choice_id%>"
+                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
+                                        <%#completed%> disabled="true"<%/completed%>></ion-radio>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
                     <%/info.isbool%>
                     <%#info.isradiobutton%>
+                    
                         <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%^pagebreak%>
                                         <ion-radio<%#value%> checked="true"<%/value%>
                                         value="<%choice_id%>"
                                         onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
                                         <%#completed%> disabled="true"<%/completed%>></ion-radio>
-                                    <%/pagebreak%>
-                                    <%#pagebreak%>
-                                        <ion-radio<%#value%> checked="true"<%/value%>
-                                        value="<%choice_id%>"
-                                        <%#completed%> disabled="true"<%/completed%>></ion-radio>
-                                    <%/pagebreak%>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
                     <%/info.isradiobutton%>
                     <%#info.ischeckbox%>
-                       <ion-list>
+                        <ion-list>
                         <%#choices%>
                             <ion-item>
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
                                         <%#value%>checked="true" class="questionnaire-checkbox-checked"<%/value%>
+                                        ontouchstart="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
                                     ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
@@ -103,17 +90,20 @@
                             <%^completed%>
                                 <ion-textarea aria-multiline="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
                             <%/completed%>
+                            <%#completed%>
+                                <ion-textarea aria-multiline="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
+                            <%/completed%>
                         </ion-item>
                     <%/info.istextessay%>
                     <%#info.israte%>
                         <%#choices%>
                             <ion-list-header text-wrap>
                                 <core-format-text text="<%content%>"></core-format-text>
-                                <ion-badge item-end <%#na%>class="na-applicable <%#value%>na-completed<%/value%>"<%/na%> data-final="<%max%>">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
+                                <ion-badge item-end <%#na%>class="na-applicable <%#value%>na-completed<%/value%>" <%/na%> data-final="<%max%>">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
                                 <span class="range-ranges" hidden>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</span>
                                 <span class="range-max" hidden><%max%></span>
                             </ion-list-header>
-                            <ion-item>
+                           <ion-item>
                                 <ion-range min="<%min%>" max="<%max%>"
                                     snaps="true" pin="true" color="secondary"
                                     [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']"
@@ -177,7 +167,7 @@
                                     }"
                     type="submit"
                     class="next-button"
-                >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
+                >{{ 'plugin.mod_questionnaire.nextpage' | translate }}<ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
                 <%^nextpage%>
