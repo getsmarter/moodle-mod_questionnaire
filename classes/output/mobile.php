@@ -210,7 +210,9 @@ class mobile {
                 if ($prevpage) {
                     $data['prevpage'] = $prevpage;
                 }
-            } elseif( $branching && $questionnaire['completed'] == true) { //branching specific logic
+            }
+
+            if( $branching && $questionnaire['completed'] == true || $questionnaire['completed'] == true) { //branching specific logic
                 //if we are branching and the questionnaire is complete, display all the responses on one page
                 $pagecounter = 1;
                 foreach($questionnaire['questions'] as $question) {
@@ -266,22 +268,21 @@ class mobile {
          *if its the final required count we display the button
         */
         $currentrequiredresponse = 0;
-        $counter = 1;
+        $counter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
-                if(!$pagequestion['info']['response_table'] == 'response_rank') {
-                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
-                    $currentrequiredresponse++;
-                } else {
-                    
-                    if(!empty($pagequestion['choices'])) {
-                        foreach($pagequestion['choices'] as &$choice) {
-                            $choice['current_required_resp'] = $counter;
-                            $counter++;
+                 if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
+                    foreach($pagequestion['choices'] as &$choice) {
+                        if($currentrequiredresponse > 0 && empty($counter)) {
+                            $counter = $currentrequiredresponse;
                         }
+                        $counter++;
+                        $choice['current_required_resp'] = $counter;
                     }
-
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
+                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                } else {
+                    $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                 }
             }
@@ -292,13 +293,6 @@ class mobile {
         $questionCounter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
-            if( $pagequestion['info']['type_id'] == 8) {//rate range slider only
-                $questionCounter++;
-            }
-        }
-
-        if($questionCounter == sizeof($data['pagequestions'])) {
-            $disableSaveButton = false;
         }
 
         $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
@@ -306,7 +300,7 @@ class mobile {
             $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_branching_page';
         }
 
-        $data['pagebreak'] = $pagebreaks;
+        $data['pagebreak'] = true;
 
         return [
             'templates' => [
@@ -437,46 +431,39 @@ class mobile {
          *if its the final required count we display the button
         */
         $currentrequiredresponse = 0;
-        $counter = 1;
+        $counter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
-                if(!$pagequestion['info']['response_table'] == 'response_rank') {
-                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
-                    $currentrequiredresponse++;
-                } else {
-                    
-                    if(!empty($pagequestion['choices'])) {
-                        foreach($pagequestion['choices'] as &$choice) {
-                            $choice['current_required_resp'] = $counter;
-                            $counter++;
+                 if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
+                    foreach($pagequestion['choices'] as &$choice) {
+                        if($currentrequiredresponse > 0 && empty($counter)) {
+                            $counter = $currentrequiredresponse;
                         }
+                        $counter++;
+                        $choice['current_required_resp'] = $counter;
                     }
-
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
+                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                } else {
+                    $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                 }
             }
         }
 
         //let each pagequestions know what the final required field is 
-        $disableSaveButton = true;
+        $disableSaveButton = false;
         $questionCounter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
-            if( $pagequestion['info']['type_id'] == 8) {//rate range slider only
-                $questionCounter++;
-            }
         }
 
-        if($questionCounter == sizeof($data['pagequestions'])) {
-            $disableSaveButton = false;
-        }
         //let each pagequestions know what the final required field is 
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
         }
 
-        $data['pagebreak'] = $pagebreaks;
+        $data['pagebreak'] = true; //branching logic is always true
 
         return [
             'templates' => [

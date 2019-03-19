@@ -1,23 +1,18 @@
-var requireSliderInputs = [];
+var requiredInputs = [];
 
 setTimeout(function() {
 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-    var disableSaveButton = document.getElementsByClassName('hidden-submit-button-check-false');
+    var disableSaveButton = document.getElementsByClassName('hidden-submit-button-check-true');
     var allSliders = document.getElementsByClassName('range range-md');
-    var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
-    console.log(disableSaveButton);
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && !disableSaveButton) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButton.length > 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
-    } else if(typeof(nextButton) != 'undefined') {
-        for(var i = 0; i < nextButton.length; i++){
-            nextButton[i].disabled = true;
-        }
     }
 
-    var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
+    // var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
     window.clicked_input = e => {
-        checkIfFinalRequiredResponse(e, requiredInputs);
+        checkIfFinalRequiredResponse(e);
     };
     var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked');
     for(var i = 0; i < checkboxes.length; i++) {  
@@ -83,7 +78,7 @@ setTimeout(function() {
     }
 }, 300);
 
-function checkIfFinalRequiredResponse (e, requiredInputs) {
+function checkIfFinalRequiredResponse (e) {
     if(!requiredInputs.includes(e[0])) {
         requiredInputs.push(e[0]); //only push if it has not been added to the array already
     }
@@ -93,22 +88,23 @@ function checkIfFinalRequiredResponse (e, requiredInputs) {
     for(var x = 0; x < requiredInputs.length; x++) {
        //first need to check that all answers before required answer are in array
        //then set a flag that I can check later
-        if(requiredInputs[x] <= finalRequiredAnswer) { //checking if the inputs are less than the required input or the required input
-            //and increment initial check
-            numberOfRequiredAnswers++;
-        } 
+        numberOfRequiredAnswers++;
     }
 
     var requiredInput = false;
     if(requiredInputs.includes(e[1])) {
         requiredInput = true;
     }
+
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
     var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
     if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
         button.mod_questionnaire_submit_questionnaire_response.disabled = false;
-    } else if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
-        nextButton.mod_questionnaire_submit_questionnaire_branching.disabled = false;
+    } 
+    if(requiredInput === true && numberOfRequiredAnswers == finalRequiredAnswer && typeof(nextButton) != 'undefined') {
+        for(var i = 0; i < nextButton.length; i++){
+            nextButton[i].disabled = false;
+        }
     }
 }
 
@@ -133,24 +129,19 @@ function sliderObserver(mutationList, observer) {
         var currentRequiredValue = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-currentinput');
         var finalRequiredInput = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-finalinput');
 
-        if(!requireSliderInputs.includes(currentRequiredValue)) {
-            requireSliderInputs.push(currentRequiredValue); //only push if it has not been added to the array already
+        if(!requiredInputs.includes(currentRequiredValue)) {
+            requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
         }
 
         var numberOfRequiredAnswers = 0;
-        for(var x = 0; x < requireSliderInputs.length; x++) {
+        for(var x = 0; x < requiredInputs.length; x++) {
            //first need to check that all answers before required answer are in array
            //then set a flag that I can check later
-            if(requireSliderInputs[x] <= finalRequiredInput) { //checking if the inputs are less than the required input or the required input
-                //and increment initial check
-                numberOfRequiredAnswers++;
-            } 
+           numberOfRequiredAnswers++;
         }
 
-        console.log(requireSliderInputs);
-
         var requiredInput = false;
-        if(requireSliderInputs.includes(finalRequiredInput)) {
+        if(requiredInputs.includes(finalRequiredInput)) {
             requiredInput = true;
         }
 
@@ -160,7 +151,8 @@ function sliderObserver(mutationList, observer) {
         if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
             button.mod_questionnaire_submit_questionnaire_response.disabled = false;
 
-        } else if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+        } 
+        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
              for(var i = 0; i < nextButton.length; i++){
                 nextButton[i].disabled = false;
             }
