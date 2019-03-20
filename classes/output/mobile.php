@@ -297,7 +297,6 @@ class mobile {
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                     
-                    
                 } else {
                     $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
@@ -305,10 +304,14 @@ class mobile {
             }
         }
 
-
-
         //let each pagequestions know what the final required field is 
         $disablesavebutton = true;
+        if($completedchoices == $currentrequiredresponse) {
+           $disablesavebutton = false; 
+        } else {
+            $disablesavebutton = true;
+        }
+
         $questionCounter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse - $completedchoices;
@@ -479,7 +482,6 @@ class mobile {
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                     
-                    
                 } else {
                     $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
@@ -487,11 +489,11 @@ class mobile {
             }
         }
 
-        $disablesavebutton = false;
+        $disablesavebutton = true;
         if($completedchoices == $currentrequiredresponse) {
-           $disablesavebutton = true; 
+           $disablesavebutton = false; 
         } else {
-            $disablesavebutton = false;
+            $disablesavebutton = true;
         }
 
         //let each pagequestions know what the final required field is 

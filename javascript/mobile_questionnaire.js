@@ -4,15 +4,16 @@ setTimeout(function() {
 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
     var disableSaveButton = document.getElementsByClassName('hidden-submit-button-check-true');
+    var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
     var nextButton = document.getElementsByClassName('next-button');
     var allCheckboxes = document.getElementsByClassName('item item-block item-md item-checkbox');
 
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButton.length > 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     }
 
-    if(typeof(nextButton) != 'undefined' && nextButton.length > 0) {
+    if(typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
         for(var x = 0; x < nextButton.length; x++) {
             nextButton[x].disabled = true;
         }
