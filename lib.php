@@ -582,7 +582,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $stdno->isbool = true;
                     $ret['questions'][$pagenum][$question->id][0] = $stdno;
                     $ret['questionsinfo'][$pagenum][$question->id]['isbool'] = true;
-                    $ret['responses']['response_'.$question->type_id.'_'.$question->id] = 'n';
                     break;
                 case QUESTEXT: // Text
                 case QUESESSAY: // Essay

@@ -78,7 +78,8 @@
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
                                         <%#value%>checked="true" class="questionnaire-checkbox-checked"<%/value%>
-                                        ontouchstart="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
+                                        data-finalinput="<%info.current_required_resp%>"
+                                        data-currentinput="<%info.final_required_resp%>"
                                     ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
