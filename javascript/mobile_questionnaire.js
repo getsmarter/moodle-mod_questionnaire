@@ -31,11 +31,12 @@ setTimeout(function() {
     if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
         var completedSliders = document.getElementsByClassName('na-applicable na-completed');
         if(typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
-            for(var i = 0; i < completedSliders.length; i++){
+            for(var i = 1; i < completedSliders.length; i++){
                 for(var x = 0; x < allSliders.length; x++) {
                     var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
+
                     if(allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
-                        completedSliders[x].innerHTML = 'N/A';
+                        completedSliders[i].innerHTML = 'N/A';
                     }
                 }
                 break;

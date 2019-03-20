@@ -212,7 +212,7 @@ class mobile {
                 }
             }
 
-            if( $branching && $questionnaire['completed'] == true || $questionnaire['completed'] == true) { //branching specific logic
+            if( $questionnaire['completed'] == true) { //branching specific logic
                 //if we are branching and the questionnaire is complete, display all the responses on one page
                 $pagecounter = 1;
                 foreach($questionnaire['questions'] as $question) {
@@ -269,18 +269,35 @@ class mobile {
         */
         $currentrequiredresponse = 0;
         $counter = 0;
+        $multichoiceflag = false;
+        $completedchoices = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
                  if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
-                    foreach($pagequestion['choices'] as &$choice) {
-                        if($currentrequiredresponse > 0 && empty($counter)) {
-                            $counter = $currentrequiredresponse;
+
+                    foreach($pagequestion['choices'] as &$choice) { //if you have somehow comopleted some of the questions
+                        if(empty($choice['value'])) {
+                            $counter++;
                         }
-                        $counter++;
-                        $choice['current_required_resp'] = $counter;
                     }
+
+                    foreach($pagequestion['choices'] as &$choice) {
+                        if(empty($choice['value'])) {
+                            if($currentrequiredresponse > 0 && empty($counter)) {
+                                $counter = $currentrequiredresponse;
+                            }
+                            $counter++;
+                            $choice['current_required_resp'] = $counter;
+                            
+                        } else {
+                            $completedchoices++;
+                        }
+                    }
+                    
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                    
+                    
                 } else {
                     $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
@@ -288,11 +305,13 @@ class mobile {
             }
         }
 
+
+
         //let each pagequestions know what the final required field is 
-        $disableSaveButton = true;
+        $disablesavebutton = true;
         $questionCounter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
-            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
+            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse - $completedchoices;
         }
 
         $mobileviewactivity = 'mod_questionnaire/mobile_view_activity_page';
@@ -322,7 +341,7 @@ class mobile {
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
-                'disable_save' => $disableSaveButton,
+                'disable_save' => $disablesavebutton,
             ],
             'files' => null
         ];
@@ -432,18 +451,35 @@ class mobile {
         */
         $currentrequiredresponse = 0;
         $counter = 0;
+        $multichoiceflag = false;
+        $completedchoices = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
                  if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
-                    foreach($pagequestion['choices'] as &$choice) {
-                        if($currentrequiredresponse > 0 && empty($counter)) {
-                            $counter = $currentrequiredresponse;
+
+                    foreach($pagequestion['choices'] as &$choice) { //if you have somehow comopleted some of the questions
+                        if(empty($choice['value'])) {
+                            $counter++;
                         }
-                        $counter++;
-                        $choice['current_required_resp'] = $counter;
                     }
+
+                    foreach($pagequestion['choices'] as &$choice) {
+                        if(empty($choice['value'])) {
+                            if($currentrequiredresponse > 0 && empty($counter)) {
+                                $counter = $currentrequiredresponse;
+                            }
+                            $counter++;
+                            $choice['current_required_resp'] = $counter;
+                            
+                        } else {
+                            $completedchoices++;
+                        }
+                    }
+                    
                     $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                    
+                    
                 } else {
                     $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
@@ -451,8 +487,14 @@ class mobile {
             }
         }
 
+        $disablesavebutton = false;
+        if($completedchoices == $currentrequiredresponse) {
+           $disablesavebutton = true; 
+        } else {
+            $disablesavebutton = false;
+        }
+
         //let each pagequestions know what the final required field is 
-        $disableSaveButton = false;
         $questionCounter = 0;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
@@ -485,7 +527,7 @@ class mobile {
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
-                'disable_save' => $disableSaveButton,
+                'disable_save' => $disablesavebutton,
             ],
             'files' => null
         ];
