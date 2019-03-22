@@ -181,7 +181,11 @@ class mod_questionnaire_external extends \external_api {
 
         $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses);
 
-        $result['submitted'] = false;
+        $result['submitted'] = true;
+        if (isset($result['warnings']) && !empty($result['warnings'])) {
+            unset($result['responses']);
+            $result['submitted'] = false;
+        }
         $result['warnings'] = [];
         return $result;
     }

@@ -1,16 +1,27 @@
+var requiredInputs = [];
+
 setTimeout(function() {
 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-    var allRangeCheck = document.getElementsByClassName('hidden-submit-button-check-false');
+    var disableSaveButton = document.getElementsByClassName('hidden-submit-button-check-true');
+    var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
+    var nextButton = document.getElementsByClassName('next-button');
+    var allCheckboxes = document.getElementsByClassName('item item-block item-md item-checkbox');
 
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && !allRangeCheck) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         button.mod_questionnaire_submit_questionnaire_response.disabled = true;
     }
 
-    var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
+    if(typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
+        for(var x = 0; x < nextButton.length; x++) {
+            nextButton[x].disabled = true;
+        }
+    }
+
+    // var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
     window.clicked_input = e => {
-        checkIfFinalRequiredResponse(e, requiredInputs);
+        checkIfFinalRequiredResponse(e);
     };
     var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked');
     for(var i = 0; i < checkboxes.length; i++) {  
@@ -21,11 +32,12 @@ setTimeout(function() {
     if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
         var completedSliders = document.getElementsByClassName('na-applicable na-completed');
         if(typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
-            for(var i = 0; i < completedSliders.length; i++){
+            for(var i = 1; i < completedSliders.length; i++){
                 for(var x = 0; x < allSliders.length; x++) {
                     var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
+
                     if(allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
-                        completedSliders[x].innerHTML = 'N/A';
+                        completedSliders[i].innerHTML = 'N/A';
                     }
                 }
                 break;
@@ -62,10 +74,34 @@ setTimeout(function() {
                 counter++;
             }
         }
+
+        var observerOptions = {
+            childList: true,
+            attributes: true,
+            subtree: true, //Omit or set to false to observe only changes to the parent node.
+            characterData: true,
+        }
+        for(var x = 0; x < allSliders.length; x++) {
+            var observer = new MutationObserver(sliderObserver);
+            observer.observe(allSliders[x], observerOptions);
+        }
+    }
+
+    if(typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { //NA onload 
+        var observerOptions = {
+            childList: true,
+            attributes: true,
+            subtree: true, //Omit or set to false to observe only changes to the parent node.
+            characterData: true,
+        }
+        for(var x = 0; x < allCheckboxes.length; x++) {
+            var observer = new MutationObserver(checkboxObserver);
+            observer.observe(allCheckboxes[x], observerOptions);
+        }
     }
 }, 300);
 
-function checkIfFinalRequiredResponse (e, requiredInputs) {
+function checkIfFinalRequiredResponse (e) {
     if(!requiredInputs.includes(e[0])) {
         requiredInputs.push(e[0]); //only push if it has not been added to the array already
     }
@@ -75,19 +111,23 @@ function checkIfFinalRequiredResponse (e, requiredInputs) {
     for(var x = 0; x < requiredInputs.length; x++) {
        //first need to check that all answers before required answer are in array
        //then set a flag that I can check later
-        if(requiredInputs[x] <= finalRequiredAnswer) { //checking if the inputs are less than the required input or the required input
-            //and increment initial check
-            numberOfRequiredAnswers++;
-        } 
+        numberOfRequiredAnswers++;
     }
 
     var requiredInput = false;
     if(requiredInputs.includes(e[1])) {
         requiredInput = true;
     }
+
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
+    var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
     if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
         button.mod_questionnaire_submit_questionnaire_response.disabled = false;
+    } 
+    if(requiredInput === true && numberOfRequiredAnswers == finalRequiredAnswer && typeof(nextButton) != 'undefined') {
+        for(var i = 0; i < nextButton.length; i++){
+            nextButton[i].disabled = false;
+        }
     }
 }
 
@@ -103,4 +143,91 @@ function callback(mutationList, observer) {
         break;
     }
   });
+}
+
+function sliderObserver(mutationList, observer) {
+  mutationList.forEach((mutation) => {
+    switch(mutation.type) {
+        case 'characterData':
+        var currentRequiredValue = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-currentinput');
+        var finalRequiredInput = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-finalinput');
+
+        if(!requiredInputs.includes(currentRequiredValue)) {
+            requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
+        }
+
+        var numberOfRequiredAnswers = 0;
+        for(var x = 0; x < requiredInputs.length; x++) {
+           //first need to check that all answers before required answer are in array
+           //then set a flag that I can check later
+           numberOfRequiredAnswers++;
+        }
+
+        var requiredInput = false;
+        if(requiredInputs.includes(finalRequiredInput)) {
+            requiredInput = true;
+        }
+
+        var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
+        var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+
+        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
+            button.mod_questionnaire_submit_questionnaire_response.disabled = false;
+
+        } 
+        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+             for(var i = 0; i < nextButton.length; i++){
+                nextButton[i].disabled = false;
+            }
+        }
+
+        break;
+    }
+  });
+}
+
+function checkboxObserver(mutationList, observer) {
+  mutationList.forEach((mutation) => {
+
+    switch(mutation.type) {
+        case 'attributes':
+
+            var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
+            var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
+
+            if(!currentRequiredValue && !finalRequiredInput) {
+                return;
+            }   
+
+            if(!requiredInputs.includes(currentRequiredValue)) {
+                requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
+            }
+
+            var numberOfRequiredAnswers = 0;
+            for(var x = 0; x < requiredInputs.length; x++) {
+               //first need to check that all answers before required answer are in array
+               //then set a flag that I can check later
+               numberOfRequiredAnswers++;
+            }
+
+            var requiredInput = false;
+            if(requiredInputs.includes(finalRequiredInput)) {
+                requiredInput = true;
+            }
+
+            var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
+            var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+
+            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
+                button.mod_questionnaire_submit_questionnaire_response.disabled = false;
+
+            } 
+            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+                 for(var i = 0; i < nextButton.length; i++){
+                    nextButton[i].disabled = false;
+                }
+            }
+        break;
+        }
+    });
 }

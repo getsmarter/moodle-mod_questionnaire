@@ -38,13 +38,8 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <%#pagebreak%>
-                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
-                                <%/pagebreak%>
-                                <%^pagebreak%>
-                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%></ion-option>
-                                <%/pagebreak%>
+                                <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
+                                onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
@@ -53,33 +48,24 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%#pagebreak%>
-                                        <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>">
-                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-radio>
-                                    <%/pagebreak%>
-                                    <%^pagebreak%>
-                                        <ion-radio<%#completed%> disabled="true"<%#value%> checked="true"<%/value%><%/completed%> value="<%choice_id%>"></ion-radio>
-                                    <%/pagebreak%>
+                                    <ion-radio<%#value%> checked="true"<%/value%>
+                                    value="<%choice_id%>"
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
+                                    <%#completed%> disabled="true"<%/completed%>></ion-radio>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
                     <%/info.isbool%>
                     <%#info.isradiobutton%>
+                    
                         <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                    <%#pagebreak%>
                                         <ion-radio<%#value%> checked="true"<%/value%>
                                         value="<%choice_id%>"
                                         onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
                                         <%#completed%> disabled="true"<%/completed%>></ion-radio>
-                                    <%/pagebreak%>
-                                    <%^pagebreak%>
-                                        <ion-radio<%#value%> checked="true"<%/value%>
-                                        value="<%choice_id%>"
-                                        <%#completed%> disabled="true"<%/completed%>></ion-radio>
-                                    <%/pagebreak%>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
@@ -92,6 +78,8 @@
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
                                         <%#value%>checked="true" class="questionnaire-checkbox-checked"<%/value%>
+                                        data-finalinput="<%info.current_required_resp%>"
+                                        data-currentinput="<%info.final_required_resp%>"
                                     ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
@@ -103,7 +91,7 @@
                                 <ion-textarea aria-multiline="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
                             <%/completed%>
                             <%#completed%>
-                                <ion-textarea aria-multiline="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
+                                <ion-textarea aria-multiline="true" disabled="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
                             <%/completed%>
                         </ion-item>
                     <%/info.istextessay%>
@@ -115,7 +103,7 @@
                                 <span class="range-ranges" hidden>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</span>
                                 <span class="range-max" hidden><%max%></span>
                             </ion-list-header>
-                            <ion-item>
+                           <ion-item>
                                 <ion-range min="<%min%>" max="<%max%>"
                                     snaps="true" pin="true" color="secondary"
                                     [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']"
@@ -123,6 +111,8 @@
                                     <%#value%> disabled <%/value%>
                                     data-final="<%max%>"
                                     <%#na%>data-na="true"<%/na%>
+                                    data-finalinput="<%info.final_required_resp%>"
+                                    data-currentinput="<%current_required_resp%>"
                                     >
                                     <ion-label range-left hidden><%minstr%></ion-label>
                                     <ion-label range-right hidden><%#na%><ion-icon name="eye-off">n/a</ion-icon><%/na%><%^na%><%maxstr%><%/na%></ion-label>
@@ -138,8 +128,8 @@
                 </ion-list-header>
             <%/emptypage%>
             <%#prevpage%>
-                <button ion-button item-end outline icon-start block core-site-plugins-call-ws-new-content
-                        name="mod_questionnaire_submit_questionnaire_branching"
+                <button ion-button item-end outline icon-start block core-site-plugins-call-ws-new-content 
+                        name="mod_questionnaire_submit_questionnaire_response"
                         [params]="{
                                         questionnaireid: <%questionnaire.questionnaire.id%>,
                                         surveyid: <%questionnaire.questionnaire.questionnaireid%>,
@@ -158,7 +148,7 @@
                 ><ion-icon name="arrow-back"></ion-icon>{{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
             <%/prevpage%>
             <%#nextpage%>
-                <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content
+                <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content next-page
                     name="mod_questionnaire_submit_questionnaire_branching"
                     method="mobile_view_activity_branching"
                     [params]="{
@@ -176,6 +166,7 @@
                                         pagenum: <%nextpage%>
                                     }"
                     type="submit"
+                    class="next-button"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
@@ -198,6 +189,7 @@
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
+            <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}"></div>
             </ion-list>
         </ion-card>
     </div>

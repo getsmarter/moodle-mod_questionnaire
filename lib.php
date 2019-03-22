@@ -582,7 +582,6 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $stdno->isbool = true;
                     $ret['questions'][$pagenum][$question->id][0] = $stdno;
                     $ret['questionsinfo'][$pagenum][$question->id]['isbool'] = true;
-                    $ret['responses']['response_'.$question->type_id.'_'.$question->id] = 'n';
                     break;
                 case QUESTEXT: // Text
                 case QUESESSAY: // Essay
@@ -1084,6 +1083,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
             }
         }
     }
+
     if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
         $questionnaire->commit_submission_response(
             $DB->get_field('questionnaire_response', 'id',
