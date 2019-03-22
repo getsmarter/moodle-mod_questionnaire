@@ -275,12 +275,6 @@ class mobile {
             if($pagequestion['info']['required'] == 'y') {
                  if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
 
-                    foreach($pagequestion['choices'] as &$choice) { //if you have somehow comopleted some of the questions
-                        if(empty($choice['value'])) {
-                            $counter++;
-                        }
-                    }
-
                     foreach($pagequestion['choices'] as &$choice) {
                         if(empty($choice['value'])) {
                             if($currentrequiredresponse > 0 && empty($counter)) {
@@ -294,8 +288,7 @@ class mobile {
                         }
                     }
                     
-                    $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
-                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                    $currentrequiredresponse = $counter;
                     
                 } else {
                     $currentrequiredresponse++;
@@ -460,12 +453,6 @@ class mobile {
             if($pagequestion['info']['required'] == 'y') {
                  if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
 
-                    foreach($pagequestion['choices'] as &$choice) { //if you have somehow comopleted some of the questions
-                        if(empty($choice['value'])) {
-                            $counter++;
-                        }
-                    }
-
                     foreach($pagequestion['choices'] as &$choice) {
                         if(empty($choice['value'])) {
                             if($currentrequiredresponse > 0 && empty($counter)) {
@@ -479,8 +466,7 @@ class mobile {
                         }
                     }
                     
-                    $currentrequiredresponse = $currentrequiredresponse + sizeof($pagequestion['choices']);
-                    $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
+                    $currentrequiredresponse = $counter;
                     
                 } else {
                     $currentrequiredresponse++;
