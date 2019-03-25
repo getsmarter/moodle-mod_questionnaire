@@ -89,7 +89,14 @@
                     <%#info.istextessay%>
                         <ion-item>
                             <%^completed%>
-                                <ion-textarea aria-multiline="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
+                                <ion-textarea aria-multiline="true" 
+                                [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                                core-auto-rows
+                                <%#info.current_required_resp%>
+                                data-finalinput="<%info.current_required_resp%>"
+                                data-currentinput="<%info.final_required_resp%>"
+                                <%/info.current_required_resp%>
+                                ></ion-textarea>
                             <%/completed%>
                             <%#completed%>
                                 <ion-textarea aria-multiline="true" disabled="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
