@@ -3,23 +3,13 @@ var requiredInputs = [];
 setTimeout(function() {
 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-    var disableSaveButton = document.getElementsByClassName('hidden-submit-button-check-true');
     var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
     var nextButton = document.getElementsByClassName('next-button');
     var allCheckboxes = document.getElementsByClassName('item item-block item-md item-checkbox');
+    var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
 
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
-        button.mod_questionnaire_submit_questionnaire_response.disabled = true;
-    }
-
-    if(typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
-        for(var x = 0; x < nextButton.length; x++) {
-            nextButton[x].disabled = true;
-        }
-    }
-
-    // var requiredInputs = []; //required inputs, this is an array with references to the required inputs for the questionnaire
+    
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e);
     };
@@ -28,6 +18,7 @@ setTimeout(function() {
         checkboxes[i].childNodes[0].className+= ' ' + 'checkbox-checked';
     };
 
+    //setting up observer for sliders that are completed and na applicable
     var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); //when a user chooses N/A on slider
     if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
         var completedSliders = document.getElementsByClassName('na-applicable na-completed');
@@ -51,11 +42,12 @@ setTimeout(function() {
             characterData: true,
         }
         for(var x = 0; x < allNaApplicableSliders.length; x++) {
-            var observer = new MutationObserver(callback);
+            var observer = new MutationObserver(naObserver);
             observer.observe(allNaApplicableSliders[x], observerOptions);
         }
     }
 
+    //setting up observer for sliders on page
     if(typeof(allSliders) != 'undefined' && allSliders.length > 0) { //NA onload 
         for(var x = 0; x < allSliders.length; x++) {
             var counter = 1;
@@ -87,6 +79,7 @@ setTimeout(function() {
         }
     }
 
+    //setting up observer for checkboxes 
     if(typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { //NA onload 
         var observerOptions = {
             childList: true,
@@ -99,6 +92,34 @@ setTimeout(function() {
             observer.observe(allCheckboxes[x], observerOptions);
         }
     }
+
+    //setting up observer for textboxes 
+    if(typeof(allTextBoxes) != 'undefined' && allTextBoxes.length > 0) { //NA onload 
+
+        var observerOptions = {
+            childList: true,
+            attributes: true,
+            subtree: true, //Omit or set to false to observe only changes to the parent node.
+            characterData: true,
+        }
+        for(var x = 0; x < allTextBoxes.length; x++) {
+            var observer = new MutationObserver(textBoxObserver);
+            observer.observe(allTextBoxes[x], observerOptions);
+        }
+    }
+
+    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+        for(var x = 0; x < button.length; x++) {
+            button[x].disabled = true;
+        }
+    }
+
+    if(typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
+        for(var x = 0; x < nextButton.length; x++) {
+            nextButton[x].disabled = true;
+        }
+    }
+
 }, 300);
 
 function checkIfFinalRequiredResponse (e) {
@@ -131,7 +152,7 @@ function checkIfFinalRequiredResponse (e) {
     }
 }
 
-function callback(mutationList, observer) {
+function naObserver(mutationList, observer) {
   mutationList.forEach((mutation) => {
     switch(mutation.type) {
         case 'characterData':
@@ -172,7 +193,9 @@ function sliderObserver(mutationList, observer) {
         var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
 
         if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
-            button.mod_questionnaire_submit_questionnaire_response.disabled = false;
+            for(var x = 0; x < button.length; x++) {
+                button[x].disabled = false;
+            }
 
         } 
         if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
@@ -219,7 +242,65 @@ function checkboxObserver(mutationList, observer) {
             var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
 
             if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
-                button.mod_questionnaire_submit_questionnaire_response.disabled = false;
+                for(var x = 0; x < button.length; x++) {
+                    button[x].disabled = false;
+                }
+
+            } 
+            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+                 for(var i = 0; i < nextButton.length; i++){
+                    nextButton[i].disabled = false;
+                }
+            }
+        break;
+        }
+    });
+}
+
+function textBoxObserver(mutationList, observer) {
+  mutationList.forEach((mutation) => {
+
+    switch(mutation.type) {
+        case 'attributes':
+
+            var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
+            var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
+            var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
+
+            if(!currentRequiredValue && !finalRequiredInput) {
+                return;
+            }   
+
+            if(mutation.target.value == '') {
+                for(var x = 0; x < button.length; x++) {
+                    button[x].disabled = true;
+                }
+                return;
+            }
+
+            if(!requiredInputs.includes(currentRequiredValue)) {
+                requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
+            }
+
+            var numberOfRequiredAnswers = 0;
+            for(var x = 0; x < requiredInputs.length; x++) {
+               //first need to check that all answers before required answer are in array
+               //then set a flag that I can check later
+               numberOfRequiredAnswers++;
+            }
+
+            var requiredInput = false;
+            if(requiredInputs.includes(finalRequiredInput)) {
+                requiredInput = true;
+            }
+
+            
+            var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+
+            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
+                for(var x = 0; x < button.length; x++) {
+                    button[x].disabled = false;
+                }
 
             } 
             if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
