@@ -39,13 +39,16 @@ class mobile {
         $args = (object) $args;
         $cmid = $args->cmid;
         $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
-        $prevpage = $SESSION->prevpage;
-        if(!$prevpage) {
-            $SESSION->prevpage = $pagenum;
-            if($pagenum == 1) {
-                $prevpage = 0;
-            } else {
-                $prevpage = $pagenum;
+        $prevpage = 0;
+        if(!empty($SESSION->prevpage)) {
+            $prevpage = $SESSION->prevpage;
+            if(!$prevpage) {
+                $SESSION->prevpage = $pagenum;
+                if($pagenum == 1) {
+                    $prevpage = 0;
+                } else {
+                    $prevpage = $pagenum;
+                }
             }
         }
         // Capabilities check.
@@ -365,19 +368,22 @@ class mobile {
 
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
         require_once($CFG->dirroot . '/mod/questionnaire/lib.php');
-
         $args = (object) $args;
         $cmid = $args->cmid;
         $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
-        $prevpage = $SESSION->prevpage;
-        if(!$prevpage) {
-            $SESSION->prevpage = $pagenum;
-            if($pagenum == 1) {
-                $prevpage = 0;
-            } else {
-                $prevpage = $pagenum;
+        $prevpage = 0;
+        if(!empty($SESSION->prevpage)) {
+            $prevpage = $SESSION->prevpage;
+            if(!$prevpage) {
+                $SESSION->prevpage = $pagenum;
+                if($pagenum == 1) {
+                    $prevpage = 0;
+                } else {
+                    $prevpage = $pagenum;
+                }
             }
         }
+        
         $quesitonnaireresponses = (!empty($args->responses)) ? $args->responses : [];
         $branching = (isset($args->branching) && !empty($args->branching)) ? intval($args->branching) : 0;
         // Capabilities check.
