@@ -215,12 +215,16 @@ function checkboxObserver(mutationList, observer) {
     switch(mutation.type) {
         case 'attributes':
 
+            if(mutation.target.getAttribute('aria-checked') == 'false') {
+                return; //needs to be true to continue
+            }
+
             var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
 
             if(!currentRequiredValue && !finalRequiredInput) {
                 return;
-            }   
+            }
 
             if(!requiredInputs.includes(currentRequiredValue)) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
