@@ -487,6 +487,7 @@ function get_questionnaire_data($cmid, $userid = false) {
     . '{questionnaire_response} '
     . ' WHERE questionnaireid = ? AND userid = ? AND complete = ? AND submitted <= ?';
     $params = ['userid' => $userid, 'questionnaireid' => $q->instance, 'complete' => 'y'];
+    $time = time();
     $ret = [
         'questionnaire' => [
             'id' => $questionnaire->id,
@@ -590,6 +591,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                     break;
                 case QUESRADIO: // Radiobutton
                     $ret['questionsinfo'][$pagenum][$question->id]['isradiobutton'] = true;
+                    $excludes = [];
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                     ['question_id' => $question->id])) {
 
@@ -615,7 +617,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                     break;
                 case QUESCHECK: // Checkbox
                     $ret['questionsinfo'][$pagenum][$question->id]['ischeckbox'] = true;
-            
+                    $excludes = [];
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                     ['question_id' => $question->id])) {
 
@@ -640,7 +642,7 @@ function get_questionnaire_data($cmid, $userid = false) {
                     break;
                 case QUESDROP: // Select
                     $ret['questionsinfo'][$pagenum][$question->id]['isselect'] = true;
-                
+                    $excludes = [];
                     if ($items = $DB->get_records('questionnaire_quest_choice',
                     ['question_id' => $question->id])) {
 
