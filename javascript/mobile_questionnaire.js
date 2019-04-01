@@ -16,6 +16,8 @@ setTimeout(function() {
     var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked');
     for(var i = 0; i < checkboxes.length; i++) {  
         checkboxes[i].childNodes[0].className+= ' ' + 'checkbox-checked';
+        checkboxes[i].childNodes[1].setAttribute('aria-checked', true);
+        checkboxes[i].childNodes[0].setAttribute('aria-checked', true);
     };
 
     //setting up observer for sliders that are completed and na applicable
@@ -216,18 +218,39 @@ function checkboxObserver(mutationList, observer) {
         case 'attributes':
 
             if(mutation.target.getAttribute('aria-checked') == 'false') {
-                return; //needs to be true to continue
+                return;
             }
 
             var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
+            var checkedCheckboxes = document.getElementsByClassName('checkbox-icon checkbox-checked');
 
-            if(!currentRequiredValue && !finalRequiredInput) {
+            if(!currentRequiredValue || !finalRequiredInput) {
                 return;
             }
 
-            if(!requiredInputs.includes(currentRequiredValue)) {
+            if(!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
+            } else if(mutation.target.parentElement.getAttribute('ng-reflect-model') == 'false' && currentRequiredValue) {
+                if( checkedCheckboxes.length < finalRequiredInput) {
+                    var index = requiredInputs.indexOf(currentRequiredValue);
+                    if (index > -1) {
+                        requiredInputs.splice(index, 1);
+                    }
+                }
+            }
+
+            var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
+            var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+
+            if(requiredInputs.length == 0) {
+                for(var x = 0; x < button.length; x++) {
+                    button[x].disabled = true;
+                }
+
+                for(var i = 0; i < nextButton.length; i++){
+                    nextButton[i].disabled = true;
+                }
             }
 
             var numberOfRequiredAnswers = 0;
@@ -242,17 +265,13 @@ function checkboxObserver(mutationList, observer) {
                 requiredInput = true;
             }
 
-            var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-            var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
-
-            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
+            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
                 for(var x = 0; x < button.length; x++) {
                     button[x].disabled = false;
                 }
-
             } 
-            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
-                 for(var i = 0; i < nextButton.length; i++){
+            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+                for(var i = 0; i < nextButton.length; i++){
                     nextButton[i].disabled = false;
                 }
             }
