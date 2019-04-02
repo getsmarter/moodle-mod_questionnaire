@@ -275,6 +275,7 @@ class mobile {
         $multichoiceflag = false;
         $completedchoices = 0;
         $finalpagerequired = false;
+        $completeddisabledflag = false;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
                  if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
@@ -289,6 +290,7 @@ class mobile {
                             
                         } else {
                             $completedchoices++;
+                            $completeddisabledflag = true;
                         }
                     }
                     
@@ -308,6 +310,8 @@ class mobile {
         //let each pagequestions know what the final required field is 
         $disablesavebutton = true;
         if($completedchoices == $currentrequiredresponse && !$finalpagerequired ) {
+           $disablesavebutton = false; 
+        } else if($completeddisabledflag) {
            $disablesavebutton = false; 
         } else {
             $disablesavebutton = true;
@@ -461,6 +465,7 @@ class mobile {
         $multichoiceflag = false;
         $completedchoices = 0;
         $finalpagerequired = false;
+        $completeddisabledflag = false;
         foreach( $data['pagequestions'] as &$pagequestion ) {
             if($pagequestion['info']['required'] == 'y') {
                  if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
@@ -475,6 +480,7 @@ class mobile {
                             
                         } else {
                             $completedchoices++;
+                            $completeddisabledflag = true;
                         }
                     }
                     
@@ -485,15 +491,20 @@ class mobile {
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                 }
 
-                if($pagequestion['info']['qnum'] == $data['questionnaire']['questionscount']) {
+                if($pagequestion['info']['qnum'] === sizeof($data['pagequestions'])) {
                     $finalpagerequired = true;
                 }
             }
         }
 
+        //let each pagequestions know what the final required field is 
         $disablesavebutton = true;
-        if($completedchoices == $currentrequiredresponse && !$finalpagerequired) {
+        if($completedchoices == $currentrequiredresponse && !$finalpagerequired ) {
            $disablesavebutton = false; 
+        } else if($completeddisabledflag) {
+           $disablesavebutton = false; 
+        } else {
+            $disablesavebutton = true;
         }
 
         //let each pagequestions know what the final required field is 
