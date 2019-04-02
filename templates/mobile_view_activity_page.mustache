@@ -78,7 +78,7 @@
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
-                                        <%#value%>checked="true" class="questionnaire-checkbox-checked"<%/value%>
+                                        <%#value%>checked="true" class="questionnaire-checkbox-checked-<%pagenum%>"<%/value%>
                                         data-finalinput="<%info.current_required_resp%>"
                                         data-currentinput="<%info.final_required_resp%>"
                                     ></ion-checkbox>
@@ -198,6 +198,7 @@
                 <%/nextpage%>
             <%/completed%>
             <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}"></div>
+            <div class="pagenum-current" hidden><%pagenum%></div>
             </ion-list>
         </ion-card>
     </div>
