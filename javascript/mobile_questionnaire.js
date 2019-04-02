@@ -217,10 +217,6 @@ function checkboxObserver(mutationList, observer) {
     switch(mutation.type) {
         case 'attributes':
 
-            if(mutation.target.getAttribute('aria-checked') == 'false') {
-                return;
-            }
-
             var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
             var checkedCheckboxes = document.getElementsByClassName('checkbox-icon checkbox-checked');
@@ -251,6 +247,10 @@ function checkboxObserver(mutationList, observer) {
                 for(var i = 0; i < nextButton.length; i++){
                     nextButton[i].disabled = true;
                 }
+            }
+
+            if(mutation.target.getAttribute('aria-checked') == 'false') {
+                return;
             }
 
             var numberOfRequiredAnswers = 0;
