@@ -8,16 +8,16 @@ setTimeout(function() {
     var nextButton = document.getElementsByClassName('next-button');
     var allCheckboxes = document.getElementsByClassName('item item-block item-md item-checkbox');
     var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
+    var pageNum = document.getElementsByClassName('pagenum-current');
+    pageNum = pageNum[0].innerHTML;
 
-    
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e);
     };
-    var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked');
+
+    var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
     for(var i = 0; i < checkboxes.length; i++) {  
-        checkboxes[i].childNodes[0].className+= ' ' + 'checkbox-checked';
-        checkboxes[i].childNodes[1].setAttribute('aria-checked', true);
-        checkboxes[i].childNodes[0].setAttribute('aria-checked', true);
+        checkboxes[i].click();
     };
 
     //setting up observer for sliders that are completed and na applicable
@@ -219,16 +219,31 @@ function checkboxObserver(mutationList, observer) {
 
             var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
-            var checkedCheckboxes = document.getElementsByClassName('checkbox-icon checkbox-checked');
+            var pageNum = document.getElementsByClassName('pagenum-current');
+
+            pageNum = pageNum[pageNum.length - 1].innerHTML;
+
+            if(mutation.target.getAttribute('aria-checked') == 'false') {
+                if(mutation.target.parentElement.classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                    mutation.target.parentElement.classList.remove('questionnaire-checkbox-checked-' + pageNum );
+                }
+                return;
+            } else {
+                if(mutation.target.parentElement.classList.contains('checkbox-md')) {
+                    mutation.target.parentElement.classList.add('questionnaire-checkbox-checked-' + pageNum );
+                }
+            }
 
             if(!currentRequiredValue || !finalRequiredInput) {
                 return;
             }
 
+            var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum);
+
             if(!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
-            } else if(mutation.target.parentElement.getAttribute('ng-reflect-model') == 'false' && currentRequiredValue) {
-                if( checkedCheckboxes.length < finalRequiredInput) {
+            } else if(mutation.target.parentElement.getAttribute('ng-reflect-model') == 'false') {
+                if( checkedCheckboxes.length <= 1) {
                     var index = requiredInputs.indexOf(currentRequiredValue);
                     if (index > -1) {
                         requiredInputs.splice(index, 1);
@@ -247,10 +262,6 @@ function checkboxObserver(mutationList, observer) {
                 for(var i = 0; i < nextButton.length; i++){
                     nextButton[i].disabled = true;
                 }
-            }
-
-            if(mutation.target.getAttribute('aria-checked') == 'false') {
-                return;
             }
 
             var numberOfRequiredAnswers = 0;
