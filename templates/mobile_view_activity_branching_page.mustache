@@ -134,26 +134,6 @@
                     <core-format-text text="<%emptypage_content%>"></core-format-text>
                 </ion-list-header>
             <%/emptypage%>
-            <%#prevpage%>
-                <button ion-button item-end outline icon-start block core-site-plugins-call-ws-new-content 
-                        name="mod_questionnaire_submit_questionnaire_response"
-                        [params]="{
-                                        questionnaireid: <%questionnaire.questionnaire.id%>,
-                                        surveyid: <%questionnaire.questionnaire.questionnaireid%>,
-                                        userid: <%userid%>,
-                                        cmid: <%cmid%>,
-                                        sec: <%pagenum%>,
-                                        completed: <%completed%>,
-                                        submit: 0,
-                                        responses: CoreUtilsProvider.objectToArrayOfObjects(CONTENT_OTHERDATA.responses, 'name', 'value')
-                                    }"
-                        [args]="{
-                                        cmid: <%cmid%>,
-                                        pagenum: CONTENT_OTHERDATA.prevpage
-                                    }"
-                        type="submit"
-                ><ion-icon name="arrow-back"></ion-icon>{{ 'plugin.mod_questionnaire.previouspage' | translate }}</button>
-            <%/prevpage%>
             <%#nextpage%>
                 <button ion-button item-end outline icon-end block core-site-plugins-call-ws-new-content next-page
                     name="mod_questionnaire_submit_questionnaire_branching"
