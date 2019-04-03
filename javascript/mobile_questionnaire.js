@@ -217,6 +217,10 @@ function checkboxObserver(mutationList, observer) {
     switch(mutation.type) {
         case 'attributes':
 
+            if(mutation.target.tagName != 'ION-CHECKBOX') {
+                return;
+            }
+
             var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
             var pageNum = document.getElementsByClassName('pagenum-current');
@@ -234,32 +238,12 @@ function checkboxObserver(mutationList, observer) {
                 }
             }
 
-            var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
-
             if(!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
-            } else if(mutation.target.getAttribute('ng-reflect-model') == 'false') {
-                if( checkedCheckboxes.length < finalRequiredInput) {
-                    var index = requiredInputs.indexOf(currentRequiredValue);
-                    if (index > -1) {
-                        requiredInputs.splice(index, 1);
-                    }
-                }
             }
 
             var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
             var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
-
-            if(checkedCheckboxes.length == 0) {
-                for(var x = 0; x < button.length; x++) {
-                    button[x].disabled = true;
-                }
-
-                for(var i = 0; i < nextButton.length; i++) {
-                    nextButton[i].disabled = true;
-                }
-            }
-
             var numberOfRequiredAnswers = 0;
             for(var x = 0; x < requiredInputs.length; x++) {
                //first need to check that all answers before required answer are in array
@@ -282,6 +266,19 @@ function checkboxObserver(mutationList, observer) {
                     nextButton[i].disabled = false;
                 }
             }
+
+            //last check here
+            var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
+            if(checkedCheckboxes.length == 0) {
+                for(var x = 0; x < button.length; x++) {
+                    button[x].disabled = true;
+                }
+
+                for(var i = 0; i < nextButton.length; i++) {
+                    nextButton[i].disabled = true;
+                }
+            }
+
         break;
         }
     });
