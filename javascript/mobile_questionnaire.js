@@ -9,7 +9,7 @@ setTimeout(function() {
     var allCheckboxes = document.getElementsByClassName('item item-block item-md item-checkbox');
     var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
     var pageNum = document.getElementsByClassName('pagenum-current');
-    pageNum = pageNum[0].innerHTML;
+    pageNum = pageNum[pageNum.length - 1].innerHTML;
 
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e);
@@ -217,20 +217,24 @@ function checkboxObserver(mutationList, observer) {
     switch(mutation.type) {
         case 'attributes':
 
-            var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
-            var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
-            var pageNum = document.getElementsByClassName('pagenum-current');
+            if(mutation.target.tagName != 'ION-CHECKBOX') {
+                return;
+            }
 
+            var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
+            var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
+            var pageNum = document.getElementsByClassName('pagenum-current');
             pageNum = pageNum[pageNum.length - 1].innerHTML;
 
-            if(mutation.target.getAttribute('aria-checked') == 'false') {
-                if(mutation.target.parentElement.classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
-                    mutation.target.parentElement.classList.remove('questionnaire-checkbox-checked-' + pageNum );
+            if(mutation.target.getAttribute('ng-reflect-model') == 'false') {
+                if(mutation.target.classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                    mutation.target.classList.remove('questionnaire-checkbox-checked-' + pageNum );
                 }
-                return;
             } else {
-                if(mutation.target.parentElement.classList.contains('checkbox-md')) {
-                    mutation.target.parentElement.classList.add('questionnaire-checkbox-checked-' + pageNum );
+                if(mutation.target.getAttribute('ng-reflect-model') == 'true') {
+                    if(!mutation.target.classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                        mutation.target.classList.add('questionnaire-checkbox-checked-' + pageNum );
+                    }
                 }
             }
 
@@ -238,12 +242,12 @@ function checkboxObserver(mutationList, observer) {
                 return;
             }
 
-            var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum);
+            var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
 
             if(!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
-            } else if(mutation.target.parentElement.getAttribute('ng-reflect-model') == 'false') {
-                if( checkedCheckboxes.length <= 1) {
+            } else if(mutation.target.getAttribute('ng-reflect-model') == 'false') {
+                if( checkedCheckboxes.length < finalRequiredInput) {
                     var index = requiredInputs.indexOf(currentRequiredValue);
                     if (index > -1) {
                         requiredInputs.splice(index, 1);
@@ -254,14 +258,15 @@ function checkboxObserver(mutationList, observer) {
             var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
             var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
 
-            if(requiredInputs.length == 0) {
+            if(checkedCheckboxes.length == 0) {
                 for(var x = 0; x < button.length; x++) {
                     button[x].disabled = true;
                 }
 
-                for(var i = 0; i < nextButton.length; i++){
+                for(var i = 0; i < nextButton.length; i++) {
                     nextButton[i].disabled = true;
                 }
+                return;
             }
 
             var numberOfRequiredAnswers = 0;
