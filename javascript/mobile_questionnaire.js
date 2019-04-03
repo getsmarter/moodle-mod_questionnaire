@@ -6,19 +6,26 @@ setTimeout(function() {
     var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false');
     var allSliders = document.getElementsByClassName('range range-md');
     var nextButton = document.getElementsByClassName('next-button');
-    var allCheckboxes = document.getElementsByClassName('item item-block item-md item-checkbox');
+    var allCheckboxes = document.getElementsByClassName('item-checkbox');
     var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
-    var pageNum = document.getElementsByClassName('pagenum-current');
-    pageNum = pageNum[pageNum.length - 1].innerHTML;
+    var pageNumArray = document.getElementsByClassName('pagenum-current');
+    var backButton = document.getElementsByClassName('back-button bar-button bar-button-md back-button-md bar-button-default bar-button-default-md show-back-button');
+    var pageNum = pageNumArray[pageNumArray.length - 1].innerHTML;
 
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e);
     };
 
+    window.localStorage.setItem('pageNum', pageNum);
+
     var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
     for(var i = 0; i < checkboxes.length; i++) {  
         checkboxes[i].click();
     };
+
+    for(var x =0; x < backButton.length; x++) {
+        backButton[x].addEventListener('click', onBackButtonClick);
+    }
 
     //setting up observer for sliders that are completed and na applicable
     var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); //when a user chooses N/A on slider
@@ -84,9 +91,7 @@ setTimeout(function() {
     //setting up observer for checkboxes 
     if(typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { //NA onload 
         var observerOptions = {
-            childList: true,
             attributes: true,
-            subtree: true, //Omit or set to false to observe only changes to the parent node.
             characterData: true,
         }
         for(var x = 0; x < allCheckboxes.length; x++) {
@@ -217,26 +222,27 @@ function checkboxObserver(mutationList, observer) {
     switch(mutation.type) {
         case 'attributes':
 
-            if(mutation.target.tagName != 'ION-CHECKBOX') {
+            var currentRequiredValue = mutation.target.childNodes[0].getAttribute('data-currentinput');
+            var finalRequiredInput = mutation.target.childNodes[0].getAttribute('data-finalinput');
+            var pageNumArray = document.getElementsByClassName('pagenum-current');
+            var pageNum = window.localStorage.getItem('pageNum');
+
+            if(typeof(mutation.target.childNodes[0].childNodes[1]) == undefined) {
                 return;
             }
 
-            var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
-            var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
-            var pageNum = document.getElementsByClassName('pagenum-current');
-            pageNum = pageNum[pageNum.length - 1].innerHTML;
-
-            if(mutation.target.getAttribute('ng-reflect-model') == 'false') {
-                if(mutation.target.classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
-                    mutation.target.classList.remove('questionnaire-checkbox-checked-' + pageNum );
-                }
-            } else {
-                if(mutation.target.getAttribute('ng-reflect-model') == 'true') {
-                    if(!mutation.target.classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
-                        mutation.target.classList.add('questionnaire-checkbox-checked-' + pageNum );
+            try {
+                var ariaCheck = mutation.target.childNodes[0].childNodes[1].getAttribute('aria-checked');
+                if(ariaCheck == 'true') {
+                    if(!mutation.target.childNodes[0].classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                        mutation.target.childNodes[0].classList.add('questionnaire-checkbox-checked-' + pageNum );
+                    }
+                } else if(ariaCheck == 'false') {
+                    if(mutation.target.childNodes[0].classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                        mutation.target.childNodes[0].classList.remove('questionnaire-checkbox-checked-' + pageNum );
                     }
                 }
-            }
+            } catch (err) {}
 
             if(!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
@@ -256,12 +262,12 @@ function checkboxObserver(mutationList, observer) {
                 requiredInput = true;
             }
 
-            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
+            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput ) {
                 for(var x = 0; x < button.length; x++) {
                     button[x].disabled = false;
                 }
             } 
-            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput ) {
                 for(var i = 0; i < nextButton.length; i++){
                     nextButton[i].disabled = false;
                 }
@@ -338,4 +344,11 @@ function textBoxObserver(mutationList, observer) {
         break;
         }
     });
+}
+
+function onBackButtonClick() {
+    var pageNumber = window.localStorage.getItem('pageNum');
+    pageNumber--;
+    window.localStorage.setItem('pageNum', pageNumber);
+
 }
