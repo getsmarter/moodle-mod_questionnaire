@@ -217,10 +217,6 @@ function checkboxObserver(mutationList, observer) {
     switch(mutation.type) {
         case 'attributes':
 
-            if(mutation.target.tagName != 'ION-CHECKBOX') {
-                return;
-            }
-
             var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
             var pageNum = document.getElementsByClassName('pagenum-current');
@@ -236,10 +232,6 @@ function checkboxObserver(mutationList, observer) {
                         mutation.target.classList.add('questionnaire-checkbox-checked-' + pageNum );
                     }
                 }
-            }
-
-            if(!currentRequiredValue || !finalRequiredInput) {
-                return;
             }
 
             var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
@@ -266,7 +258,6 @@ function checkboxObserver(mutationList, observer) {
                 for(var i = 0; i < nextButton.length; i++) {
                     nextButton[i].disabled = true;
                 }
-                return;
             }
 
             var numberOfRequiredAnswers = 0;
