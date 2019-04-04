@@ -1060,18 +1060,55 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                                 $rec->rankvalue = -1;
                                             }
                                         }
-                                        $DB->insert_record('questionnaire_response_rank', $rec);
+
+                                        $dupecheck = $DB->get_record('questionnaire_response_rank',
+                                            ['response_id' =>  $rec->response_id, 
+                                            'question_id' => $rec->question_id, 
+                                            'choice_id' => $rec->choice_id]
+                                        );
+
+                                        if(empty($dupecheck)) {
+                                            $DB->insert_record('questionnaire_response_rank', $rec);
+                                        }
+                                    }
+                                } elseif($typeid == QUESRADIO) {
+
+                                    if (isset($args[3]) && !empty($args[3])) {
+                                        $choiceid = intval($args[3]);
+                                        $rec = new \stdClass();
+                                        $rec->response_id = $rid;
+                                        $rec->question_id = intval($rquestionid);
+                                        $rec->choice_id = $choiceid;
+
+                                        $dupecheck = $DB->get_record('questionnaire_resp_multiple',
+                                            ['response_id' =>  $rec->response_id, 
+                                            'question_id' => $rec->question_id, 
+                                            'choice_id' => $rec->choice_id]
+                                        );
+
+                                        if(empty($dupecheck)) {
+                                            $DB->insert_record('questionnaire_resp_multiple', $rec);
+                                        }
                                     }
                                 } else {
                                     $questionobj = \mod_questionnaire\question\base::question_builder(
                                     $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
                                     $questionnairedata['questionsinfo'][$sec][$rquestionid]);
-                                    if ($questionobj->insert_response($rid, $response['value'])) {
-                                        $ret['responses'][$rid][$questionid] = $response['value'];
+
+                                    $response_table = 'questionnaire_';
+                                    $response_table = $response_table . $questionnairedata['questionsinfo'][$sec][$rquestionid]['response_table'];
+
+                                    $dupecheck = $DB->get_record($response_table,
+                                        ['response_id' =>  $rid, 
+                                        'question_id' => $rquestionid]
+                                    );
+
+                                    if(empty($dupecheck)) {
+                                        if ($questionobj->insert_response($rid, $response['value'])) {
+                                            $ret['responses'][$rid][$questionid] = $response['value'];
+                                        }    
                                     }
                                 }
-
-                                
                             } else {
                                 $missingquestions[$rquestionid] = $rquestionid;
                             }
