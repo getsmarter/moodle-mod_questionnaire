@@ -1028,14 +1028,23 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                         unset($missingquestions[$rquestionid]);
                         if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
                             if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
-                                if( $typeid == QUESCHECK) { //if checkbox handle differently because we need to check if question value is set to true
+                                if( $typeid == QUESCHECK && $response['value'] == 'true') { //if checkbox handle differently because we need to check if question value is set to true
                                     if (isset($args[3]) && !empty($args[3])) {
                                         $choiceid = intval($args[3]);
                                         $rec = new \stdClass();
                                         $rec->response_id = $rid;
                                         $rec->question_id = intval($rquestionid);
                                         $rec->choice_id = $choiceid;
-                                        $DB->insert_record('questionnaire_resp_multiple', $rec);
+
+                                        $dupecheck = $DB->get_record('questionnaire_resp_multiple',
+                                            ['response_id' =>  $rec->response_id, 
+                                            'question_id' => $rec->question_id, 
+                                            'choice_id' => $rec->choice_id]
+                                        );
+
+                                        if(empty($dupecheck)) {
+                                            $DB->insert_record('questionnaire_resp_multiple', $rec);
+                                        }
                                     }
                                 } elseif($typeid == QUESRATE) { //questionranking saving
                                     if (isset($args[3]) && !empty($args[3])) {
