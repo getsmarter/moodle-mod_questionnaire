@@ -1035,7 +1035,16 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                         $rec->response_id = $rid;
                                         $rec->question_id = intval($rquestionid);
                                         $rec->choice_id = $choiceid;
-                                        $DB->insert_record('questionnaire_resp_multiple', $rec);
+
+                                        $dupecheck = $DB->get_record('questionnaire_resp_multiple',
+                                            ['response_id' =>  $rec->response_id, 
+                                            'question_id' => $rec->question_id, 
+                                            'choice_id' => $rec->choice_id]
+                                        );
+
+                                        if(empty($dupecheck)) {
+                                            $DB->insert_record('questionnaire_resp_multiple', $rec);
+                                        }
                                     }
                                 } elseif($typeid == QUESRATE) { //questionranking saving
                                     if (isset($args[3]) && !empty($args[3])) {
