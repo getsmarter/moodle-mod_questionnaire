@@ -115,7 +115,7 @@ setTimeout(function() {
         }
     }
 
-    if(typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
+    if(typeof(button) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
         for(var x = 0; x < button.length; x++) {
             button[x].disabled = true;
         }
@@ -149,8 +149,10 @@ function checkIfFinalRequiredResponse (e) {
 
     var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
     var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
-    if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
-        button.mod_questionnaire_submit_questionnaire_response.disabled = false;
+    if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button) != 'undefined') {
+         for(var i = 0; i < button.length; i++){
+            button[i].disabled = false;
+        }
     } 
     if(requiredInput === true && numberOfRequiredAnswers == finalRequiredAnswer && typeof(nextButton) != 'undefined') {
         for(var i = 0; i < nextButton.length; i++){
@@ -199,7 +201,7 @@ function sliderObserver(mutationList, observer) {
         var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
         var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
 
-        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
+        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
             for(var x = 0; x < button.length; x++) {
                 button[x].disabled = false;
             }
@@ -330,7 +332,7 @@ function textBoxObserver(mutationList, observer) {
             
             var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
 
-            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button.mod_questionnaire_submit_questionnaire_response) != 'undefined') {
+            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
                 for(var x = 0; x < button.length; x++) {
                     button[x].disabled = false;
                 }
