@@ -1072,22 +1072,21 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                         }
                                     }
                                 } elseif($typeid == QUESRADIO) {
-
-                                    if (isset($args[3]) && !empty($args[3])) {
-                                        $choiceid = intval($args[3]);
+                                    if (isset($args[2]) && !empty($args[2])) {
+                                        $choiceid = intval($args[2]);
                                         $rec = new \stdClass();
                                         $rec->response_id = $rid;
                                         $rec->question_id = intval($rquestionid);
-                                        $rec->choice_id = $choiceid;
+                                        $rec->choice_id = $response['value'];
 
-                                        $dupecheck = $DB->get_record('questionnaire_resp_multiple',
+                                        $dupecheck = $DB->get_record('questionnaire_resp_single',
                                             ['response_id' =>  $rec->response_id, 
                                             'question_id' => $rec->question_id, 
                                             'choice_id' => $rec->choice_id]
                                         );
 
                                         if(empty($dupecheck)) {
-                                            $DB->insert_record('questionnaire_resp_multiple', $rec);
+                                            $DB->insert_record('questionnaire_resp_single', $rec);
                                         }
                                     }
                                 } else {
