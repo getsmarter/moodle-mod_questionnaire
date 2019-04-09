@@ -16,9 +16,8 @@
 }}
 {{=<% %>=}}
 <div>
-    <core-course-module-description description="<%questionnaire.questionnaire.intro%>"
-                                    component="mod_questionnaire" componentId="<%cmid%>"
-                                    pagenum="<%pagenum%>"></core-course-module-description>
+    <core-course-module-description description="<%questionnaire.questionnaire.intro%>">
+    </core-course-module-description>
     <%#completed%>
     <ion-card>
         <ion-card-content>
@@ -39,8 +38,8 @@
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
+                                <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
+                                onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
@@ -49,10 +48,10 @@
                             <%#choices%>
                                 <ion-item>
                                     <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
-                                        <ion-radio<%#value%> checked="true"<%/value%>
-                                        value="<%choice_id%>"
-                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
-                                        <%#completed%> disabled="true"<%/completed%>></ion-radio>
+                                    <ion-radio<%#value%> checked="true"<%/value%>
+                                    value="<%choice_id%>"
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
+                                    <%#completed%> disabled="true"<%/completed%>></ion-radio>
                                 </ion-item>
                             <%/choices%>
                         </ion-list>
@@ -90,13 +89,13 @@
                         <ion-item>
                             <%^completed%>
                                 <ion-textarea aria-multiline="true" 
-                                [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
-                                core-auto-rows
-                                <%#info.current_required_resp%>
-                                data-finalinput="<%info.current_required_resp%>"
-                                data-currentinput="<%info.final_required_resp%>"
-                                <%/info.current_required_resp%>
-                                ></ion-textarea>
+                                    [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                                    core-auto-rows
+                                    <%#info.current_required_resp%>
+                                    data-finalinput="<%info.current_required_resp%>"
+                                    data-currentinput="<%info.final_required_resp%>"
+                                    <%/info.current_required_resp%>
+                                    ></ion-textarea>
                             <%/completed%>
                             <%#completed%>
                                 <ion-textarea aria-multiline="true" disabled="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
@@ -155,7 +154,7 @@
                                     }"
                     type="submit"
                     class="next-button"
-                >{{ 'plugin.mod_questionnaire.nextpage' | translate }}<ion-icon name="arrow-forward"></ion-icon></button>
+                >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
                 <%^nextpage%>
