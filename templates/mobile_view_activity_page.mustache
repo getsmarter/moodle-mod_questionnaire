@@ -177,7 +177,7 @@
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
-            <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}"></div>
+            <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}-<%pagenum%>"></div>
             <div class="pagenum-current" hidden><%pagenum%></div>
             </ion-list>
         </ion-card>
