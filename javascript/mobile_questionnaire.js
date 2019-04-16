@@ -4,10 +4,10 @@ setTimeout(function() {
 
     var pageNumArray = document.getElementsByClassName('pagenum-current');
     var pageNum = pageNumArray[pageNumArray.length - 1].innerHTML;
-    var button = document.getElementsByClassName('button');
+    var button = document.getElementsByClassName('questionnaire submit-button');
     var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false-' + pageNum);
     var allSliders = document.getElementsByClassName('range');
-    var nextButton = document.getElementsByClassName('next-button');
+    var nextButton = document.getElementsByClassName('questionnaire next-button');
     var allCheckboxes = document.getElementsByClassName('item-checkbox');
     var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
     var backButton = document.getElementsByClassName('back-button');
@@ -147,8 +147,8 @@ function checkIfFinalRequiredResponse (e) {
         requiredInput = true;
     }
 
-    var button = document.getElementsByClassName('button');
-    var nextButton = document.getElementsByClassName('next-button');
+    var button = document.getElementsByClassName('questionnaire submit-button');
+    var nextButton = document.getElementsByClassName('questionnaire next-button');
     if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button) != 'undefined') {
          for(var i = 0; i < button.length; i++){
             button[i].disabled = false;
@@ -200,8 +200,8 @@ function sliderObserver(mutationList, observer) {
             requiredInput = true;
         }
 
-        var button = document.getElementsByClassName('button');
-        var nextButton = document.getElementsByClassName('next-button');
+        var button = document.getElementsByClassName('questionnaire submit-button');
+        var nextButton = document.getElementsByClassName('questionnaire next-button');
 
         if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
             for(var x = 0; x < button.length; x++) {
@@ -252,8 +252,8 @@ function checkboxObserver(mutationList, observer) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
             }
 
-            var button = document.getElementsByClassName('button');
-            var nextButton = document.getElementsByClassName('next-button');
+            var button = document.getElementsByClassName('questionnaire submit-button');
+            var nextButton = document.getElementsByClassName('questionnaire next-button');
             var numberOfRequiredAnswers = 0;
             for(var x = 0; x < requiredInputs.length; x++) {
                //first need to check that all answers before required answer are in array
@@ -302,7 +302,7 @@ function textBoxObserver(mutationList, observer) {
 
             var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
-            var button = document.getElementsByClassName('button');
+            var button = document.getElementsByClassName('questionnaire submit-button');
 
             if(!currentRequiredValue && !finalRequiredInput) {
                 return;
@@ -331,7 +331,7 @@ function textBoxObserver(mutationList, observer) {
                 requiredInput = true;
             }
             
-            var nextButton = document.getElementsByClassName('next-button');
+            var nextButton = document.getElementsByClassName('questionnaire next-button');
 
             if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
                 for(var x = 0; x < button.length; x++) {
