@@ -154,7 +154,7 @@
                                         pagenum: <%nextpage%>
                                     }"
                     type="submit"
-                    class="next-button"
+                    class="questionnaire next-button"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }}<ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
@@ -174,6 +174,7 @@
                             confirmMessage="{{ 'plugin.mod_questionnaire.areyousure' | translate }}"
                             refreshOnSuccess="true"
                             type="submit"
+                            class="questionnaire submit-button"
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
