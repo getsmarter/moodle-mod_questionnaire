@@ -9,7 +9,7 @@ setTimeout(function() {
     var allSliders = document.getElementsByClassName('range');
     var nextButton = document.getElementsByClassName('questionnaire next-button');
     var allCheckboxes = document.getElementsByClassName('item-checkbox');
-    var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
+    var allTextBoxes = document.getElementsByClassName('questionnaire-text');
     var backButton = document.getElementsByClassName('back-button');
 
     window.clicked_input = e => {
@@ -306,7 +306,7 @@ function textBoxObserver(mutationList, observer) {
 
             if(!currentRequiredValue && !finalRequiredInput) {
                 return;
-            }   
+            }
 
             if(mutation.target.value == '') {
                 for(var x = 0; x < button.length; x++) {
