@@ -2,15 +2,15 @@ var requiredInputs = [];
 
 setTimeout(function() {
 
-    var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-    var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false');
-    var allSliders = document.getElementsByClassName('range range-md');
-    var nextButton = document.getElementsByClassName('next-button');
-    var allCheckboxes = document.getElementsByClassName('item-checkbox');
-    var allTextBoxes = document.getElementsByClassName('text-input text-input-md ng-star-inserted');
     var pageNumArray = document.getElementsByClassName('pagenum-current');
-    var backButton = document.getElementsByClassName('back-button bar-button bar-button-md back-button-md bar-button-default bar-button-default-md show-back-button');
     var pageNum = pageNumArray[pageNumArray.length - 1].innerHTML;
+    var button = document.getElementsByClassName('questionnaire submit-button');
+    var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false-' + pageNum);
+    var allSliders = document.getElementsByClassName('range');
+    var nextButton = document.getElementsByClassName('questionnaire next-button');
+    var allCheckboxes = document.getElementsByClassName('item-checkbox');
+    var allTextBoxes = document.getElementsByClassName('questionnaire-text');
+    var backButton = document.getElementsByClassName('back-button');
 
     window.clicked_input = e => {
         checkIfFinalRequiredResponse(e);
@@ -147,8 +147,8 @@ function checkIfFinalRequiredResponse (e) {
         requiredInput = true;
     }
 
-    var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-    var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+    var button = document.getElementsByClassName('questionnaire submit-button');
+    var nextButton = document.getElementsByClassName('questionnaire next-button');
     if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button) != 'undefined') {
          for(var i = 0; i < button.length; i++){
             button[i].disabled = false;
@@ -178,7 +178,9 @@ function naObserver(mutationList, observer) {
 function sliderObserver(mutationList, observer) {
   mutationList.forEach((mutation) => {
     switch(mutation.type) {
+
         case 'characterData':
+
         var currentRequiredValue = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-currentinput');
         var finalRequiredInput = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-finalinput');
 
@@ -198,8 +200,8 @@ function sliderObserver(mutationList, observer) {
             requiredInput = true;
         }
 
-        var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-        var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+        var button = document.getElementsByClassName('questionnaire submit-button');
+        var nextButton = document.getElementsByClassName('questionnaire next-button');
 
         if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
             for(var x = 0; x < button.length; x++) {
@@ -250,8 +252,8 @@ function checkboxObserver(mutationList, observer) {
                 requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
             }
 
-            var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
-            var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+            var button = document.getElementsByClassName('questionnaire submit-button');
+            var nextButton = document.getElementsByClassName('questionnaire next-button');
             var numberOfRequiredAnswers = 0;
             for(var x = 0; x < requiredInputs.length; x++) {
                //first need to check that all answers before required answer are in array
@@ -300,11 +302,11 @@ function textBoxObserver(mutationList, observer) {
 
             var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
             var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
-            var button = document.getElementsByClassName('button button-md button-default button-default-md button-block button-block-md');
+            var button = document.getElementsByClassName('questionnaire submit-button');
 
             if(!currentRequiredValue && !finalRequiredInput) {
                 return;
-            }   
+            }
 
             if(mutation.target.value == '') {
                 for(var x = 0; x < button.length; x++) {
@@ -328,9 +330,8 @@ function textBoxObserver(mutationList, observer) {
             if(requiredInputs.includes(finalRequiredInput)) {
                 requiredInput = true;
             }
-
             
-            var nextButton = document.getElementsByClassName('next-button button button-md button-outline button-outline-md button-block button-block-md');
+            var nextButton = document.getElementsByClassName('questionnaire next-button');
 
             if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
                 for(var x = 0; x < button.length; x++) {

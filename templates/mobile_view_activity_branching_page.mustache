@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{=<% %>=}}
-<div>
+<div class="questionnaire-module">
     <core-course-module-description description="<%questionnaire.questionnaire.intro%>">
     </core-course-module-description>
     <%#completed%>
@@ -95,6 +95,7 @@
                                     data-finalinput="<%info.current_required_resp%>"
                                     data-currentinput="<%info.final_required_resp%>"
                                     <%/info.current_required_resp%>
+                                    class="questionnaire-text"
                                     ></ion-textarea>
                             <%/completed%>
                             <%#completed%>
@@ -104,7 +105,7 @@
                     <%/info.istextessay%>
                     <%#info.israte%>
                         <%#choices%>
-                            <ion-list-header text-wrap>
+                            <ion-list-header class="questionnaire-badge-range" text-wrap>
                                 <core-format-text text="<%content%>"></core-format-text>
                                 <ion-badge item-end <%#na%>class="na-applicable <%#value%>na-completed<%/value%>" <%/na%> data-final="<%max%>">{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</ion-badge>
                                 <span class="range-ranges" hidden>{{ CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>'] }}</span>
@@ -153,7 +154,7 @@
                                         pagenum: <%nextpage%>
                                     }"
                     type="submit"
-                    class="next-button"
+                    class="questionnaire next-button"
                 >{{ 'plugin.mod_questionnaire.nextpage' | translate }} <ion-icon name="arrow-forward"></ion-icon></button>
             <%/nextpage%>
             <%^completed%>
@@ -173,10 +174,11 @@
                             confirmMessage="{{ 'plugin.mod_questionnaire.areyousure' | translate }}"
                             refreshOnSuccess="true"
                             type="submit"
+                            class="questionnaire submit-button"
                     >{{ 'plugin.mod_questionnaire.savechanges' | translate }}</button>
                 <%/nextpage%>
             <%/completed%>
-            <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}"></div>
+            <div class="hidden-submit-button-check-{{CONTENT_OTHERDATA.disable_save}}-<%pagenum%>"></div>
             <div class="pagenum-current" hidden><%pagenum%></div>
             </ion-list>
         </ion-card>
