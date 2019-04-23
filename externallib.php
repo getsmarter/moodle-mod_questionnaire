@@ -82,7 +82,9 @@ class mod_questionnaire_external extends \external_api {
      * @return array answers information and warnings
      * @since Moodle 3.0
      */
-    public static function submit_questionnaire_response($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses) {
+    public static function submit_questionnaire_response($questionnaireid, $surveyid, $userid,
+        $cmid, $sec, $completed, $submit, $responses) {
+
         $params = self::validate_parameters(self::submit_questionnaire_response_parameters(),
             [
                 'questionnaireid' => $questionnaireid,
@@ -154,7 +156,8 @@ class mod_questionnaire_external extends \external_api {
         );
     }
 
-    public static function submit_questionnaire_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses) {
+    public static function submit_questionnaire_branching($questionnaireid, $surveyid, $userid,
+        $cmid, $sec, $completed, $submit, $responses) {
 
         $params = self::validate_parameters(self::submit_questionnaire_response_parameters(),
             [
@@ -179,7 +182,8 @@ class mod_questionnaire_external extends \external_api {
 
         require_capability('mod/questionnaire:submit', $context);
 
-        $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses);
+        $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid,
+            $sec, $completed, $submit, $responses);
 
         $result['submitted'] = true;
         if (isset($result['warnings']) && !empty($result['warnings'])) {
@@ -194,7 +198,7 @@ class mod_questionnaire_external extends \external_api {
         return new \external_single_structure(
             [
                 'submitted' => new \external_value(PARAM_BOOL, 'submitted', true, false, false),
-                'warnings' => new \external_warnings(), 
+                'warnings' => new \external_warnings(),
                 'params' => new \external_warnings(),
             ]
         );
