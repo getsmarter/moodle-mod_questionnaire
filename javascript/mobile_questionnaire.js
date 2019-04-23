@@ -19,24 +19,23 @@ setTimeout(function() {
     window.localStorage.setItem('pageNum', pageNum);
 
     var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
-    for(var i = 0; i < checkboxes.length; i++) {  
+    for (var i = 0; i < checkboxes.length; i++) {
         checkboxes[i].click();
     };
 
-    for(var x =0; x < backButton.length; x++) {
+    for (var x = 0; x < backButton.length; x++) {
         backButton[x].addEventListener('click', onBackButtonClick);
     }
 
-    //setting up observer for sliders that are completed and na applicable
-    var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); //when a user chooses N/A on slider
-    if(typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
+    // Setting up observer for sliders that are completed and na applicable.
+    var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); // When a user chooses N/A on slider.
+    if (typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
         var completedSliders = document.getElementsByClassName('na-applicable na-completed');
-        if(typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
-            for(var i = 1; i < completedSliders.length; i++){
-                for(var x = 0; x < allSliders.length; x++) {
+        if (typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
+            for (var i = 1; i < completedSliders.length; i++) {
+                for (var x = 0; x < allSliders.length; x++) {
                     var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
-
-                    if(allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
+                    if (allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
                         completedSliders[i].innerHTML = 'N/A';
                     }
                 }
@@ -47,29 +46,29 @@ setTimeout(function() {
         var observerOptions = {
             childList: true,
             attributes: true,
-            subtree: true, //Omit or set to false to observe only changes to the parent node.
+            subtree: true, // Omit or set to false to observe only changes to the parent node.
             characterData: true,
         }
-        for(var x = 0; x < allNaApplicableSliders.length; x++) {
+        for (var x = 0; x < allNaApplicableSliders.length; x++) {
             var observer = new MutationObserver(naObserver);
             observer.observe(allNaApplicableSliders[x], observerOptions);
         }
     }
 
-    //setting up observer for sliders on page
-    if(typeof(allSliders) != 'undefined' && allSliders.length > 0) { //NA onload 
+    // Setting up observer for sliders on page
+    if (typeof(allSliders) != 'undefined' && allSliders.length > 0) { // NA onload.
         for(var x = 0; x < allSliders.length; x++) {
             var counter = 1;
-            //here I need to check if it is na applicable
+            // Here I need to check if it is na applicable.
             var naCheck = allSliders[x].getAttribute('data-na');
-            for(var i = 0; i < allSliders[x].childNodes[1].children.length - 3; i++) {
+            for (var i = 0; i < allSliders[x].childNodes[1].children.length - 3; i++) {
 
-                if(naCheck && allSliders[x].getAttribute('max') == (i + 1)) {
+                if (naCheck && allSliders[x].getAttribute('max') == (i + 1)) {
                     allSliders[x].childNodes[1].children[i].innerHTML = '<p style="margin-left: -15px; width: 25px;">N/A</p>';
                 } else {
                     allSliders[x].childNodes[1].children[i].innerHTML = counter;
                 }
-                
+
                 allSliders[x].childNodes[1].children[i].style.paddingTop = '10px';
                 allSliders[x].childNodes[1].children[i].style.width = '0px';
                 counter++;
@@ -79,17 +78,17 @@ setTimeout(function() {
         var observerOptions = {
             childList: true,
             attributes: true,
-            subtree: true, //Omit or set to false to observe only changes to the parent node.
+            subtree: true, // Omit or set to false to observe only changes to the parent node.
             characterData: true,
         }
-        for(var x = 0; x < allSliders.length; x++) {
+        for (var x = 0; x < allSliders.length; x++) {
             var observer = new MutationObserver(sliderObserver);
             observer.observe(allSliders[x], observerOptions);
         }
     }
 
-    //setting up observer for checkboxes 
-    if(typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { //NA onload 
+    // Setting up observer for checkboxes.
+    if (typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { // NA onload.
         var observerOptions = {
             attributes: true,
             characterData: true,
@@ -100,29 +99,29 @@ setTimeout(function() {
         }
     }
 
-    //setting up observer for textboxes 
-    if(typeof(allTextBoxes) != 'undefined' && allTextBoxes.length > 0) { //NA onload 
+    // Setting up observer for textboxes.
+    if (typeof(allTextBoxes) != 'undefined' && allTextBoxes.length > 0) { // NA onload.
 
         var observerOptions = {
             childList: true,
             attributes: true,
-            subtree: true, //Omit or set to false to observe only changes to the parent node.
+            subtree: true, // Omit or set to false to observe only changes to the parent node.
             characterData: true,
         }
-        for(var x = 0; x < allTextBoxes.length; x++) {
+        for (var x = 0; x < allTextBoxes.length; x++) {
             var observer = new MutationObserver(textBoxObserver);
             observer.observe(allTextBoxes[x], observerOptions);
         }
     }
 
-    if(typeof(button) != 'undefined' && disableSaveButtonFalse.length == 0) { //basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic
-        for(var x = 0; x < button.length; x++) {
+    if (typeof(button) != 'undefined' && disableSaveButtonFalse.length == 0) { // Basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic.
+        for (var x = 0; x < button.length; x++) {
             button[x].disabled = true;
         }
     }
 
-    if(typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
-        for(var x = 0; x < nextButton.length; x++) {
+    if (typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
+        for (var x = 0; x < nextButton.length; x++) {
             nextButton[x].disabled = true;
         }
     }
@@ -130,221 +129,212 @@ setTimeout(function() {
 }, 300);
 
 function checkIfFinalRequiredResponse (e) {
-    if(!requiredInputs.includes(e[0])) {
-        requiredInputs.push(e[0]); //only push if it has not been added to the array already
+    if (!requiredInputs.includes(e[0])) {
+        requiredInputs.push(e[0]); // Only push if it has not been added to the array already.
     }
-    
+
     var finalRequiredAnswer = e[1];
     var numberOfRequiredAnswers = 0;
-    for(var x = 0; x < requiredInputs.length; x++) {
-       //first need to check that all answers before required answer are in array
-       //then set a flag that I can check later
+    for (var x = 0; x < requiredInputs.length; x++) {
+        // First need to check that all answers before required answer are in array.
+        // Then set a flag that I can check later.
         numberOfRequiredAnswers++;
     }
 
     var requiredInput = false;
-    if(requiredInputs.includes(e[1])) {
+    if (requiredInputs.includes(e[1])) {
         requiredInput = true;
     }
 
     var button = document.getElementsByClassName('questionnaire submit-button');
     var nextButton = document.getElementsByClassName('questionnaire next-button');
-    if(requiredInput === true && numberOfRequiredAnswers ==  finalRequiredAnswer && typeof(button) != 'undefined') {
-         for(var i = 0; i < button.length; i++){
+    if (requiredInput === true && numberOfRequiredAnswers == finalRequiredAnswer && typeof(button) != 'undefined') {
+        for (var i = 0; i < button.length; i++) {
             button[i].disabled = false;
         }
-    } 
-    if(requiredInput === true && numberOfRequiredAnswers == finalRequiredAnswer && typeof(nextButton) != 'undefined') {
-        for(var i = 0; i < nextButton.length; i++){
+    }
+    if (requiredInput === true && numberOfRequiredAnswers == finalRequiredAnswer && typeof(nextButton) != 'undefined') {
+        for (var i = 0; i < nextButton.length; i++) {
             nextButton[i].disabled = false;
         }
     }
 }
 
 function naObserver(mutationList, observer) {
-  mutationList.forEach((mutation) => {
-    switch(mutation.type) {
-        case 'characterData':
-        var restingNaValue = mutation.target.parentElement.getAttribute('data-final');
-        var currentNaValue = mutation.target.data;
-        if(currentNaValue == restingNaValue) {
-            mutation.target.data = 'n/a';
+    mutationList.forEach((mutation) => {
+        switch (mutation.type) {
+            case 'characterData':
+                var restingNaValue = mutation.target.parentElement.getAttribute('data-final');
+                var currentNaValue = mutation.target.data;
+                if (currentNaValue == restingNaValue) {
+                    mutation.target.data = 'n/a';
+                }
+                break;
         }
-        break;
-    }
-  });
+    });
 }
 
 function sliderObserver(mutationList, observer) {
-  mutationList.forEach((mutation) => {
-    switch(mutation.type) {
+    mutationList.forEach((mutation) => {
+        switch (mutation.type) {
+            case 'characterData':
+                var currentRequiredValue = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-currentinput');
+                var finalRequiredInput = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-finalinput');
 
-        case 'characterData':
+                if (!requiredInputs.includes(currentRequiredValue)) {
+                    requiredInputs.push(currentRequiredValue); // Only push if it has not been added to the array already.
+                }
 
-        var currentRequiredValue = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-currentinput');
-        var finalRequiredInput = mutation.target.parentElement.parentElement.parentElement.parentElement.getAttribute('data-finalinput');
+                var numberOfRequiredAnswers = 0;
+                for (var x = 0; x < requiredInputs.length; x++) {
+                    // First need to check that all answers before required answer are in array.
+                    // Then set a flag that I can check later.
+                    numberOfRequiredAnswers++;
+                }
 
-        if(!requiredInputs.includes(currentRequiredValue)) {
-            requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
+                var requiredInput = false;
+                if (requiredInputs.includes(finalRequiredInput)) {
+                    requiredInput = true;
+                }
+
+                var button = document.getElementsByClassName('questionnaire submit-button');
+                var nextButton = document.getElementsByClassName('questionnaire next-button');
+
+                if (requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
+                    for(var x = 0; x < button.length; x++) {
+                        button[x].disabled = false;
+                    }
+                }
+                if (requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+                    for (var i = 0; i < nextButton.length; i++) {
+                        nextButton[i].disabled = false;
+                    }
+                }
+                break;
         }
-
-        var numberOfRequiredAnswers = 0;
-        for(var x = 0; x < requiredInputs.length; x++) {
-           //first need to check that all answers before required answer are in array
-           //then set a flag that I can check later
-           numberOfRequiredAnswers++;
-        }
-
-        var requiredInput = false;
-        if(requiredInputs.includes(finalRequiredInput)) {
-            requiredInput = true;
-        }
-
-        var button = document.getElementsByClassName('questionnaire submit-button');
-        var nextButton = document.getElementsByClassName('questionnaire next-button');
-
-        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
-            for(var x = 0; x < button.length; x++) {
-                button[x].disabled = false;
-            }
-
-        } 
-        if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
-             for(var i = 0; i < nextButton.length; i++){
-                nextButton[i].disabled = false;
-            }
-        }
-
-        break;
-    }
-  });
+    });
 }
 
 function checkboxObserver(mutationList, observer) {
-  mutationList.forEach((mutation) => {
+    mutationList.forEach((mutation) => {
+        switch (mutation.type) {
+            case 'attributes':
+                var currentRequiredValue = mutation.target.childNodes[0].getAttribute('data-currentinput');
+                var finalRequiredInput = mutation.target.childNodes[0].getAttribute('data-finalinput');
+                var pageNumArray = document.getElementsByClassName('pagenum-current');
+                var pageNum = window.localStorage.getItem('pageNum');
 
-    switch(mutation.type) {
-        case 'attributes':
+                if (typeof(mutation.target.childNodes[0].childNodes[1]) == undefined) {
+                    return;
+                }
 
-            var currentRequiredValue = mutation.target.childNodes[0].getAttribute('data-currentinput');
-            var finalRequiredInput = mutation.target.childNodes[0].getAttribute('data-finalinput');
-            var pageNumArray = document.getElementsByClassName('pagenum-current');
-            var pageNum = window.localStorage.getItem('pageNum');
-
-            if(typeof(mutation.target.childNodes[0].childNodes[1]) == undefined) {
-                return;
-            }
-
-            try {
-                var ariaCheck = mutation.target.childNodes[0].childNodes[1].getAttribute('aria-checked');
-                if(ariaCheck == 'true') {
-                    if(!mutation.target.childNodes[0].classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
-                        mutation.target.childNodes[0].classList.add('questionnaire-checkbox-checked-' + pageNum );
+                try {
+                    var ariaCheck = mutation.target.childNodes[0].childNodes[1].getAttribute('aria-checked');
+                    if (ariaCheck == 'true') {
+                        if (!mutation.target.childNodes[0].classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                            mutation.target.childNodes[0].classList.add('questionnaire-checkbox-checked-' + pageNum );
+                        }
+                    } else if (ariaCheck == 'false') {
+                        if (mutation.target.childNodes[0].classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
+                            mutation.target.childNodes[0].classList.remove('questionnaire-checkbox-checked-' + pageNum );
+                        }
                     }
-                } else if(ariaCheck == 'false') {
-                    if(mutation.target.childNodes[0].classList.contains('questionnaire-checkbox-checked-' + pageNum)) {
-                        mutation.target.childNodes[0].classList.remove('questionnaire-checkbox-checked-' + pageNum );
+                } catch (err) {}
+
+                if (!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
+                    requiredInputs.push(currentRequiredValue); // Only push if it has not been added to the array already.
+                }
+
+                var button = document.getElementsByClassName('questionnaire submit-button');
+                var nextButton = document.getElementsByClassName('questionnaire next-button');
+                var numberOfRequiredAnswers = 0;
+                for (var x = 0; x < requiredInputs.length; x++) {
+                    // First need to check that all answers before required answer are in array.
+                    // Then set a flag that I can check later.
+                    numberOfRequiredAnswers++;
+                }
+
+                var requiredInput = false;
+                if (requiredInputs.includes(finalRequiredInput)) {
+                    requiredInput = true;
+                }
+
+                if (requiredInput == true && numberOfRequiredAnswers == finalRequiredInput ) {
+                    for (var x = 0; x < button.length; x++) {
+                        button[x].disabled = false;
                     }
                 }
-            } catch (err) {}
-
-            if(!requiredInputs.includes(currentRequiredValue) && currentRequiredValue) {
-                requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
-            }
-
-            var button = document.getElementsByClassName('questionnaire submit-button');
-            var nextButton = document.getElementsByClassName('questionnaire next-button');
-            var numberOfRequiredAnswers = 0;
-            for(var x = 0; x < requiredInputs.length; x++) {
-               //first need to check that all answers before required answer are in array
-               //then set a flag that I can check later
-               numberOfRequiredAnswers++;
-            }
-
-            var requiredInput = false;
-            if(requiredInputs.includes(finalRequiredInput)) {
-                requiredInput = true;
-            }
-
-            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput ) {
-                for(var x = 0; x < button.length; x++) {
-                    button[x].disabled = false;
-                }
-            } 
-            if(requiredInput == true && numberOfRequiredAnswers == finalRequiredInput ) {
-                for(var i = 0; i < nextButton.length; i++){
-                    nextButton[i].disabled = false;
-                }
-            }
-
-            //last check here
-            var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
-            if(checkedCheckboxes.length == 0) {
-                for(var x = 0; x < button.length; x++) {
-                    button[x].disabled = true;
+                if (requiredInput == true && numberOfRequiredAnswers == finalRequiredInput ) {
+                    for (var i = 0; i < nextButton.length; i++){
+                        nextButton[i].disabled = false;
+                    }
                 }
 
-                for(var i = 0; i < nextButton.length; i++) {
-                    nextButton[i].disabled = true;
-                }
-            }
+                // Last check here.
+                var checkedCheckboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
+                if (checkedCheckboxes.length == 0) {
+                    for (var x = 0; x < button.length; x++) {
+                        button[x].disabled = true;
+                    }
 
-        break;
+                    for (var i = 0; i < nextButton.length; i++) {
+                        nextButton[i].disabled = true;
+                    }
+                }
+            break;
         }
     });
 }
 
 function textBoxObserver(mutationList, observer) {
-  mutationList.forEach((mutation) => {
+    mutationList.forEach((mutation) => {
+        switch (mutation.type) {
+            case 'attributes':
 
-    switch(mutation.type) {
-        case 'attributes':
+                var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
+                var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
+                var button = document.getElementsByClassName('questionnaire submit-button');
 
-            var currentRequiredValue = mutation.target.parentElement.getAttribute('data-currentinput');
-            var finalRequiredInput = mutation.target.parentElement.getAttribute('data-finalinput');
-            var button = document.getElementsByClassName('questionnaire submit-button');
-
-            if(!currentRequiredValue && !finalRequiredInput) {
-                return;
-            }
-
-            if(mutation.target.value == '') {
-                for(var x = 0; x < button.length; x++) {
-                    button[x].disabled = true;
-                }
-                return;
-            }
-
-            if(!requiredInputs.includes(currentRequiredValue)) {
-                requiredInputs.push(currentRequiredValue); //only push if it has not been added to the array already
-            }
-
-            var numberOfRequiredAnswers = 0;
-            for(var x = 0; x < requiredInputs.length; x++) {
-               //first need to check that all answers before required answer are in array
-               //then set a flag that I can check later
-               numberOfRequiredAnswers++;
-            }
-
-            var requiredInput = false;
-            if(requiredInputs.includes(finalRequiredInput)) {
-                requiredInput = true;
-            }
-            
-            var nextButton = document.getElementsByClassName('questionnaire next-button');
-
-            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
-                for(var x = 0; x < button.length; x++) {
-                    button[x].disabled = false;
+                if (!currentRequiredValue && !finalRequiredInput) {
+                    return;
                 }
 
-            } 
-            if(requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
-                 for(var i = 0; i < nextButton.length; i++){
-                    nextButton[i].disabled = false;
+                if (mutation.target.value == '') {
+                    for (var x = 0; x < button.length; x++) {
+                        button[x].disabled = true;
+                    }
+                    return;
                 }
-            }
-        break;
+
+                if (!requiredInputs.includes(currentRequiredValue)) {
+                    requiredInputs.push(currentRequiredValue); // Only push if it has not been added to the array already.
+                }
+
+                var numberOfRequiredAnswers = 0;
+                for (var x = 0; x < requiredInputs.length; x++) {
+                    // First need to check that all answers before required answer are in array.
+                    // Then set a flag that I can check later.
+                    numberOfRequiredAnswers++;
+                }
+
+                var requiredInput = false;
+                if (requiredInputs.includes(finalRequiredInput)) {
+                    requiredInput = true;
+                }
+
+                var nextButton = document.getElementsByClassName('questionnaire next-button');
+
+                if (requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
+                    for (var x = 0; x < button.length; x++) {
+                        button[x].disabled = false;
+                    }
+                }
+                if (requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+                    for (var i = 0; i < nextButton.length; i++){
+                        nextButton[i].disabled = false;
+                    }
+                }
+            break;
         }
     });
 }
@@ -353,5 +343,4 @@ function onBackButtonClick() {
     var pageNumber = window.localStorage.getItem('pageNum');
     pageNumber--;
     window.localStorage.setItem('pageNum', pageNumber);
-
 }
