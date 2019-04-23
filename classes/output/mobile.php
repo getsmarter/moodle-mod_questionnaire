@@ -238,18 +238,18 @@ class mobile {
                             }
                             $i++;
                         }
-                        if ($pagecounter > count($questionnaire['questions'])){
+                        if ($pagecounter > count($questionnaire['questions'])) {
                             break;
                         }
                     }
                     $pagecounter++;
                     $x = 0;
                     $questioncounter = 1;
-                    foreach ($data['questions'] as $dataq){
+                    foreach ($data['questions'] as $dataq) {
                         foreach ($dataq as $arr) {
                             $data['pagequestions'][$x] = $arr;
                             $x++;
-                            if ($questioncounter >= count($questionnaire['questions'])){
+                            if ($questioncounter >= count($questionnaire['questions'])) {
                                 break;
                             }
                         }
@@ -276,9 +276,9 @@ class mobile {
         $finalpagerequired = false;
         $completeddisabledflag = false;
         foreach ($data['pagequestions'] as &$pagequestion) {
-            if($pagequestion['info']['required'] == 'y') {
+            if ($pagequestion['info']['required'] == 'y') {
                 if (!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
-                    foreach($pagequestion['choices'] as &$choice) {
+                    foreach ($pagequestion['choices'] as &$choice) {
                         if (empty($choice['value'])) {
                             if ($currentrequiredresponse > 0 && empty($counter)) {
                                 $counter = $currentrequiredresponse;
@@ -295,13 +295,12 @@ class mobile {
                     $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                 }
-                if($pagequestion['info']['qnum'] === count($data['pagequestions'])) {
+                if ($pagequestion['info']['qnum'] === count($data['pagequestions'])) {
                     $finalpagerequired = true;
                 }
             }
         }
 
-        // let each pagequestions know what the final required field is 
         $disablesavebutton = true;
         if ($completedchoices == $currentrequiredresponse && !$finalpagerequired) {
             $disablesavebutton = false;
@@ -311,6 +310,7 @@ class mobile {
             $disablesavebutton = true;
         }
 
+        // let each pagequestions know what the final required field is
         foreach ($data['pagequestions'] as &$pagequestion) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse - $completedchoices;
         }
@@ -369,18 +369,17 @@ class mobile {
         $cmid = $args->cmid;
         $pagenum = (isset($args->pagenum) && !empty($args->pagenum)) ? intval($args->pagenum) : 1;
         $prevpage = 0;
-        if(!empty($SESSION->prevpage)) {
+        if (!empty($SESSION->prevpage)) {
             $prevpage = $SESSION->prevpage;
-            if(!$prevpage) {
+            if (!$prevpage) {
                 $SESSION->prevpage = $pagenum;
-                if($pagenum == 1) {
+                if ($pagenum == 1) {
                     $prevpage = 0;
                 } else {
                     $prevpage = $pagenum;
                 }
             }
         }
-        
         $quesitonnaireresponses = (!empty($args->responses)) ? $args->responses : [];
         $branching = (isset($args->branching) && !empty($args->branching)) ? intval($args->branching) : 0;
         // Capabilities check.
@@ -389,11 +388,11 @@ class mobile {
         self::require_capability($cm, $context, 'mod/questionnaire:view');
         // Set some variables we are going to be using.
         $questionnaire = get_questionnaire_data($cmid, $USER->id);
-        if (isset($questionnaire['questions'][$pagenum-1]) && !empty($questionnaire['questions'][$pagenum-1])) {
-            $prevpage = $pagenum-1;
+        if (isset($questionnaire['questions'][$pagenum - 1]) && !empty($questionnaire['questions'][$pagenum - 1])) {
+            $prevpage = $pagenum - 1;
         }
 
-        $branching = check_mobile_branching_logic($questionnaire);        
+        $branching = check_mobile_branching_logic($questionnaire);
         $pagenum = get_mobile_questionnaire($questionnaire, $pagenum, $branching);
         $newpagenum = $pagenum['pagenum'];
         $newprevpagenum = $prevpage;
@@ -406,7 +405,7 @@ class mobile {
             'courseid' => intval($cm->course),
             'pagenum' => $pagenum,
             'userid' => $USER->id,
-            'nextpage' => 0, 
+            'nextpage' => 0,
             'prevpage' => 0,
             'emptypage' => false
         ];
@@ -439,79 +438,63 @@ class mobile {
                     $i++;
                 }
             }
-            if (isset($questionnaire['questions'][$pagenum+1]) && !empty($questionnaire['questions'][$pagenum+1])) {
-                $data['nextpage'] = $pagenum+1;
+            if (isset($questionnaire['questions'][$pagenum + 1]) && !empty($questionnaire['questions'][$pagenum + 1])) {
+                $data['nextpage'] = $pagenum + 1;
             }
             if ($prevpage) {
                 $data['prevpage'] = $prevpage;
             }
         }
-
-        /**
-         *let each pagequestions know it's current required step, and fill up the final required step
-         *logic states that we get all the required steps and give them an counter,
-         *we get the final required count and check it againts the input once it's sent to a js file
-         *if its the final required count we display the button
-        */
+        // let each pagequestions know it's current required step, and fill up the final required step
+        // logic states that we get all the required steps and give them an counter,
+        // we get the final required count and check it againts the input once it's sent to a js file
+        // if its the final required count we display the button
         $currentrequiredresponse = 0;
         $counter = 0;
         $multichoiceflag = false;
         $completedchoices = 0;
         $finalpagerequired = false;
         $completeddisabledflag = false;
-        foreach( $data['pagequestions'] as &$pagequestion ) {
-            if($pagequestion['info']['required'] == 'y') {
-                 if(!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
-
-                    foreach($pagequestion['choices'] as &$choice) {
-                        if(empty($choice['value'])) {
-                            if($currentrequiredresponse > 0 && empty($counter)) {
+        foreach ($data['pagequestions'] as &$pagequestion) {
+            if ($pagequestion['info']['required'] == 'y') {
+                if (!empty($pagequestion['choices']) && $pagequestion['info']['response_table'] == 'response_rank') {
+                    foreach ($pagequestion['choices'] as &$choice) {
+                        if (empty($choice['value'])) {
+                            if ($currentrequiredresponse > 0 && empty($counter)) {
                                 $counter = $currentrequiredresponse;
                             }
                             $counter++;
                             $choice['current_required_resp'] = $counter;
-                            
                         } else {
                             $completedchoices++;
                             $completeddisabledflag = true;
                         }
                     }
-                    
                     $currentrequiredresponse = $counter;
-                    
                 } else {
                     $currentrequiredresponse++;
                     $pagequestion['info']['current_required_resp'] = $currentrequiredresponse;
                 }
-
-                if($pagequestion['info']['qnum'] === sizeof($data['pagequestions'])) {
+                if ($pagequestion['info']['qnum'] === count($data['pagequestions'])) {
                     $finalpagerequired = true;
                 }
             }
         }
-
-        //let each pagequestions know what the final required field is 
         $disablesavebutton = true;
-        if($completedchoices == $currentrequiredresponse && !$finalpagerequired ) {
-           $disablesavebutton = false; 
-        } else if($completeddisabledflag) {
-           $disablesavebutton = false; 
+        if ($completedchoices == $currentrequiredresponse && !$finalpagerequired) {
+            $disablesavebutton = false;
+        } else if ($completeddisabledflag) {
+            $disablesavebutton = false;
         } else {
             $disablesavebutton = true;
         }
 
-        //let each pagequestions know what the final required field is 
-        $questionCounter = 0;
-        foreach( $data['pagequestions'] as &$pagequestion ) {
+        // let each pagequestions know what the final required field is
+        foreach ($data['pagequestions'] as &$pagequestion) {
             $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
         }
 
-        //let each pagequestions know what the final required field is 
-        foreach( $data['pagequestions'] as &$pagequestion ) {
-            $pagequestion['info']['final_required_resp'] = $currentrequiredresponse;
-        }
-
-        $data['pagebreak'] = true; //branching logic is always true
+        $data['pagebreak'] = true; // branching logic is always true
 
         return [
             'templates' => [
