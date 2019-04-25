@@ -27,15 +27,6 @@
 defined('MOODLE_INTERNAL') || die;
 
 $functions = [
-    'mod_questionnaire_submit_questionnaire_response' => [
-        'classname' => 'mod_questionnaire_external',
-        'methodname' => 'submit_questionnaire_response',
-        'classpath' => 'mod/questionnaire/externallib.php',
-        'description' => 'Questionnaire submit',
-        'type' => 'write',
-        'capabilities' => 'mod/questionnaire:submit',
-        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE]
-    ],
     'mod_questionnaire_submit_questionnaire_branching' => [
         'classname' => 'mod_questionnaire_external',
         'methodname' => 'submit_questionnaire_branching',
