@@ -35,14 +35,24 @@
                         <core-format-text text="<%info.content%>"></core-format-text>
                         <%#info.required%><ion-badge item-end color="danger">{{ 'plugin.mod_questionnaire.required' | translate }}</ion-badge><%/info.required%>
                     </ion-list-header>
+                    
+
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
-                                onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
+                                <ion-option<%#completed%> disabled="true"<%/completed%>
+                                    <%#value%> selected="true"<%/value%> 
+                                    value="<%id%>"
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"> 
+                                    <%content%>
+                                </ion-option>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
+
+                    
+
+
                     <%#info.isbool%>
                         <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>

@@ -752,6 +752,24 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
+                    case QUESDATE: // Date 12/12/12.
+                        $ret['questionsinfo'][$pagenum][$question->id]['isdate'] = true;
+                        $excludes = [];
+
+                        if ($item = $DB->get_records('questionnaire_question',
+                        ['id' => $question->id])) {
+                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                        }
+                    break;
+                    case QUESNUMERIC: // Numeric 1 - 9.
+                        $ret['questionsinfo'][$pagenum][$question->id]['isnumeric'] = true;
+                        $excludes = [];
+
+                        if ($item = $DB->get_records('questionnaire_question',
+                        ['id' => $question->id])) {
+                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                        }
+                        break;
                 case QUESPAGEBREAK:
                     $ret['questionscount']--;
                     $ret['pagescount']++;
@@ -884,6 +902,25 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     }
                                                 }
                                             }
+                                            break;
+                                            // case QUESDATE: // Date 12/12/12.
+                                            //     $ret['questionsinfo'][$pagenum][$question->id]['isdate'] = true;
+                                            //     $excludes = [];
+
+                                            //     if ($item = $DB->get_records('questionnaire_question',
+                                            //     ['id' => $question->id])) {
+                                            //         $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                                            //     }
+                                            // break;
+                                            // case QUESNUMERIC: // Numeric 1 - 9.
+                                            //     $ret['questionsinfo'][$pagenum][$question->id]['isnumeric'] = true;
+                                            //     $excludes = [];
+
+                                            //     if ($item = $DB->get_records('questionnaire_question',
+                                            //     ['id' => $question->id])) {
+                                            //         $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                                            //     }
+                                            //     break;
                                         default:
                                             break;
                                     }

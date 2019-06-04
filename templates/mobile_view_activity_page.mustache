@@ -36,14 +36,33 @@
                         <core-format-text text="<%info.content%>"></core-format-text>
                         <%#info.required%><ion-badge item-end color="danger">{{ 'plugin.mod_questionnaire.required' | translate }}</ion-badge><%/info.required%>
                     </ion-list-header>
+                    
                     <%#info.isselect%>
                         <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
-                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
+                                <ion-option<%#completed%> disabled="true"<%/completed%>
+                                    <%#value%> selected="true"<%/value%> 
+                                    value="<%id%>"
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"> 
+                                    <%content%>
+                                </ion-option>
                             <%/choices%>
                         </ion-select>
                     <%/info.isselect%>
+
+                    <%#info.isdate%>
+                        <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date">
+                            
+
+                        </ion-datetime>
+                    <%/info.isdate%>
+
+                    <%#info.isnumeric%>
+                        <ion-input type="tel" placeholder="1" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
+                            
+                        </ion-input>
+                    <%/info.isnumeric%>
+
                     <%#info.isbool%>
                         <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
