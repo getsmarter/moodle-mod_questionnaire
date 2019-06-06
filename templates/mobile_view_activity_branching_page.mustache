@@ -38,9 +38,9 @@
                     
 
                     <%#info.isselect%>
-                        <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
+                        <ion-select <%#completed%> disabled="true"<%/completed%> [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">    
                             <%#choices%>
-                                <ion-option<%#completed%> disabled="true"<%/completed%>
+                                <ion-option 
                                     <%#value%> selected="true"<%/value%> 
                                     value="<%id%>"
                                     onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"> 
@@ -50,8 +50,19 @@
                         </ion-select>
                     <%/info.isselect%>
 
-                    
+                    <%#info.isdate%>
+                        <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                            display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date"
+                            <%#completed%> disabled="true"<%/completed%>>
+                        </ion-datetime>
+                    <%/info.isdate%>
 
+                    <%#info.isnumeric%>
+                        <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                        type="text" pattern="[0-9]" placeholder="1"
+                        <%#completed%> disabled="true"<%/completed%>>
+                        </ion-input>
+                    <%/info.isnumeric%>
 
                     <%#info.isbool%>
                         <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
