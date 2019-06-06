@@ -1,132 +1,143 @@
 var requiredInputs = [];
 
-setTimeout(function() {
+(function (t) {
 
-    var pageNumArray = document.getElementsByClassName('pagenum-current');
-    var pageNum = pageNumArray[pageNumArray.length - 1].innerHTML;
-    var button = document.getElementsByClassName('questionnaire submit-button');
-    var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false-' + pageNum);
-    var allSliders = document.getElementsByClassName('range');
-    var nextButton = document.getElementsByClassName('questionnaire next-button');
-    var allCheckboxes = document.getElementsByClassName('item-checkbox');
-    var allTextBoxes = document.getElementsByClassName('questionnaire-text');
-    var backButton = document.getElementsByClassName('back-button');
+	setTimeout(function() {
 
-    window.clicked_input = e => {
-        checkIfFinalRequiredResponse(e);
-    };
+		var questionnaireCheck = document.getElementsByClassName('questionnaire-module');
+		if(typeof(questionnaireCheck) == 'undefined') {
+			return;
+		}
 
-    window.localStorage.setItem('pageNum', pageNum);
+	    var pageNumArray = document.getElementsByClassName('pagenum-current');
+	    var pageNum = pageNumArray[pageNumArray.length - 1].innerHTML;
+	    var button = document.getElementsByClassName('questionnaire submit-button');
+	    var disableSaveButtonFalse = document.getElementsByClassName('hidden-submit-button-check-false-' + pageNum);
+	    var allSliders = document.getElementsByClassName('range');
+	    var nextButton = document.getElementsByClassName('questionnaire next-button');
+	    var allCheckboxes = document.getElementsByClassName('item-checkbox');
+	    var allTextBoxes = document.getElementsByClassName('questionnaire-text');
+	    var backButton = document.getElementsByClassName('back-button');
 
-    var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
-    for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].click();
-    };
+	    window.clicked_input = e => {
+	        checkIfFinalRequiredResponse(e);
+	    };
 
-    for (var x = 0; x < backButton.length; x++) {
-        backButton[x].addEventListener('click', onBackButtonClick);
-    }
+	    window.localStorage.setItem('pageNum', pageNum);
 
-    // Setting up observer for sliders that are completed and na applicable.
-    var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); // When a user chooses N/A on slider.
-    if (typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
-        var completedSliders = document.getElementsByClassName('na-applicable na-completed');
-        if (typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
-            for (var i = 1; i < completedSliders.length; i++) {
-                for (var x = 0; x < allSliders.length; x++) {
-                    var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
-                    if (allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
-                        completedSliders[i].innerHTML = 'N/A';
-                    }
-                }
-                break;
-            }
-        }
+	    var checkboxes = document.getElementsByClassName('questionnaire-checkbox-checked-' + pageNum );
+	    for (var i = 0; i < checkboxes.length; i++) {
+	        checkboxes[i].click();
+	    };
 
-        var observerOptions = {
-            childList: true,
-            attributes: true,
-            subtree: true, // Omit or set to false to observe only changes to the parent node.
-            characterData: true,
-        }
-        for (var x = 0; x < allNaApplicableSliders.length; x++) {
-            var observer = new MutationObserver(naObserver);
-            observer.observe(allNaApplicableSliders[x], observerOptions);
-        }
-    }
+	    for (var x = 0; x < backButton.length; x++) {
+	        backButton[x].addEventListener('click', onBackButtonClick);
+	    }
 
-    // Setting up observer for sliders on page
-    if (typeof(allSliders) != 'undefined' && allSliders.length > 0) { // NA onload.
-        for(var x = 0; x < allSliders.length; x++) {
-            var counter = 1;
-            // Here I need to check if it is na applicable.
-            var naCheck = allSliders[x].getAttribute('data-na');
-            for (var i = 0; i < allSliders[x].childNodes[1].children.length - 3; i++) {
+	    // Setting up observer for sliders that are completed and na applicable.
+	    var allNaApplicableSliders = document.getElementsByClassName('na-applicable'); // When a user chooses N/A on slider.
+	    if (typeof(allNaApplicableSliders) != 'undefined' && allNaApplicableSliders.length > 0) {
+	        var completedSliders = document.getElementsByClassName('na-applicable na-completed');
+	        if (typeof(completedSliders) != 'undefined' && completedSliders.length > 0) {
+	            for (var i = 1; i < completedSliders.length; i++) {
+	                for (var x = 0; x < allSliders.length; x++) {
+	                    var naCheck = typeof(allSliders[x].getAttribute('data-na')) != 'undefined';
+	                    if (allSliders[x].getAttribute('max') == allSliders[x].getAttribute('ng-reflect-model')) {
+	                        completedSliders[i].innerHTML = 'N/A';
+	                    }
+	                }
+	                break;
+	            }
+	        }
 
-                if (naCheck && allSliders[x].getAttribute('max') == (i + 1)) {
-                    allSliders[x].childNodes[1].children[i].innerHTML = '<p style="margin-left: -15px; width: 25px;">N/A</p>';
-                } else {
-                    allSliders[x].childNodes[1].children[i].innerHTML = counter;
-                }
+	        var observerOptions = {
+	            childList: true,
+	            attributes: true,
+	            subtree: true, // Omit or set to false to observe only changes to the parent node.
+	            characterData: true,
+	        }
+	        for (var x = 0; x < allNaApplicableSliders.length; x++) {
+	            var observer = new MutationObserver(naObserver);
+	            observer.observe(allNaApplicableSliders[x], observerOptions);
+	        }
+	    }
 
-                allSliders[x].childNodes[1].children[i].style.paddingTop = '10px';
-                allSliders[x].childNodes[1].children[i].style.width = '0px';
-                counter++;
-            }
-        }
+	    // Setting up observer for sliders on page
+	    if (typeof(allSliders) != 'undefined' && allSliders.length > 0) { // NA onload.
+	        for(var x = 0; x < allSliders.length; x++) {
+	            var counter = 1;
+	            // Here I need to check if it is na applicable.
+	            var naCheck = allSliders[x].getAttribute('data-na');
+	            for (var i = 0; i < allSliders[x].childNodes[1].children.length - 3; i++) {
 
-        var observerOptions = {
-            childList: true,
-            attributes: true,
-            subtree: true, // Omit or set to false to observe only changes to the parent node.
-            characterData: true,
-        }
-        for (var x = 0; x < allSliders.length; x++) {
-            var observer = new MutationObserver(sliderObserver);
-            observer.observe(allSliders[x], observerOptions);
-        }
-    }
+	                if (naCheck && allSliders[x].getAttribute('max') == (i + 1)) {
+	                    allSliders[x].childNodes[1].children[i].innerHTML = '<p style="margin-left: -15px; width: 25px;">N/A</p>';
+	                } else {
+	                    allSliders[x].childNodes[1].children[i].innerHTML = counter;
+	                }
 
-    // Setting up observer for checkboxes.
-    if (typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { // NA onload.
-        var observerOptions = {
-            attributes: true,
-            characterData: true,
-        }
-        for(var x = 0; x < allCheckboxes.length; x++) {
-            var observer = new MutationObserver(checkboxObserver);
-            observer.observe(allCheckboxes[x], observerOptions);
-        }
-    }
+	                allSliders[x].childNodes[1].children[i].style.paddingTop = '10px';
+	                allSliders[x].childNodes[1].children[i].style.width = '0px';
+	                counter++;
+	            }
+	        }
 
-    // Setting up observer for textboxes.
-    if (typeof(allTextBoxes) != 'undefined' && allTextBoxes.length > 0) { // NA onload.
+	        var observerOptions = {
+	            childList: true,
+	            attributes: true,
+	            subtree: true, // Omit or set to false to observe only changes to the parent node.
+	            characterData: true,
+	        }
+	        for (var x = 0; x < allSliders.length; x++) {
+	            var observer = new MutationObserver(sliderObserver);
+	            observer.observe(allSliders[x], observerOptions);
+	        }
+	    }
 
-        var observerOptions = {
-            childList: true,
-            attributes: true,
-            subtree: true, // Omit or set to false to observe only changes to the parent node.
-            characterData: true,
-        }
-        for (var x = 0; x < allTextBoxes.length; x++) {
-            var observer = new MutationObserver(textBoxObserver);
-            observer.observe(allTextBoxes[x], observerOptions);
-        }
-    }
+	    // Setting up observer for checkboxes.
+	    if (typeof(allCheckboxes) != 'undefined' && allCheckboxes.length > 0) { // NA onload.
+	        var observerOptions = {
+	            attributes: true,
+	            characterData: true,
+	        }
+	        for(var x = 0; x < allCheckboxes.length; x++) {
+	            var observer = new MutationObserver(checkboxObserver);
+	            observer.observe(allCheckboxes[x], observerOptions);
+	        }
+	    }
 
-    if (typeof(button) != 'undefined' && disableSaveButtonFalse.length == 0) { // Basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic.
-        for (var x = 0; x < button.length; x++) {
-            button[x].disabled = true;
-        }
-    }
+	    // Setting up observer for textboxes.
+	    if (typeof(allTextBoxes) != 'undefined' && allTextBoxes.length > 0) { // NA onload.
 
-    if (typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
-        for (var x = 0; x < nextButton.length; x++) {
-            nextButton[x].disabled = true;
-        }
-    }
+	        var observerOptions = {
+	            childList: true,
+	            attributes: true,
+	            subtree: true, // Omit or set to false to observe only changes to the parent node.
+	            characterData: true,
+	        }
+	        for (var x = 0; x < allTextBoxes.length; x++) {
+	            var observer = new MutationObserver(textBoxObserver);
+	            observer.observe(allTextBoxes[x], observerOptions);
+	        }
+	    }
 
-}, 300);
+
+
+	    if (typeof(button) != 'undefined' && disableSaveButtonFalse.length == 0) { // Basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic.
+	        for (var x = 0; x < button.length; x++) {
+	            button[x].disabled = true;
+	        }
+	    }
+
+	    if (typeof(nextButton) != 'undefined' && nextButton.length > 0 && disableSaveButtonFalse.length == 0) {
+	        for (var x = 0; x < nextButton.length; x++) {
+	            nextButton[x].disabled = true;
+	        }
+	    }
+
+	}, 300);
+
+})(this);
 
 function checkIfFinalRequiredResponse (e) {
     if (!requiredInputs.includes(e[0])) {
