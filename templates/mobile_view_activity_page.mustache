@@ -41,14 +41,14 @@
                         <ion-select 
                         <%#completed%> disabled="true"<%/completed%> 
                         [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
-                        interface="popover">    
+                        interface="popover"
+                        data-currentinput="<%info.current_required_resp%>"
+                        data-finalinput="<%info.final_required_resp%>">    
                             <%#choices%>
                                 <ion-option 
                                     <%#value%> selected="true"<%/value%> 
                                     value="<%id%>"
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"
-                                    data-finalinput="<%info.current_required_resp%>"
-                                    data-currentinput="<%info.final_required_resp%>"> 
+                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
                                     <%content%>
                                 </ion-option>
                             <%/choices%>
@@ -59,17 +59,17 @@
                         <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
                             display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date"
                             <%#completed%> disabled="true"<%/completed%>
-                            data-finalinput="<%info.current_required_resp%>"
-                            data-currentinput="<%info.final_required_resp%>">
+                            data-currentinput="<%info.current_required_resp%>"
+                            data-finalinput="<%info.final_required_resp%>">
                         </ion-datetime>
                     <%/info.isdate%>
 
                     <%#info.isnumeric%>
                         <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
-                        type="tel" [pattern]="[0-9]" placeholder="1"
+                        type="text" placeholder="1"
                         <%#completed%> disabled="true"<%/completed%>
-                        data-finalinput="<%info.current_required_resp%>"
-                        data-currentinput="<%info.final_required_resp%>">
+                        data-currentinput="<%info.current_required_resp%>"
+                        data-finalinput="<%info.final_required_resp%>">
                         </ion-input>
                     <%/info.isnumeric%>
 
@@ -108,8 +108,8 @@
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
                                         <%#value%>checked="true" class="questionnaire-checkbox-checked-<%pagenum%>"<%/value%>
-                                        data-finalinput="<%info.current_required_resp%>"
-                                        data-currentinput="<%info.final_required_resp%>"
+                                        data-currentinput="<%info.current_required_resp%>"
+                                        data-finalinput="<%info.final_required_resp%>">
                                     ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
