@@ -18,6 +18,7 @@ var requiredInputs = [];
 	    var allCheckboxes = document.getElementsByClassName('item-checkbox');
 	    var allTextBoxes = document.getElementsByClassName('questionnaire-text');
 	    var backButton = document.getElementsByClassName('back-button');
+	    var dateTime = document.getElementsByClassName('datetime');
 
 	    window.clicked_input = e => {
 	        checkIfFinalRequiredResponse(e);
@@ -121,7 +122,18 @@ var requiredInputs = [];
 	        }
 	    }
 
+	    // Setting up observer for datetime
+		if (typeof(dateTime) != 'undefined' && dateTime.length > 0) { // NA onload.
 
+	        var observerOptions = {
+	            attributes: true,
+	            characterData: true,
+	        }
+	        for (var x = 0; x < dateTime.length; x++) {
+	            var observer = new MutationObserver(dateTimeBoxObserver);
+	            observer.observe(dateTime[x], observerOptions);
+	        }
+	    }	    
 
 	    if (typeof(button) != 'undefined' && disableSaveButtonFalse.length == 0) { // Basic idea behind the validation for the button hiding logic, using disabled for now since it's an option in ionic.
 	        for (var x = 0; x < button.length; x++) {
@@ -316,6 +328,61 @@ function textBoxObserver(mutationList, observer) {
                     }
                     return;
                 }
+
+                if (!requiredInputs.includes(currentRequiredValue)) {
+                    requiredInputs.push(currentRequiredValue); // Only push if it has not been added to the array already.
+                }
+
+                var numberOfRequiredAnswers = 0;
+                for (var x = 0; x < requiredInputs.length; x++) {
+                    // First need to check that all answers before required answer are in array.
+                    // Then set a flag that I can check later.
+                    numberOfRequiredAnswers++;
+                }
+
+                var requiredInput = false;
+                if (requiredInputs.includes(finalRequiredInput)) {
+                    requiredInput = true;
+                }
+
+                var nextButton = document.getElementsByClassName('questionnaire next-button');
+
+                if (requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(button) != 'undefined') {
+                    for (var x = 0; x < button.length; x++) {
+                        button[x].disabled = false;
+                    }
+                }
+                if (requiredInput === true && numberOfRequiredAnswers == finalRequiredInput && typeof(nextButton) != 'undefined') {
+                    for (var i = 0; i < nextButton.length; i++){
+                        nextButton[i].disabled = false;
+                    }
+                }
+            break;
+        }
+    });
+}
+
+function dateTimeBoxObserver(mutationList, observer) {
+    mutationList.forEach((mutation) => {
+
+        switch (mutation.type) {
+            case 'attributes':
+
+                var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
+                var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
+                var button = document.getElementsByClassName('questionnaire submit-button');
+
+                if (!currentRequiredValue && !finalRequiredInput) {
+                    return;
+                }
+
+                if (mutation.target.innerText == '') {
+                    for (var x = 0; x < button.length; x++) {
+                        button[x].disabled = true;
+                    }
+                    return;
+                }
+                // Might need to build a check function to make sure that the date time adheres to certain policies
 
                 if (!requiredInputs.includes(currentRequiredValue)) {
                     requiredInputs.push(currentRequiredValue); // Only push if it has not been added to the array already.
