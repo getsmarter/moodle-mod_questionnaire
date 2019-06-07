@@ -483,6 +483,7 @@ function get_questionnaire_data($cmid, $userid = false) {
             throw new \moodle_exception("invalidcoursemodule", "error");
         }
     }
+
     $resumedsql = 'SELECT id FROM '
     . '{questionnaire_response} '
     . ' WHERE questionnaireid = ? AND userid = ? AND complete = ? AND submitted <= ?';
@@ -521,6 +522,8 @@ function get_questionnaire_data($cmid, $userid = false) {
         . '{questionnaire_question} qq LEFT JOIN {questionnaire_question_type} qqt '
         . 'ON qq.type_id = qqt.typeid WHERE qq.surveyid = ? AND qq.deleted = ? '
         . 'ORDER BY qq.position';
+
+    // Building dataset here, will build uncomplete questions here.    
     if ($questions = $DB->get_records_sql($sql, [$questionnaire->sid, 'n'])) {
         require_once('classes/question/base.php');
         $pagenum = 1;
@@ -785,7 +788,8 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $qnum.'. '.$ret['questionsinfo'][$pagenum][$question->id]['content_stripped'];
             }
         }
-        if ($userid) {
+
+        if ($userid && $ret['completed'] == 1) { // Only handle completed logic here.
             if ($response = $DB->get_record_sql('SELECT qr.* FROM {questionnaire_response} qr '
                 . 'LEFT JOIN {user} u ON qr.userid = u.id WHERE qr.questionnaireid = ? '
                 . 'AND qr.userid = ?', [$questionnaire->id, $userid])) {
