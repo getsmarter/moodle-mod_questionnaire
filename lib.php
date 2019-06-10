@@ -1052,7 +1052,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                                             $DB->insert_record($responsetable, $rec);
                                         }
                                     }
-                                }else {
+                                } else {
                                     $questionobj = \mod_questionnaire\question\base::question_builder(
                                     $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
                                     $questionnairedata['questionsinfo'][$sec][$rquestionid]);
