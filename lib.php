@@ -483,6 +483,7 @@ function get_questionnaire_data($cmid, $userid = false) {
             throw new \moodle_exception("invalidcoursemodule", "error");
         }
     }
+
     $resumedsql = 'SELECT id FROM '
     . '{questionnaire_response} '
     . ' WHERE questionnaireid = ? AND userid = ? AND complete = ? AND submitted <= ?';
@@ -521,6 +522,8 @@ function get_questionnaire_data($cmid, $userid = false) {
         . '{questionnaire_question} qq LEFT JOIN {questionnaire_question_type} qqt '
         . 'ON qq.type_id = qqt.typeid WHERE qq.surveyid = ? AND qq.deleted = ? '
         . 'ORDER BY qq.position';
+
+    // Building dataset here, will build uncomplete questions here.    
     if ($questions = $DB->get_records_sql($sql, [$questionnaire->sid, 'n'])) {
         require_once('classes/question/base.php');
         $pagenum = 1;
@@ -752,6 +755,24 @@ function get_questionnaire_data($cmid, $userid = false) {
                         }
                     }
                     break;
+                    case QUESDATE: // Date 12/12/12.
+                        $ret['questionsinfo'][$pagenum][$question->id]['isdate'] = true;
+                        $excludes = [];
+
+                        if ($item = $DB->get_records('questionnaire_question',
+                        ['id' => $question->id])) {
+                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                        }
+                    break;
+                    case QUESNUMERIC: // Numeric 1 - 9.
+                        $ret['questionsinfo'][$pagenum][$question->id]['isnumeric'] = true;
+                        $excludes = [];
+
+                        if ($item = $DB->get_records('questionnaire_question',
+                        ['id' => $question->id])) {
+                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
+                        }
+                        break;
                 case QUESPAGEBREAK:
                     $ret['questionscount']--;
                     $ret['pagescount']++;
@@ -767,7 +788,8 @@ function get_questionnaire_data($cmid, $userid = false) {
                     $qnum.'. '.$ret['questionsinfo'][$pagenum][$question->id]['content_stripped'];
             }
         }
-        if ($userid) {
+
+        if ($userid && $ret['completed'] == 1) { // Only handle completed logic here.
             if ($response = $DB->get_record_sql('SELECT qr.* FROM {questionnaire_response} qr '
                 . 'LEFT JOIN {user} u ON qr.userid = u.id WHERE qr.questionnaireid = ? '
                 . 'AND qr.userid = ?', [$questionnaire->id, $userid])) {
@@ -784,8 +806,8 @@ function get_questionnaire_data($cmid, $userid = false) {
                         $ret['answered'][$questionid] = false;
                         if (isset($data2['response_table']) && !empty($data2['response_table'])) {
                             if ($values = $DB->get_records_sql('SELECT * FROM {questionnaire_'
-                                . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
-                                [$response->id, $questionid])) {
+                            . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
+                            [$response->id, $questionid])) {
                                 foreach ($values as $value) {
                                     switch($data2['type_id']) {
                                         case QUESYESNO: // Yes/No bool.
@@ -884,6 +906,21 @@ function get_questionnaire_data($cmid, $userid = false) {
                                                     }
                                                 }
                                             }
+                                            break;
+                                            case QUESDATE: // Date 12/12/12.
+                                                if (isset($value->response) && !empty($value->response)) {
+                                                    $ret['answered'][$questionid] = true;
+                                                    $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
+                                                    $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
+                                                }
+                                            break;
+                                            case QUESNUMERIC: // Numeric 1 - 9.
+                                               if (isset($value->response) && !empty($value->response)) {
+                                                    $ret['answered'][$questionid] = true;
+                                                    $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
+                                                    $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
+                                                }
+                                            break;
                                         default:
                                             break;
                                     }
@@ -992,6 +1029,27 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
 
                                         if (empty($dupecheck)) {
                                             $DB->insert_record('questionnaire_resp_single', $rec);
+                                        }
+                                    }
+                                } else if ($typeid == QUESDATE) {
+                                    if (isset($args[2]) && !empty($args[2])) {
+                                        $choiceid = intval($args[2]);
+                                        $rec = new \stdClass();
+                                        $rec->response_id = $rid;
+                                        $rec->question_id = intval($rquestionid);
+                                        $rec->response = $response['value'];
+
+                                        $responsetable = 'questionnaire_';
+                                        $responsetable = $responsetable .
+                                        $questionnairedata['questionsinfo'][$sec][$rquestionid]['response_table'];
+
+                                        $dupecheck = $DB->get_record($responsetable,
+                                            ['response_id' => $rid,
+                                            'question_id' => $rquestionid]
+                                        );
+
+                                        if (empty($dupecheck)) {
+                                            $DB->insert_record($responsetable, $rec);
                                         }
                                     }
                                 } else {
