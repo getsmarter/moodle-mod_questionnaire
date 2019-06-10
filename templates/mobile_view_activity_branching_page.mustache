@@ -36,40 +36,48 @@
                         <%#info.required%><ion-badge item-end color="danger">{{ 'plugin.mod_questionnaire.required' | translate }}</ion-badge><%/info.required%>
                     </ion-list-header>
                     
-                                       <%#info.isselect%>
-                        <ion-select 
-                        <%#completed%> disabled="true"<%/completed%> 
-                        [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
-                        interface="popover"
-                        data-currentinput="<%info.current_required_resp%>"
-                        data-finalinput="<%info.final_required_resp%>">    
-                            <%#choices%>
-                                <ion-option 
-                                    <%#value%> selected="true"<%/value%> 
-                                    value="<%id%>"
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
-                                    <%content%>
-                                </ion-option>
-                            <%/choices%>
-                        </ion-select>
+                    <%#info.isselect%>
+                        <ion-item>    
+                            <ion-select 
+                            <%#completed%> disabled="true"<%/completed%> 
+                            [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
+                            interface="popover"
+                            data-currentinput="<%info.current_required_resp%>"
+                            data-finalinput="<%info.final_required_resp%>">    
+                                <%#choices%>
+                                    <ion-option 
+                                        <%#value%> selected="true"<%/value%> 
+                                        value="<%id%>"
+                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
+                                        <%content%>
+                                    </ion-option>
+                                <%/choices%>
+                            </ion-select>
+                        </ion-item>
                     <%/info.isselect%>
 
                     <%#info.isdate%>
-                        <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
-                            display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date"
-                            <%#completed%> disabled="true"<%/completed%>
-                            data-currentinput="<%info.current_required_resp%>"
-                            data-finalinput="<%info.final_required_resp%>">
-                        </ion-datetime>
+                        <ion-item>
+                            <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                                display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date"
+                                <%#completed%> disabled="true"<%/completed%>
+                                data-currentinput="<%info.current_required_resp%>"
+                                data-finalinput="<%info.final_required_resp%>">
+                            </ion-datetime>
+                        </ion-item>
                     <%/info.isdate%>
 
                     <%#info.isnumeric%>
-                        <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
-                        type="text" placeholder="1"
-                        <%#completed%> disabled="true"<%/completed%>
-                        data-currentinput="<%info.current_required_resp%>"
-                        data-finalinput="<%info.final_required_resp%>">
-                        </ion-input>
+                        <ion-item>
+                            <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                            type="tel" 
+                            placeholder="1"
+                            maxlength="3"
+                            <%#completed%> disabled="true"<%/completed%>
+                            data-currentinput="<%info.current_required_resp%>"
+                            data-finalinput="<%info.final_required_resp%>">
+                            </ion-input>
+                        </ion-item>
                     <%/info.isnumeric%>
 
                     <%#info.isbool%>
