@@ -140,7 +140,8 @@ var requiredInputs = [];
         if (typeof(select) != 'undefined' && select.length > 0) { // NA onload.
 
             var observerOptions = {
-                attributes: true
+                attributes: true,
+                characterData: true,
             }
             for (var x = 0; x < select.length; x++) {
                 var observer = new MutationObserver(selectObserver);
@@ -401,7 +402,7 @@ function dateTimeObserver(mutationList, observer) {
                     return;
                 }
 
-                if (typeof(mutation.target.attributes['ng-reflect-model']) == undefined) {
+                if (mutation.target.innerText == '') {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
@@ -456,9 +457,8 @@ function selectObserver(mutationList, observer) {
                 if (!currentRequiredValue && !finalRequiredInput) {
                     return;
                 }
-
                 // Not inner text need to change to actual data input here and not inner text
-                if (mutation.target.attributes['ng-reflect-model'].value == '') {
+                if (mutation.target.innerText == '' ) {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
@@ -513,7 +513,7 @@ function inputObserver(mutationList, observer) {
                 }
 
                 // Need to run this through a text checker before allowing a submission
-                if (mutation.target.attributes['ng-reflect-model'].value == '') {
+                if (mutation.target.children[0].value == '') {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
