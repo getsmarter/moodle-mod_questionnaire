@@ -401,7 +401,7 @@ function dateTimeObserver(mutationList, observer) {
                     return;
                 }
 
-                if (typeof(mutation.target.attributes['ng-reflect-model']) == 'undefined') {
+                if (typeof(mutation.target.attributes['ng-reflect-model']) == undefined) {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
@@ -449,6 +449,10 @@ function selectObserver(mutationList, observer) {
         switch (mutation.type) {
             case 'attributes':
 
+                if(typeof(mutation.target.attributes['ng-reflect-model'].value) == undefined) {
+                    return;
+                }
+
                 var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
                 var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
                 var button = document.getElementsByClassName('questionnaire submit-button');
@@ -456,8 +460,6 @@ function selectObserver(mutationList, observer) {
                 if (!currentRequiredValue && !finalRequiredInput) {
                     return;
                 }
-
-                // console.log(mutation.target.attributes['ng-reflect-model'].value == '');
 
                 // Not inner text need to change to actual data input here and not inner text
                 if (mutation.target.attributes['ng-reflect-model'].value == '') {
@@ -505,6 +507,10 @@ function inputObserver(mutationList, observer) {
 
         switch (mutation.type) {
             case 'attributes':
+
+                if(typeof(mutation.target.attributes['ng-reflect-model'].value) == undefined) {
+                    return;
+                }
 
                 var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
                 var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
