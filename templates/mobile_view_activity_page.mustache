@@ -43,7 +43,7 @@
                             <ion-select 
                             <%#completed%> disabled="true"<%/completed%> 
                             [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
-                            interface="popover"
+                            interface="alert"
                             data-currentinput="<%info.current_required_resp%>"
                             data-finalinput="<%info.final_required_resp%>">
                                 <ion-option
@@ -51,10 +51,8 @@
                                     Select one
                                 </ion-option>
                                 <%#choices%>
-                                    <ion-option 
-                                        <%#value%> selected="true"<%/value%> 
-                                        value="<%id%>"
-                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
+                                    <ion-option
+                                        value="<%id%>">
                                         <%content%>
                                     </ion-option>
                                 <%/choices%>
