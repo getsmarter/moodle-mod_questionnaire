@@ -38,25 +38,27 @@
                     
                     <%#info.isselect%>
                     <ion-list>
-                        <ion-item>  
+                        <ion-label>
+                                Select One
+                            </ion-label>
+                        <ion-item>
+                            
                             <ion-select 
-                            <%#completed%> disabled="true"<%/completed%> 
-                            [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
-                            interface="popover"
-                            data-currentinput="<%info.current_required_resp%>"
-                            data-finalinput="<%info.final_required_resp%>">
-                                <ion-option
-                                    selected="true" value="">
-                                    Select one
-                                </ion-option>
-                                <%#choices%>
-                                    <ion-option 
-                                        <%#value%> selected="true"<%/value%> 
-                                        value="<%id%>"
-                                        onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])">
-                                        <%content%>
-                                    </ion-option>
-                                <%/choices%>
+                                <%#completed%> disabled="true"<%/completed%> 
+                                [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
+                                interface="alert"
+                                data-currentinput="<%info.current_required_resp%>"
+                                data-finalinput="<%info.final_required_resp%>"
+                                style="width:100%; max-width: 100%;">
+                                   <ion-label>
+                                        Select One
+                                   </ion-label>
+                                    <%#choices%>
+                                        <ion-option
+                                            value="<%id%>">
+                                            <%content%>
+                                        </ion-option>
+                                    <%/choices%>
                             </ion-select>
                         </ion-item>
                     </ion-list>
