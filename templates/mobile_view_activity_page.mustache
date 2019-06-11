@@ -38,13 +38,18 @@
                     </ion-list-header>
                     
                     <%#info.isselect%>
-                        <ion-item>    
+                    <ion-list>
+                        <ion-item>  
                             <ion-select 
                             <%#completed%> disabled="true"<%/completed%> 
                             [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
                             interface="popover"
                             data-currentinput="<%info.current_required_resp%>"
-                            data-finalinput="<%info.final_required_resp%>">    
+                            data-finalinput="<%info.final_required_resp%>">
+                                <ion-option
+                                    selected="true" value="">
+                                    Select one
+                                </ion-option>
                                 <%#choices%>
                                     <ion-option 
                                         <%#value%> selected="true"<%/value%> 
@@ -55,9 +60,11 @@
                                 <%/choices%>
                             </ion-select>
                         </ion-item>
+                    </ion-list>
                     <%/info.isselect%>
 
                     <%#info.isdate%>
+                    <ion-list>
                         <ion-item>
                             <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
                                 display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date"
@@ -66,9 +73,11 @@
                                 data-finalinput="<%info.final_required_resp%>">
                             </ion-datetime>
                         </ion-item>
+                    </ion-list>
                     <%/info.isdate%>
 
                     <%#info.isnumeric%>
+                    <ion-list>
                         <ion-item>
                             <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
                             type="tel" 
@@ -79,6 +88,7 @@
                             data-finalinput="<%info.final_required_resp%>">
                             </ion-input>
                         </ion-item>
+                    </ion-list>
                     <%/info.isnumeric%>
 
                     <%#info.isbool%>
@@ -124,6 +134,7 @@
                         </ion-list>
                     <%/info.ischeckbox%>
                     <%#info.istextessay%>
+                    <ion-list>
                         <ion-item>
                             <%^completed%>
                                 <ion-textarea aria-multiline="true" 
@@ -140,6 +151,7 @@
                                 <ion-textarea aria-multiline="true" disabled="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
                             <%/completed%>
                         </ion-item>
+                    </ion-list>
                     <%/info.istextessay%>
                     <%#info.israte%>
                         <%#choices%>
