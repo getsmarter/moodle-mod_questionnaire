@@ -449,10 +449,6 @@ function selectObserver(mutationList, observer) {
         switch (mutation.type) {
             case 'attributes':
 
-                if(typeof(mutation.target.attributes['ng-reflect-model'].value) == undefined) {
-                    return;
-                }
-
                 var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
                 var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
                 var button = document.getElementsByClassName('questionnaire submit-button');
@@ -507,10 +503,6 @@ function inputObserver(mutationList, observer) {
 
         switch (mutation.type) {
             case 'attributes':
-
-                if(typeof(mutation.target.attributes['ng-reflect-model'].value) == undefined) {
-                    return;
-                }
 
                 var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
                 var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
