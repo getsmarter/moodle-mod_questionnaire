@@ -401,12 +401,13 @@ function dateTimeObserver(mutationList, observer) {
                     return;
                 }
 
-                if (mutation.target.innerText == '') {
+                if (typeof(mutation.target.attributes['ng-reflect-model']) == undefined) {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
                     return;
                 }
+
                 // Might need to build a check function to make sure that the date time adheres to certain policies
 
                 if (!requiredInputs.includes(currentRequiredValue)) {
@@ -448,6 +449,10 @@ function selectObserver(mutationList, observer) {
         switch (mutation.type) {
             case 'attributes':
 
+                if(typeof(mutation.target.attributes['ng-reflect-model'].value) == undefined) {
+                    return;
+                }
+
                 var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
                 var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
                 var button = document.getElementsByClassName('questionnaire submit-button');
@@ -457,7 +462,7 @@ function selectObserver(mutationList, observer) {
                 }
 
                 // Not inner text need to change to actual data input here and not inner text
-                if (mutation.target.innerText == '') {
+                if (mutation.target.attributes['ng-reflect-model'].value == '') {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
@@ -503,6 +508,10 @@ function inputObserver(mutationList, observer) {
         switch (mutation.type) {
             case 'attributes':
 
+                if(typeof(mutation.target.attributes['ng-reflect-model'].value) == undefined) {
+                    return;
+                }
+
                 var currentRequiredValue = mutation.target.getAttribute('data-currentinput');
                 var finalRequiredInput = mutation.target.getAttribute('data-finalinput');
                 var button = document.getElementsByClassName('questionnaire submit-button');
@@ -512,7 +521,7 @@ function inputObserver(mutationList, observer) {
                 }
 
                 // Need to run this through a text checker before allowing a submission
-                if (mutation.target.children[0].value == '') {
+                if (mutation.target.attributes['ng-reflect-model'].value == '') {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
