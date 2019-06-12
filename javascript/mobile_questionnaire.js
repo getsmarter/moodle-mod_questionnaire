@@ -458,11 +458,18 @@ function selectObserver(mutationList, observer) {
                     return;
                 }
                 // Not inner text need to change to actual data input here and not inner text
-                if (mutation.target.innerText == '' ) {
+                if (mutation.target.attributes['ng-reflect-model'] == undefined) {
                     for (var x = 0; x < button.length; x++) {
                         button[x].disabled = true;
                     }
                     return;
+                } else if(typeof(mutation.target.attributes['ng-reflect-model'].value) != undefined) {
+                    if(mutation.target.attributes['ng-reflect-model'].value == '') {
+                        for (var x = 0; x < button.length; x++) {
+                            button[x].disabled = true;
+                        }
+                        return;
+                    }
                 }
                 
                 if (!requiredInputs.includes(currentRequiredValue)) {
@@ -493,7 +500,9 @@ function selectObserver(mutationList, observer) {
                         nextButton[i].disabled = false;
                     }
                 }
-            break;
+                break;
+            default: 
+                break;
         }
     });
 }
