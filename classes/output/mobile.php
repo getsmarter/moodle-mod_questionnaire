@@ -283,6 +283,7 @@ class mobile {
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
+                'string_dropdown' => get_string('selectdropdowntext', 'mod_questionnaire'),
                 'disable_save' => $disablesavebutton,
             ],
             'files' => null
@@ -460,6 +461,7 @@ class mobile {
                 'completed' => $data['completed'],
                 'intro' => $questionnaire['questionnaire']['intro'],
                 'string_required' => get_string('required'),
+                'string_dropdown' => get_string('selectdropdowntext', 'mod_questionnaire'),
                 'disable_save' => $disablesavebutton,
             ],
             'files' => null
