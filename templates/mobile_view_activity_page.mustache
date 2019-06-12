@@ -39,11 +39,7 @@
                     
                     <%#info.isselect%>
                     <ion-list>
-                        <ion-label>
-                                Select One
-                            </ion-label>
                         <ion-item>
-                            
                             <ion-select 
                                 <%#completed%> disabled="true"<%/completed%> 
                                 [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
@@ -51,9 +47,9 @@
                                 data-currentinput="<%info.current_required_resp%>"
                                 data-finalinput="<%info.final_required_resp%>"
                                 style="width:100%; max-width: 100%;">
-                                   <ion-label>
+                                    <ion-option selected value="">
                                         Select One
-                                   </ion-label>
+                                    </ion-option>
                                     <%#choices%>
                                         <ion-option
                                             value="<%id%>">
