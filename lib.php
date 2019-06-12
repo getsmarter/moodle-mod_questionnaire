@@ -789,7 +789,7 @@ function get_questionnaire_data($cmid, $userid = false) {
             }
         }
 
-        if ($userid && $ret['completed'] == 1) { // Only handle completed logic here.
+        if ($userid) {
             if ($response = $DB->get_record_sql('SELECT qr.* FROM {questionnaire_response} qr '
                 . 'LEFT JOIN {user} u ON qr.userid = u.id WHERE qr.questionnaireid = ? '
                 . 'AND qr.userid = ?', [$questionnaire->id, $userid])) {
