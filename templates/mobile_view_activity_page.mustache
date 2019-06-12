@@ -123,7 +123,9 @@
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
-                                        <%#value%>checked="true" class="questionnaire-checkbox-checked-<%pagenum%>"<%/value%>
+                                        <%#value%>
+                                            checked="true" class="questionnaire-checkbox-checked-<%pagenum%>"
+                                        <%/value%>
                                         data-currentinput="<%info.current_required_resp%>"
                                         data-finalinput="<%info.final_required_resp%>">
                                     ></ion-checkbox>
