@@ -969,6 +969,7 @@ function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
                         unset($missingquestions[$rquestionid]);
                         if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
                             if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
+
                                 if ($typeid == QUESCHECK && $response['value'] == 'true') {
                                     // If checkbox handle differently because we need to check if question value is set to true.
                                     if (isset($args[3]) && !empty($args[3])) {
