@@ -1925,9 +1925,10 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
     }
 
     foreach ($questionnairedependency as $dependency) {
-        if (!empty($nondependentquestions[$dependency->questionid])) {
+        if ($dependency->dependchoiceid == '0') {
             unset($nondependentquestions[$dependency->questionid]);
         }
+
         foreach ($nondependentquestions as $nondependent) {
             if ($questionnaire['answered'][$nondependent['id']] === true
                 && !empty($questionnaire['resumed'])) { // Resuming questionnaire here.
@@ -1944,10 +1945,9 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
             if ($question['qnum'] == $pagenum) {
                 foreach ($questionnairedependency as $dependency) {
                     if ($dependency->questionid == $question['id']) {
-                        $answereddependency = ($questionnaire['responses']['response_'.$dependency->dependchoiceid.
-                            '_'.$dependency->dependquestionid] == 'n' ? 1 : 0);
-                        // The dependelogic is an id 0 = y and 1 = no, quesitonnaire is weird.
-                        if ($answereddependency == $dependency->dependlogic) {
+                        $answereddependency = (array_shift($questionnaire['responses']) == 'n' ? 1 : 0); //yes = 0, no = 1
+
+                        if ($answereddependency == $dependency->dependchoiceid) {
                             // Find next question that does not have dependency.
                             $pagenums = array(
                                 'prevpage' => $pagenum - 1,
@@ -1956,21 +1956,26 @@ function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
                             );
                             return $pagenums;
                         } else {
+
                             $nextpage = array_shift(array_slice($nondependentquestions, 1, 1, true));
                             $pagenum = array_shift($nondependentquestions);
+
                             if ($pagenum['qnum'] == 1) {
                                 $prevpage = null;
                                 $pagenum = 1;
                                 $nextpage = $nextpage['qnum'] - 1;
                             } else {
-                                $pagenum = $pagenum['qnum'] - 1;
-                                $nextpage = $nextpage['qnum'] - 1;
+                                $pagenum = $pagenum['qnum'];
+                                $nextpage = $pagenum + 1;
+                                $prevpage = $pagenum - 1;
                             }
+
                             $pagenums = array(
                                 'prevpage' => $prevpage,
                                 'pagenum' => $pagenum,
                                 'nextpage' => $nextpage,
                             );
+
                             return $pagenums;
                             // Need to get page next page num without any dependencies.
                         }
