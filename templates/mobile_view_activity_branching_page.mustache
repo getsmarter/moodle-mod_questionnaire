@@ -64,7 +64,7 @@
                     <ion-list>
                         <ion-item>
                             <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
-                                display-format="MM/YYYY" picker-format="MMMM YYYY" placeholder="Select Date"
+                                displayFormat="D MMM YYYY" pickerFormat="D MMM YYYY" placeholder="14 Mar 1945"
                                 <%#completed%> disabled="true"<%/completed%>
                                 data-currentinput="<%info.current_required_resp%>"
                                 data-finalinput="<%info.final_required_resp%>">
@@ -79,7 +79,6 @@
                             <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
                             type="tel" 
                             placeholder="1"
-                            maxlength="3"
                             <%#completed%> disabled="true"<%/completed%>
                             data-currentinput="<%info.current_required_resp%>"
                             data-finalinput="<%info.final_required_resp%>">
