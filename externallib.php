@@ -40,97 +40,11 @@ require_once($CFG->dirroot . '/mod/questionnaire/lib.php');
 class mod_questionnaire_external extends \external_api {
 
     /**
-     * Describes the parameters for submit_questionnaire_response.
+     * Describes the parameters for submit_questionnaire_branching_parameters.
      *
      * @return external_function_parameters
      * @since Moodle 3.0
      */
-    public static function submit_questionnaire_response_parameters() {
-        return new \external_function_parameters(
-            [
-                'questionnaireid' => new \external_value(PARAM_INT, 'Questionnaire instance id'),
-                'surveyid' => new \external_value(PARAM_INT, 'Survey id'),
-                'userid' => new \external_value(PARAM_INT, 'User id'),
-                'cmid' => new \external_value(PARAM_INT, 'Course module id'),
-                'sec' => new \external_value(PARAM_INT, 'Section number'),
-                'completed' => new \external_value(PARAM_INT, 'Completed survey or not'),
-                'submit' => new \external_value(PARAM_INT, 'Submit survey or not'),
-                'responses' => new \external_multiple_structure(
-                    new \external_single_structure(
-                        [
-                            'name' => new \external_value(PARAM_RAW, 'data key'),
-                            'value' => new \external_value(PARAM_RAW, 'data value')
-                        ]
-                    ),
-                    'The data to be saved', VALUE_DEFAULT, []
-                )
-            ]
-        );
-    }
-
-    /**
-     * Submit questionnaire responses
-     *
-     * @param int $questionnaireid the questionnaire instance id
-     * @param int $surveyid Survey id
-     * @param int $userid User id
-     * @param int $cmid Course module id
-     * @param int $sec Section number
-     * @param int $completed Completed survey 1/0
-     * @param int $submit Submit survey?
-     * @param array $responses the response ids
-     * @return array answers information and warnings
-     * @since Moodle 3.0
-     */
-    public static function submit_questionnaire_response($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses) {
-        $params = self::validate_parameters(self::submit_questionnaire_response_parameters(),
-            [
-                'questionnaireid' => $questionnaireid,
-                'surveyid' => $surveyid,
-                'userid' => $userid,
-                'cmid' => $cmid,
-                'sec' => $sec,
-                'completed' => $completed,
-                'submit' => $submit,
-                'responses' => $responses
-            ]
-        );
-
-        if (!$questionnaire = get_questionnaire($params['questionnaireid'])) {
-            throw new \moodle_exception("invalidcoursemodule", "error");
-        }
-        list($course, $cm) = get_course_and_cm_from_instance($questionnaire, 'questionnaire');
-
-        $context = \context_module::instance($cm->id);
-        self::validate_context($context);
-
-        require_capability('mod/questionnaire:submit', $context);
-
-        $result = save_questionnaire_data($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses);
-        $result['submitted'] = true;
-        if (isset($result['warnings']) && !empty($result['warnings'])) {
-            unset($result['responses']);
-            $result['submitted'] = false;
-        }
-        $result['warnings'] = [];
-        return $result;
-    }
-
-    /**
-     * Describes the submit_questionnaire_response return value.
-     *
-     * @return external_multiple_structure
-     * @since Moodle 3.0
-     */
-    public static function submit_questionnaire_response_returns() {
-        return new \external_single_structure(
-            [
-                'submitted' => new \external_value(PARAM_BOOL, 'submitted', true, false, false),
-                'warnings' => new \external_warnings()
-            ]
-        );
-    }
-
     public static function submit_questionnaire_branching_parameters() {
         return new \external_function_parameters(
             [
@@ -154,9 +68,24 @@ class mod_questionnaire_external extends \external_api {
         );
     }
 
-    public static function submit_questionnaire_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses) {
+     /**
+     * Submit questionnaire responses
+     *
+     * @param int $questionnaireid the questionnaire instance id
+     * @param int $surveyid Survey id
+     * @param int $userid User id
+     * @param int $cmid Course module id
+     * @param int $sec Section number
+     * @param int $completed Completed survey 1/0
+     * @param int $submit Submit survey?
+     * @param array $responses the response ids
+     * @return array answers information and warnings
+     * @since Moodle 3.0
+     */
+    public static function submit_questionnaire_branching($questionnaireid, $surveyid, $userid,
+        $cmid, $sec, $completed, $submit, $responses) {
 
-        $params = self::validate_parameters(self::submit_questionnaire_response_parameters(),
+        $params = self::validate_parameters(self::submit_questionnaire_branching_parameters(),
             [
                 'questionnaireid' => $questionnaireid,
                 'surveyid' => $surveyid,
@@ -179,7 +108,8 @@ class mod_questionnaire_external extends \external_api {
 
         require_capability('mod/questionnaire:submit', $context);
 
-        $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid, $sec, $completed, $submit, $responses);
+        $result = save_questionnaire_data_branching($questionnaireid, $surveyid, $userid, $cmid,
+            $sec, $completed, $submit, $responses);
 
         $result['submitted'] = true;
         if (isset($result['warnings']) && !empty($result['warnings'])) {
@@ -190,11 +120,17 @@ class mod_questionnaire_external extends \external_api {
         return $result;
     }
 
+    /**
+     * Describes the submit_questionnaire_branching return value.
+     *
+     * @return external_multiple_structure
+     * @since Moodle 3.0
+     */
     public static function submit_questionnaire_branching_returns() {
         return new \external_single_structure(
             [
                 'submitted' => new \external_value(PARAM_BOOL, 'submitted', true, false, false),
-                'warnings' => new \external_warnings(), 
+                'warnings' => new \external_warnings(),
                 'params' => new \external_warnings(),
             ]
         );

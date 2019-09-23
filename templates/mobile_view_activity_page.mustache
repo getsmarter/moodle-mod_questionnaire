@@ -36,14 +36,58 @@
                         <core-format-text text="<%info.content%>"></core-format-text>
                         <%#info.required%><ion-badge item-end color="danger">{{ 'plugin.mod_questionnaire.required' | translate }}</ion-badge><%/info.required%>
                     </ion-list-header>
+                    
                     <%#info.isselect%>
-                        <ion-select [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
-                            <%#choices%>
-                                    <ion-option<%#completed%> disabled="true"<%/completed%><%#value%> selected="true"<%/value%> value="<%id%>"><%content%>
-                                    onclick="window.clicked_input([ '<%info.current_required_resp%>', '<%info.final_required_resp%>' ])"</ion-option>
-                            <%/choices%>
-                        </ion-select>
+                    <ion-list>
+                        <ion-item>
+                            <ion-select 
+                                <%#completed%> disabled="true"<%/completed%> 
+                                [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']"
+                                interface="alert"
+                                data-currentinput="<%info.current_required_resp%>"
+                                data-finalinput="<%info.final_required_resp%>"
+                                style="width:100%; max-width: 100%;">
+                                    <ion-option selected disabled value="">
+                                        {{CONTENT_OTHERDATA.string_dropdown}}
+                                    </ion-option>
+                                    <%#choices%>
+                                        <ion-option
+                                            value="<%id%>">
+                                            <%content%>
+                                        </ion-option>
+                                    <%/choices%>
+                            </ion-select>
+                        </ion-item>
+                    </ion-list>
                     <%/info.isselect%>
+
+                    <%#info.isdate%>
+                    <ion-list>
+                        <ion-item>
+                            <ion-datetime [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                                displayFormat="D MMM YYYY" pickerFormat="D MMM YYYY" placeholder="14 Mar 1945"
+                                <%#completed%> disabled="true"<%/completed%>
+                                data-currentinput="<%info.current_required_resp%>"
+                                data-finalinput="<%info.final_required_resp%>">
+                            </ion-datetime>
+                        </ion-item>
+                    </ion-list>
+                    <%/info.isdate%>
+
+                    <%#info.isnumeric%>
+                    <ion-list>
+                        <ion-item>
+                            <ion-input [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
+                            type="tel" 
+                            placeholder="1"
+                            <%#completed%> disabled="true"<%/completed%>
+                            data-currentinput="<%info.current_required_resp%>"
+                            data-finalinput="<%info.final_required_resp%>">
+                            </ion-input>
+                        </ion-item>
+                    </ion-list>
+                    <%/info.isnumeric%>
+
                     <%#info.isbool%>
                         <ion-list radio-group [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']">
                             <%#choices%>
@@ -78,23 +122,26 @@
                                 <ion-label><core-format-text text="<%content%>"></core-format-text></ion-label>
                                     <ion-checkbox [(ngModel)]="CONTENT_OTHERDATA.responses['response_<%info.type_id%>_<%info.id%>_<%id%>']" 
                                         <%#completed%>disabled="true"<%/completed%>
-                                        <%#value%>checked="true" class="questionnaire-checkbox-checked-<%pagenum%>"<%/value%>
-                                        data-finalinput="<%info.current_required_resp%>"
-                                        data-currentinput="<%info.final_required_resp%>"
+                                        <%#value%>
+                                            checked="true" class="questionnaire-checkbox-checked-<%pagenum%>"
+                                        <%/value%>
+                                        data-currentinput="<%info.current_required_resp%>"
+                                        data-finalinput="<%info.final_required_resp%>">
                                     ></ion-checkbox>
                             </ion-item>
                         <%/choices%>
                         </ion-list>
                     <%/info.ischeckbox%>
                     <%#info.istextessay%>
+                    <ion-list>
                         <ion-item>
                             <%^completed%>
                                 <ion-textarea aria-multiline="true" 
                                 [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" 
                                 core-auto-rows
                                 <%#info.current_required_resp%>
-                                data-currentinput="<%info.current_required_resp%>"
                                 data-finalinput="<%info.final_required_resp%>"
+                                data-currentinput="<%info.current_required_resp%>"
                                 <%/info.current_required_resp%>
                                 class="questionnaire-text"
                                 ></ion-textarea>
@@ -103,6 +150,7 @@
                                 <ion-textarea aria-multiline="true" disabled="true" [(ngModel)]="CONTENT_OTHERDATA.responses['<%info.fieldkey%>']" core-auto-rows></ion-textarea>
                             <%/completed%>
                         </ion-item>
+                    </ion-list>
                     <%/info.istextessay%>
                     <%#info.israte%>
                         <%#choices%>
