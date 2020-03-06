@@ -6,7 +6,7 @@ steps:
     plugins:
       - ssh://git@github.com/getsmarter/submodule-buildkite-plugin.git#v1.2:
           parent_repo: online-campus
-          parent_branch: stage-moodle35
+          parent_branch: staging-moodle35
           submodule_path: mod/questionnaire
 
   - label: ':github: Run master submodule build'
