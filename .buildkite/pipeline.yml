@@ -4,7 +4,7 @@ steps:
     agents:
       Environment: production
     plugins:
-      - ssh://git@github.com/getsmarter/submodule-buildkite-plugin.git#v1.2:
+      - ssh://git@github.com/getsmarter/submodule-buildkite-plugin.git#v1.3:
           parent_repo: online-campus
           parent_branch: staging-moodle35
           submodule_path: mod/questionnaire
@@ -14,7 +14,7 @@ steps:
     agents:
       Environment: production
     plugins:
-      - ssh://git@github.com/getsmarter/submodule-buildkite-plugin.git#v1.2:
+      - ssh://git@github.com/getsmarter/submodule-buildkite-plugin.git#v1.3:
           parent_repo: online-campus
           parent_branch: development
           submodule_path: mod/questionnaire
