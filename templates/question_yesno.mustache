@@ -57,7 +57,7 @@
 {{#qelements}}
 {{#choice}}
 <input id="{{id}}" value="{{value}}" name="{{name}}" type="radio" {{#checked}}checked="checked"{{/checked}} {{#disabled}}disabled="disabled"{{/disabled}} {{#onclick}}onclick="{{onclick}}"{{/onclick}}/>
-<label for="{{id}}">{{{label}}}</label>
+<label for="{{id}}" aria-label="{{{label}}}">{{{label}}}</label>
 {{/choice}}
 {{/qelements}}
 <!-- End HTML generated from question_yesno template. -->

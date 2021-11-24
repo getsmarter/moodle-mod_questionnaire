@@ -140,7 +140,7 @@
         {{#coltext}}{{{.}}}{{/coltext}}
         {{#colhiddentext}}<span class="accesshide">{{{.}}}</span>{{/colhiddentext}}
         {{#colinput}}<input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
-        {{#label}}<label for="{{id}}" class="accesshide">{{{.}}}</label>{{/label}}{{/colinput}}
+        {{#label}}<label for="{{id}}" class="accesshide" aria-label="{{{.}}}">{{{.}}}</label>{{/label}}{{/colinput}}
       </td>
       {{/cols}}
     </tr>
