@@ -51,20 +51,16 @@
 {{#choices}}
     {{#horizontal}}<span style="white-space:nowrap;">{{/horizontal}}
     {{#selected}}
-    <span class="selected">
-        <label for="{{name}}}">
-            <input type="radio" name="{{name}}" checked="checked" />
-                {{{content}}}{{#othercontent}} <span class="response text">{{.}}</span>{{/othercontent}}
-        </label>
-    </span>
+        <span class="selected">
+            <input type="radio" aria-label="{{name}}" name="{{name}}" checked="checked" />
+            {{{content}}}{{#othercontent}} <span class="response text">{{.}}</span>{{/othercontent}}
+        </span>
     {{/selected}}
     {{^selected}}
-    <span class="unselected">
-        <label for="{{name}}">
-            <input type="radio" name="{{name}}" />
-        {{{content}}}
-        </label>
-    </span>&nbsp;
+        <span class="unselected">
+            <input type="radio" aria-label="{{name}}" name="{{name}}" />
+            {{{content}}}
+        </span>
     {{/selected}}
     {{#horizontal}}</span>{{/horizontal}}
     {{^horizontal}}<br />{{/horizontal}}
