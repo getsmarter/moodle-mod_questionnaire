@@ -140,12 +140,7 @@
         {{#coltext}}{{{.}}}{{/coltext}}
         {{#colhiddentext}}<span class="accesshide">{{{.}}}</span>{{/colhiddentext}}
           {{#colinput}}
-              {{#label}}
-                  <input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} aria-label="{{#coltext}}{{{.}}}{{/coltext}}" checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
-              {{/label}}
-              {{^label}}
-                  <input type="radio" aria-label="{{#coltext}}{{{.}}}{{/coltext}}" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
-              {{/label}}
+              <input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} aria-label="{{#coltext}}{{{.}}}{{/coltext}}" checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
           {{/colinput}}
       </td>
       {{/cols}}
