@@ -49,18 +49,16 @@
 {{#choices}}
     {{#selected}}
     <span class="selected">
-        <label for="{{name}}">
-            <input type="checkbox" name="{{name}}" checked="checked" onclick="this.checked=true;" />
-        </label>
-        {{{content}}}</span>
+        <input type="checkbox" aria-label="{{name}}" name="{{name}}" checked="checked" onclick="this.checked=true;" />
+        {{{content}}}
+    </span>
     {{#othercontent}}<span class="response text">{{{.}}}</span>{{/othercontent}}
     {{/selected}}
     {{^selected}}
     <span class="unselected">
-        <label for="{{name}}">
-            <input type="checkbox" name="{{name}}" onclick="this.checked=true;" />
-        </label>
-        {{{content}}}</span>
+        <input type="checkbox" aria-label="{{name}}" name="{{name}}" onclick="this.checked=true;" />
+        {{{content}}}
+    </span>
     {{/selected}}
     <br />
 {{/choices}}

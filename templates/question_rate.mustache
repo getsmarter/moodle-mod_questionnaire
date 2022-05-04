@@ -139,8 +139,14 @@
 			{{#colinput}} onclick="if('{{id}}'.length>0) document.getElementById('{{id}}').checked = true"{{/colinput}}>
         {{#coltext}}{{{.}}}{{/coltext}}
         {{#colhiddentext}}<span class="accesshide">{{{.}}}</span>{{/colhiddentext}}
-        {{#colinput}}<label><input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} aria-label="{{#coltext}}{{{.}}}{{/coltext}}" checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}></label>
-        {{#label}}<label for="{{id}}" class="accesshide" aria-label="{{{.}}}">{{{.}}}</label>{{/label}}{{/colinput}}
+          {{#colinput}}
+              {{#label}}
+                  <input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} aria-label="{{#coltext}}{{{.}}}{{/coltext}}" checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
+              {{/label}}
+              {{^label}}
+                  <input type="radio" aria-label="{{#coltext}}{{{.}}}{{/coltext}}" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
+              {{/label}}
+          {{/colinput}}
       </td>
       {{/cols}}
     </tr>
