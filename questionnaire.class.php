@@ -2316,7 +2316,7 @@ class questionnaire {
             $name = 'popup';
             $link = new moodle_url($url);
             $action = new popup_action('click', $link, $name, $options);
-            $actionlink = $this->renderer->action_link($link, $linkname, $action, ['title' => $title],
+            $actionlink = $this->renderer->action_link($link, $linkname, $action, ['role' => 'link', 'title' => $title],
                 new pix_icon('t/print', $title));
             $navbar->printaction = $actionlink;
             $this->page->add_to_page('navigationbar', $this->renderer->navigationbar($navbar));

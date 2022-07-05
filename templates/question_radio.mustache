@@ -65,9 +65,9 @@
 {{#choice}}
 {{#choice.horizontal}}<span style="white-space:nowrap;">{{/choice.horizontal}}
 <input id="{{choice.id}}" value="{{choice.value}}" name="{{choice.name}}" type="radio" {{#choice.checked}}checked="checked"{{/choice.checked}} {{#choice.disabled}}disabled="disabled"{{/choice.disabled}} {{#choice.onclick}}onclick="{{choice.onclick}}"{{/choice.onclick}}/>
-<label for="{{choice.id}}">{{{choice.label}}}</label>
+<label for="{{choice.id}}" aria-label="{{{choice.label}}}">{{{choice.label}}}</label>
 {{#choice.oname}}
-<input size="25" name="{{choice.oname}}" id="{{choice.oid}}" onclick="other_check(name)" value="{{choice.ovalue}}" type="text" /><label for="{{choice.oid}}" class="accesshide">{{{choice.olabel}}}</label>&nbsp;
+<input size="25" name="{{choice.oname}}" id="{{choice.oid}}" onclick="other_check(name)" value="{{choice.ovalue}}" type="text" /><label for="{{choice.oid}}" class="accesshide" aria-label="{{{choice.olabel}}}">{{{choice.olabel}}}</label>&nbsp;
 {{/choice.oname}}
 {{#choice.horizontal}}</span>{{/choice.horizontal}}
 {{^choice.horizontal}}<br />{{/choice.horizontal}}
