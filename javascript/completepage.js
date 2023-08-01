@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.keyCode === 13) {
             if (e.target.type === "submit") {
                 form.submit();
-                // target anchor tag with class "btn" and click it
            } else if (e.srcElement.contains("<a ")) {
                 // Allow link clicks to also be actionable by enter key.
             } else {
