@@ -259,6 +259,12 @@ class rate extends base {
                 if ($osgood) {
                     list($content, $contentright) = array_merge(preg_split('/[|]/', $content), array(' '));
                 }
+
+                $arialtitle = 'Choice completed';
+                if ($notcomplete && isset($data->$str) && ($data->$str == -999)) {
+                    $arialtitle = get_string('pleasecomplete', 'questionnaire');
+                }
+
                 $cols[] = ['colstyle' => 'text-align: '.$textalign.';',
                            'coltext' => format_text($content, FORMAT_HTML, ['noclean' => true]).'&nbsp;'];
 
@@ -266,11 +272,10 @@ class rate extends base {
                 if ($nbchoices > 1 && $this->precise != 2  && !$blankquestionnaire) {
                     $checked = ' checked="checked"';
                     $completeclass = 'notanswered';
-                    $title = '';
                     if ($notcomplete && isset($data->$str) && ($data->$str == -999)) {
                         $completeclass = 'notcompleted';
-                        $title = get_string('pleasecomplete', 'questionnaire');
                     }
+                    
                     // Set value of notanswered button to -999 in order to eliminate it from form submit later on.
                     $colinput = ['name' => $str, 'value' => -999];
                     if (!empty($checked)) {
@@ -281,6 +286,8 @@ class rate extends base {
                     }
                     $cols[] = ['colstyle' => 'width:1%;', 'colclass' => $completeclass, 'coltitle' => $title,
                         'colinput' => $colinput];
+                    $choicetags->qelements['title'] = $title;
+
                 }
                 for ($j = 0; $j < $this->length + $isna; $j++) {
                     $col = [];
@@ -319,7 +326,7 @@ class rate extends base {
                 if ($osgood) {
                     $cols[] = ['coltext' => '&nbsp;'.format_text($contentright, FORMAT_HTML, ['noclean' => true])];
                 }
-                $choicetags->qelements['rows'][] = ['cols' => $cols];
+                $choicetags->qelements['rows'][] = ['cols' => $cols, 'title' => $arialtitle];
             }
         }
 
