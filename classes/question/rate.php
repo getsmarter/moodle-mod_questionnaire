@@ -260,7 +260,7 @@ class rate extends base {
                     list($content, $contentright) = array_merge(preg_split('/[|]/', $content), array(' '));
                 }
 
-                $arialtitle = 'Choice completed';
+                $arialtitle = 'Choice';
                 if ($notcomplete && isset($data->$str) && ($data->$str == -999)) {
                     $arialtitle = get_string('pleasecomplete', 'questionnaire');
                 }
