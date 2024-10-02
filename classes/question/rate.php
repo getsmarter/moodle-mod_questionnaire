@@ -272,8 +272,10 @@ class rate extends base {
                 if ($nbchoices > 1 && $this->precise != 2  && !$blankquestionnaire) {
                     $checked = ' checked="checked"';
                     $completeclass = 'notanswered';
+                    $title = '';
                     if ($notcomplete && isset($data->$str) && ($data->$str == -999)) {
                         $completeclass = 'notcompleted';
+                        $title = get_string('pleasecomplete', 'questionnaire');
                     }
                     
                     // Set value of notanswered button to -999 in order to eliminate it from form submit later on.
