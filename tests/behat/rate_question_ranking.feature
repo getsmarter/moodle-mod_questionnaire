@@ -4,7 +4,7 @@ Feature: Rate scale questions can be used to uniquely rank options
   As a teacher
   I need to enter a rate question with with "no duplicate choices" selected
 
-@javascript
+  @javascript
   Scenario: Add a rank the top three choices question
     Given the following "users" exist:
       | username | firstname | lastname | email |
@@ -42,7 +42,7 @@ Feature: Rate scale questions can be used to uniquely rank options
     And I navigate to "Answer the questions..." in current page administration
     Then I should see "Test questionnaire"
     And I should see "What are your top three movies?"
-    And I click on "Choice 1 for row Star Wars" "radio"
-    And I click on "Choice 2 for row Airplane" "radio"
-    And I click on "Choice 3 for row Casablanca" "radio"
+    And I click on "Row 2, Star Wars: Column 2, 1." "radio"
+    And I click on "Row 4, Airplane: Column 3, 2." "radio"
+    And I click on "Row 3, Casablanca: Column 4, 3." "radio"
     And I press "Submit questionnaire"

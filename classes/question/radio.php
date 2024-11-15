@@ -14,23 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_questionnaire\question;
+
 /**
  * This file contains the parent class for radio question types.
  *
  * @author Mike Churchward
+ * @copyright 2016 onward Mike Churchward (mike.churchward@poetopensource.org)
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questiontypes
+ * @package mod_questionnaire
  */
+class radio extends question {
 
-namespace mod_questionnaire\question;
-defined('MOODLE_INTERNAL') || die();
-
-class radio extends base {
-
+    /**
+     * Each question type must define its response class.
+     * @return object The response object based off of questionnaire_response_base.
+     */
     protected function responseclass() {
-        return '\\mod_questionnaire\\response\\single';
+        return '\\mod_questionnaire\\responsetype\\single';
     }
 
+    /**
+     * Short name for this question type - no spaces, etc..
+     * @return string
+     */
     public function helpname() {
         return 'radiobuttons';
     }
@@ -75,42 +82,36 @@ class radio extends base {
 
     /**
      * Return the context tags for the check question template.
-     * @param object $data
+     * @param \mod_questionnaire\responsetype\response\response $response
      * @param array $dependants Array of all questions/choices depending on this question.
      * @param boolean $blankquestionnaire
      * @return object The check question context tags.
      *
      */
-    protected function question_survey_display($data, $dependants=[], $blankquestionnaire=false) {
-        // Radio buttons
+    protected function question_survey_display($response, $dependants=[], $blankquestionnaire=false) {
+        // Radio buttons.
         global $idcounter;  // To make sure all radio buttons have unique ids. // JR 20 NOV 2007.
 
         $otherempty = false;
-        // Find out which radio button is checked (if any); yields choice ID.
-        if (isset($data->{'q'.$this->id})) {
-            $checked = $data->{'q'.$this->id};
-        } else {
-            $checked = '';
-        }
         $horizontal = $this->length;
         $ischecked = false;
 
         $choicetags = new \stdClass();
         $choicetags->qelements = [];
+
         foreach ($this->choices as $id => $choice) {
             $radio = new \stdClass();
-            $other = strpos($choice->content, '!other');
             if ($horizontal) {
                 $radio->horizontal = $horizontal;
             }
 
-            if ($other !== 0) { // This is a normal radio button.
+            if (!$choice->is_other_choice()) { // This is a normal radio button.
                 $htmlid = 'auto-rb'.sprintf('%04d', ++$idcounter);
 
                 $radio->name = 'q'.$this->id;
                 $radio->id = $htmlid;
                 $radio->value = $id;
-                if ($id == $checked) {
+                if (isset($response->answers[$this->id][$id])) {
                     $radio->checked = true;
                     $ischecked = true;
                 }
@@ -121,33 +122,34 @@ class radio extends base {
                 }
                 $contents = questionnaire_choice_values($choice->content);
                 $radio->label = $value.format_text($contents->text, FORMAT_HTML, ['noclean' => true]).$contents->image;
-            } else {             // Radio button with associated !other text field.
-                $othertext = preg_replace(["/^!other=/", "/^!other/"], ['', get_string('other', 'questionnaire')],
-                    $choice->content);
-                $cid = 'q'.$this->id.'_'.$id;
-                $otherempty = false;
-                if (substr($checked, 0, 6) == 'other_') { // Fix bug CONTRIB-222.
-                    $checked = substr($checked, 6);
+                if (!empty($this->qlegend)) {
+                    $radio->alabel = strip_tags("{$this->qlegend} {$radio->label}");
                 }
+            } else {             // Radio button with associated !other text field.
+                $othertext = $choice->other_choice_display();
+                $cname = choice::id_other_choice_name($id);
+                $odata = isset($response->answers[$this->id][$id]) ? $response->answers[$this->id][$id]->value : '';
                 $htmlid = 'auto-rb'.sprintf('%04d', ++$idcounter);
 
                 $radio->name = 'q'.$this->id;
                 $radio->id = $htmlid;
-                $radio->value = 'other_'.$id;
-                if (($id == $checked) || !empty($data->$cid)) {
+                $radio->value = $id;
+                if (isset($response->answers[$this->id][$id]) || !empty($odata)) {
                     $radio->checked = true;
                     $ischecked = true;
-                    if (isset($data->$cid) && (trim($data->$cid) == false)) {
-                        $otherempty = true;
-                    }
                 }
+                $otherempty = !empty($radio->checked) && empty($odata);
                 $radio->label = format_text($othertext, FORMAT_HTML, ['noclean' => true]);
-                $radio->oname = $cid;
+                $radio->oname = 'q'.$this->id.choice::id_other_choice_name($id);
                 $radio->oid = $htmlid.'-other';
-                if (isset($data->$cid)) {
-                    $radio->ovalue = stripslashes($data->$cid);
+                if (isset($odata)) {
+                    $radio->ovalue = format_string(stripslashes($odata));
                 }
                 $radio->olabel = 'Text for '.format_text($othertext, FORMAT_HTML, ['noclean' => true]);
+                if (!empty($this->qlegend)) {
+                    $radio->alabel = strip_tags("{$this->qlegend} {$radio->label}");
+                    $radio->aolabel = strip_tags("{$this->qlegend} {$radio->olabel}");
+                }
             }
             $choicetags->qelements[] = (object)['choice' => $radio];
         }
@@ -155,7 +157,6 @@ class radio extends base {
         // CONTRIB-846.
         if (!$this->required()) {
             $radio = new \stdClass();
-            $id = '';
             $htmlid = 'auto-rb'.sprintf('%04d', ++$idcounter);
             if ($horizontal) {
                 $radio->horizontal = $horizontal;
@@ -163,13 +164,16 @@ class radio extends base {
 
             $radio->name = 'q'.$this->id;
             $radio->id = $htmlid;
-            $radio->value = $id;
+            $radio->value = 0;
 
             if (!$ischecked && !$blankquestionnaire) {
                 $radio->checked = true;
             }
             $content = get_string('noanswer', 'questionnaire');
             $radio->label = format_text($content, FORMAT_HTML, ['noclean' => true]);
+            if (!empty($this->qlegend)) {
+                $radio->alabel = strip_tags("{$this->qlegend} {$radio->label}");
+            }
 
             $choicetags->qelements[] = (object)['choice' => $radio];
         }
@@ -183,40 +187,44 @@ class radio extends base {
 
     /**
      * Return the context tags for the radio response template.
-     * @param object $data
+     * @param \mod_questionnaire\responsetype\response\response $response
      * @return object The radio question response context tags.
-     *
      */
-    protected function response_survey_display($data) {
+    protected function response_survey_display($response) {
         static $uniquetag = 0;  // To make sure all radios have unique names.
 
         $resptags = new \stdClass();
         $resptags->choices = [];
 
+        $qdata = new \stdClass();
         $horizontal = $this->length;
-        $checked = (isset($data->{'q'.$this->id}) ? $data->{'q'.$this->id} : '');
+        if (isset($response->answers[$this->id])) {
+            $answer = reset($response->answers[$this->id]);
+            $checked = $answer->choiceid;
+        } else {
+            $checked = null;
+        }
         foreach ($this->choices as $id => $choice) {
             $chobj = new \stdClass();
             if ($horizontal) {
                 $chobj->horizontal = 1;
             }
             $chobj->name = $id.$uniquetag++;
-            if (strpos($choice->content, '!other') !== 0) {
-                $contents = questionnaire_choice_values($choice->content);
-                $choice->content = $contents->text.$contents->image;
-                if ($id == $checked) {
-                    $chobj->selected = 1;
+            $contents = questionnaire_choice_values($choice->content);
+            $choice->content = $contents->text.$contents->image;
+            if ($id == $checked) {
+                $chobj->selected = 1;
+                if ($choice->is_other_choice()) {
+                    $chobj->othercontent = $answer->value;
                 }
-                $chobj->content = ($choice->content === '' ? $id : format_text($choice->content, FORMAT_HTML, ['noclean' => true]));
+            }
+            if ($choice->is_other_choice()) {
+                $chobj->content = $choice->other_choice_display();
             } else {
-                $othertext = preg_replace(["/^!other=/", "/^!other/"], ['', get_string('other', 'questionnaire')],
-                    $choice->content);
-                $cid = 'q'.$this->id.'_'.$id;
-                if (isset($data->{'q'.$this->id.'_'.$id})) {
-                    $chobj->selected = 1;
-                    $chobj->othercontent = (!empty($data->$cid) ? htmlspecialchars($data->$cid) : '&nbsp;');
-                }
-                $chobj->content = $othertext;
+                $chobj->content = ($choice->content === '' ? $id : format_text($choice->content, FORMAT_HTML, ['noclean' => true]));
+            }
+            if (!empty($this->qlegend)) {
+                $chobj->alabel = strip_tags("{$this->qlegend} {$chobj->content}");
             }
             $resptags->choices[] = $chobj;
         }
@@ -240,20 +248,10 @@ class radio extends base {
     }
 
     /**
-     * Check question's form data for valid response. Override this is type has specific format requirements.
-     *
-     * @param object $responsedata The data entered into the response.
-     * @return boolean
+     * Return the length form element.
+     * @param \MoodleQuickForm $mform
+     * @param string $helptext
      */
-    public function response_valid($responsedata) {
-        if (isset($responsedata->{'q'.$this->id}) && (strpos($responsedata->{'q'.$this->id}, 'other_') !== false)) {
-            // False if "other" choice is checked but text box is empty.
-            return (trim($responsedata->{'q'.$this->id.''.substr($responsedata->{'q'.$this->id}, 5)}) != false);
-        } else {
-            return parent::response_valid($responsedata);
-        }
-    }
-
     protected function form_length(\MoodleQuickForm $mform, $helptext = '') {
         $lengroup = [];
         $lengroup[] =& $mform->createElement('radio', 'length', '', get_string('vertical', 'questionnaire'), '0');
@@ -265,7 +263,67 @@ class radio extends base {
         return $mform;
     }
 
+    /**
+     * Return the precision form element.
+     * @param \MoodleQuickForm $mform
+     * @param string $helptext
+     */
     protected function form_precise(\MoodleQuickForm $mform, $helptext = '') {
-        return base::form_precise_hidden($mform);
+        return question::form_precise_hidden($mform);
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return true;
+    }
+
+    /**
+     * Override and return false if not supporting mobile app.
+     * @param int $qnum
+     * @param bool $autonum
+     * @return \stdClass
+     */
+    public function mobile_question_display($qnum, $autonum = false) {
+        $mobiledata = parent::mobile_question_display($qnum, $autonum);
+        $mobiledata->isradiobutton = true;
+        return $mobiledata;
+    }
+
+    /**
+     * Override and return false if not supporting mobile app.
+     * @return array
+     */
+    public function mobile_question_choices_display() {
+        $choices = parent::mobile_question_choices_display();
+        foreach ($choices as $choicenum => $choice) {
+            if ($choice->is_other_choice()) {
+                $choices[$choicenum]->otherchoicekey = $this->mobile_fieldkey($choice->other_choice_name());
+                $choices[$choicenum]->content = format_text($choice->other_choice_display(), FORMAT_HTML, ['noclean' => true]);
+            }
+        }
+        return $choices;
+    }
+
+    /**
+     * Return the mobile response data.
+     * @param response $response
+     * @return array
+     */
+    public function get_mobile_response_data($response) {
+        $resultdata = [];
+        if (isset($response->answers[$this->id])) {
+            foreach ($response->answers[$this->id] as $answer) {
+                // Add a fieldkey for each choice.
+                $resultdata[$this->mobile_fieldkey()] = $answer->choiceid;
+                if ($this->choices[$answer->choiceid]->is_other_choice()) {
+                    $resultdata[$this->mobile_fieldkey($this->choices[$answer->choiceid]->other_choice_name())] = $answer->value;
+                }
+            }
+        }
+        return $resultdata;
     }
 }

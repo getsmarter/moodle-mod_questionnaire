@@ -16,8 +16,6 @@
 
 namespace mod_questionnaire\db;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * For bulk sql operations on useresponses.
  *
@@ -25,7 +23,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2015 Guy Thomas <gthomas@moodlerooms.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class bulk_sql_config  {
+class bulk_sql_config {
 
     /**
      * @var string $table
@@ -53,6 +51,7 @@ class bulk_sql_config  {
     protected $userank = false;
 
     /**
+     * The class constructor.
      * @param string $table
      * @param string $tablealias
      * @param bool $usechoiceid

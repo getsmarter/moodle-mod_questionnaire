@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
+ * Show the non-respondents to a questionnaire.
  * @author Joseph Rézeau (copied from feedback plugin show_nonrespondents by original author Andreas Grabs)
+ * @copyright  2016 Mike Churchward (mike.churchward@poetopensource.org)
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package    mod
- * @subpackage questionnaire
+ * @package mod_questionnaire
  *
  */
 
@@ -38,8 +38,8 @@ $action = optional_param('action', '', PARAM_ALPHA);
 $selectedanonymous = optional_param('selectedanonymous', '', PARAM_ALPHA);
 $perpage = optional_param('perpage', QUESTIONNAIRE_DEFAULT_PAGE_COUNT, PARAM_INT);  // How many per page.
 $showall = optional_param('showall', false, PARAM_INT);  // Should we show all users?
-$sid    = optional_param('sid', 0, PARAM_INT);
-$qid    = optional_param('qid', 0, PARAM_INT);
+$sid = optional_param('sid', 0, PARAM_INT);
+$qid = optional_param('qid', 0, PARAM_INT);
 $currentgroupid = optional_param('group', 0, PARAM_INT); // Groupid.
 
 if (!isset($SESSION->questionnaire)) {
@@ -52,25 +52,25 @@ $SESSION->questionnaire->current_tab = 'nonrespondents';
 
 if ($id) {
     if (! $cm = get_coursemodule_from_id('questionnaire', $id)) {
-        print_error('invalidcoursemodule');
+        throw new \moodle_exception('invalidcoursemodule', 'mod_questionnaire');
     }
 
     if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
-        print_error('coursemisconf');
+        throw new \moodle_exception('coursemisconf', 'mod_questionnaire');
     }
 
     if (! $questionnaire = $DB->get_record("questionnaire", array("id" => $cm->instance))) {
-        print_error('invalidcoursemodule');
+        throw new \moodle_exception('invalidcoursemodule', 'mod_questionnaire');
     }
 }
 
 if (!$context = context_module::instance($cm->id)) {
-        print_error('badcontext');
+    throw new \moodle_exception('badcontext', 'mod_questionnaire');
 }
 
 // We need the coursecontext to allow sending of mass mails.
 if (!$coursecontext = context_course::instance($course->id)) {
-        print_error('badcontext');
+    throw new \moodle_exception('badcontext', 'mod_questionnaire');
 }
 
 require_course_login($course, true, $cm);
@@ -78,7 +78,7 @@ require_course_login($course, true, $cm);
 $url = new moodle_url('/mod/questionnaire/show_nonrespondents.php', array('id' => $cm->id));
 $PAGE->set_url($url);
 
-$questionnaire = new questionnaire($sid, $questionnaire, $course, $cm);
+$questionnaire = new questionnaire($course, $cm, $sid, $questionnaire);
 
 // Add renderer and page objects to the questionnaire object for display use.
 $questionnaire->add_renderer($PAGE->get_renderer('mod_questionnaire'));
@@ -89,7 +89,7 @@ $fullname = $questionnaire->respondenttype == 'fullname';
 $sid = $questionnaire->sid;
 
 if (($formdata = data_submitted()) && !confirm_sesskey()) {
-    print_error('invalidsesskey');
+    throw new \moodle_exception('invalidsesskey', 'mod_questionnaire');
 }
 
 require_capability('mod/questionnaire:viewsingleresponse', $context);
@@ -149,16 +149,16 @@ if ($action == 'sendmessage' && !empty($subject) && !empty($message)) {
         foreach ($messageuser as $userid) {
             $senduser = $DB->get_record('user', array('id' => $userid));
             $eventdata = new \core\message\message();
-            $eventdata->courseid         = $course->id;
-            $eventdata->name             = 'message';
-            $eventdata->component        = 'mod_questionnaire';
-            $eventdata->userfrom         = $USER;
-            $eventdata->userto           = $senduser;
-            $eventdata->subject          = $subject;
-            $eventdata->fullmessage      = html_to_text($htmlmessage);
+            $eventdata->courseid = $course->id;
+            $eventdata->name = 'message';
+            $eventdata->component = 'mod_questionnaire';
+            $eventdata->userfrom = $USER;
+            $eventdata->userto = $senduser;
+            $eventdata->subject = $subject;
+            $eventdata->fullmessage = html_to_text($htmlmessage);
             $eventdata->fullmessageformat = FORMAT_PLAIN;
-            $eventdata->fullmessagehtml  = $htmlmessage;
-            $eventdata->smallmessage     = '';
+            $eventdata->fullmessagehtml = $htmlmessage;
+            $eventdata->smallmessage = '';
             $good = $good && message_send($eventdata);
         }
         if (!empty($good)) {
@@ -203,7 +203,11 @@ if ($fullname) {
     $tablecolumns = array('userpic', 'fullname');
 
     // Extra columns copied from participants view.
-    $extrafields = get_extra_user_fields($context);
+    if (class_exists('\core_user\fields')) {
+        $extrafields = \core_user\fields::get_identity_fields(null, false);
+    } else {
+        $extrafields = get_extra_user_fields($context);
+    }
     $tableheaders = array(get_string('userpic'), get_string('fullnameuser'));
 
     if (in_array('email', $extrafields) || has_capability('moodle/course:viewhiddenuserfields', $context)) {
@@ -243,10 +247,10 @@ if ($fullname) {
     $table->set_attribute('id', 'showentrytable');
     $table->set_attribute('class', 'flexible generaltable generalbox');
     $table->set_control_variables(array(
-                TABLE_VAR_SORT    => 'ssort',
-                TABLE_VAR_IFIRST  => 'sifirst',
-                TABLE_VAR_ILAST   => 'silast',
-                TABLE_VAR_PAGE    => 'spage'
+                TABLE_VAR_SORT => 'ssort',
+                TABLE_VAR_IFIRST => 'sifirst',
+                TABLE_VAR_ILAST => 'silast',
+                TABLE_VAR_PAGE => 'spage'
                 ));
 
     $table->no_sorting('status');
@@ -271,7 +275,11 @@ if ($fullname) {
         $usedgroupid = false;
     }
     $nonrespondents = questionnaire_get_incomplete_users($cm, $sid, $usedgroupid);
-    $countnonrespondents = count($nonrespondents);
+    if (is_array($nonrespondents) || is_object($nonrespondents)) {
+        $countnonrespondents = count($nonrespondents);
+    } else {
+        $countnonrespondents = 0;
+    }
 
     $table->initialbars(false);
 
@@ -299,16 +307,16 @@ $countries = get_string_manager()->get_list_of_countries();
 $strnever = get_string('never');
 
 $datestring = new stdClass();
-$datestring->year  = get_string('year');
+$datestring->year = get_string('year');
 $datestring->years = get_string('years');
-$datestring->day   = get_string('day');
-$datestring->days  = get_string('days');
-$datestring->hour  = get_string('hour');
+$datestring->day = get_string('day');
+$datestring->days = get_string('days');
+$datestring->hour = get_string('hour');
 $datestring->hours = get_string('hours');
-$datestring->min   = get_string('min');
-$datestring->mins  = get_string('mins');
-$datestring->sec   = get_string('sec');
-$datestring->secs  = get_string('secs');
+$datestring->min = get_string('min');
+$datestring->mins = get_string('mins');
+$datestring->sec = get_string('sec');
+$datestring->secs = get_string('secs');
 
 if (!$nonrespondents) {
     $questionnaire->page->add_to_page('formarea',
@@ -391,14 +399,16 @@ if (!$nonrespondents) {
                 $questionnaire->renderer->box_start('mdl-align')); // Selection buttons container.
             $questionnaire->page->add_to_page('formarea', '<div class="buttons">');
             $questionnaire->page->add_to_page('formarea',
-                '<input type="button" id="checkall" value="'.get_string('selectall').'" /> ');
+                '<input type="button" id="checkall" class="btn btn-secondary" value="'.get_string('selectall').'" /> ');
             $questionnaire->page->add_to_page('formarea',
-                '<input type="button" id="checknone" value="'.get_string('deselectall').'" /> ');
+                '<input type="button" id="checknone" class="btn btn-secondary" value="'.get_string('deselectall').'" /> ');
             if ($resume) {
                 if ($perpage >= $countnonrespondents) {
                     $questionnaire->page->add_to_page('formarea',
-                        '<input type="button" id="checkstarted" value="'.get_string('checkstarted', 'questionnaire').'" />'."\n");
-                    $questionnaire->page->add_to_page('formarea', '<input type="button" id="checknotstarted" value="'.
+                        '<input type="button" id="checkstarted" class="btn btn-secondary" value="' .
+                        get_string('checkstarted', 'questionnaire').'" />'."\n");
+                    $questionnaire->page->add_to_page('formarea',
+                        '<input type="button" id="checknotstarted" class="btn btn-secondary" value="'.
                         get_string('checknotstarted', 'questionnaire').'" />'."\n");
                 }
             }
@@ -459,13 +469,13 @@ if (!$nonrespondents) {
         $questionnaire->page->add_to_page('formarea',
             '<legend class="ftoggler">'.get_string('send_message', 'questionnaire').'</legend>');
         $id = 'message' . '_id';
-        $subjecteditor = '&nbsp;&nbsp;&nbsp;<input type="text" id="questionnaire_subject" size="65"
+        $subjecteditor = '&nbsp;&nbsp;&nbsp;<input type="text" id="questionnaire_subject" class="form-control" size="65"
             maxlength="255" name="subject" value="'.$subject.'" />';
         $format = '';
             $editor = editors_get_preferred_editor();
             $editor->use_editor($id, questionnaire_get_editor_options($context));
             $texteditor = html_writer::tag('div', html_writer::tag('textarea', $message,
-                    array('id' => $id, 'name' => "message", 'rows' => '10', 'cols' => '60')));
+                    array('id' => $id, 'name' => "message",  'class' => "form-control", 'rows' => '10', 'cols' => '60')));
             $questionnaire->page->add_to_page('formarea', '<input type="hidden" name="format" value="'.FORMAT_HTML.'" />');
 
 
@@ -480,8 +490,8 @@ if (!$nonrespondents) {
         // Send button.
         $questionnaire->page->add_to_page('formarea', $questionnaire->renderer->box_start('mdl-left'));
         $questionnaire->page->add_to_page('formarea', '<div class="buttons">');
-        $questionnaire->page->add_to_page('formarea',
-            '<input type="submit" name="send_message" value="'.get_string('send', 'questionnaire').'" />');
+        $questionnaire->page->add_to_page('formarea', '<input type="submit" name="send_message" class="btn btn-secondary" value="' .
+            get_string('send', 'questionnaire').'" />');
         $questionnaire->page->add_to_page('formarea', '</div>');
         $questionnaire->page->add_to_page('formarea', $questionnaire->renderer->box_end());
 

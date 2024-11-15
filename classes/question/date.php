@@ -14,24 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_questionnaire\question;
+
 /**
  * This file contains the parent class for date question types.
  *
  * @author Mike Churchward
+ * @copyright  2016 onward Mike Churchward (mike.churchward@poetopensource.org)
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questiontypes
+ * @package mod_questionnaire
  */
+class date extends question {
 
-namespace mod_questionnaire\question;
-defined('MOODLE_INTERNAL') || die();
-use \html_writer;
-
-class date extends base {
-
+    /**
+     * Return the responseclass used.
+     * @return string
+     */
     protected function responseclass() {
-        return '\\mod_questionnaire\\response\\date';
+        return '\\mod_questionnaire\\responsetype\\date';
     }
 
+    /**
+     * Return the help name.
+     * @return string
+     */
     public function helpname() {
         return 'date';
     }
@@ -54,32 +60,29 @@ class date extends base {
 
     /**
      * Return the context tags for the check question template.
-     * @param object $data
-     * @param string $descendantdata
+     * @param \mod_questionnaire\responsetype\response\response $response
+     * @param array $descendantsdata
      * @param boolean $blankquestionnaire
      * @return object The check question context tags.
-     *
      */
-    protected function question_survey_display($data, $descendantsdata, $blankquestionnaire=false) {
+    protected function question_survey_display($response, $descendantsdata, $blankquestionnaire=false) {
         // Date.
         $questiontags = new \stdClass();
-        if (!empty($data->{'q'.$this->id})) {
-            $dateentered = $data->{'q'.$this->id};
-            $setdate = questionnaire_check_date ($dateentered, false);
-            if ($setdate == 'wrongdateformat') {
+        if (!empty($response->answers[$this->id])) {
+            $dateentered = $response->answers[$this->id][0]->value;
+            $setdate = $this->check_date_format($dateentered);
+            if (!$setdate) {
                 $msg = get_string('wrongdateformat', 'questionnaire', $dateentered);
                 $this->add_notification($msg);
-            } else if ($setdate == 'wrongdaterange') {
-                $msg = get_string('wrongdaterange', 'questionnaire');
-                $this->add_notification($msg);
             } else {
-                $data->{'q'.$this->id} = $setdate;
+                $response->answers[$this->id][0]->value = $dateentered;
             }
         }
         $choice = new \stdClass();
+        $choice->type = 'date'; // Using HTML5 date input.
         $choice->onkeypress = 'return event.keyCode != 13;';
         $choice->name = 'q'.$this->id;
-        $choice->value = (isset($data->{'q'.$this->id}) ? $data->{'q'.$this->id} : '');
+        $choice->value = (isset($response->answers[$this->id][0]->value) ? $response->answers[$this->id][0]->value : '');
         $questiontags->qelements = new \stdClass();
         $questiontags->qelements->choice = $choice;
         return $questiontags;
@@ -87,14 +90,14 @@ class date extends base {
 
     /**
      * Return the context tags for the check response template.
-     * @param object $data
+     * @param \mod_questionnaire\responsetype\response\response $response
      * @return object The check question response context tags.
-     *
      */
-    protected function response_survey_display($data) {
+    protected function response_survey_display($response) {
         $resptags = new \stdClass();
-        if (isset($data->{'q'.$this->id})) {
-            $resptags->content = $data->{'q'.$this->id};
+        if (isset($response->answers[$this->id])) {
+            $answer = reset($response->answers[$this->id]);
+            $resptags->content = $answer->value;
         }
         return $resptags;
     }
@@ -102,26 +105,128 @@ class date extends base {
     /**
      * Check question's form data for valid response. Override this is type has specific format requirements.
      *
-     * @param object $responsedata The data entered into the response.
+     * @param \stdClass $responsedata The data entered into the response.
      * @return boolean
      */
     public function response_valid($responsedata) {
-        if (isset($responsedata->{'q'.$this->id})) {
-            $checkdateresult = '';
-            if ($responsedata->{'q'.$this->id} != '') {
-                $checkdateresult = questionnaire_check_date($responsedata->{'q'.$this->id});
+        $responseval = false;
+        if (is_a($responsedata, 'mod_questionnaire\responsetype\response\response')) {
+            // If $responsedata is a response object, look through the answers.
+            if (isset($responsedata->answers[$this->id]) && !empty($responsedata->answers[$this->id])) {
+                $answer = $responsedata->answers[$this->id][0];
+                $responseval = $answer->value;
             }
-            return (substr($checkdateresult, 0, 5) != 'wrong');
+        } else if (isset($responsedata->{'q'.$this->id})) {
+            $responseval = $responsedata->{'q' . $this->id};
+        }
+        if ($responseval !== false) {
+            $checkdateresult = true;
+            if ($responseval != '') {
+                $checkdateresult = $this->check_date_format($responseval);
+            }
+            return $checkdateresult;
         } else {
             return parent::response_valid($responsedata);
         }
     }
 
+    /**
+     * Return the form length.
+     * @param \MoodleQuickForm $mform
+     * @param string $helpname
+     * @return \MoodleQuickForm|void
+     */
     protected function form_length(\MoodleQuickForm $mform, $helpname = '') {
-        return base::form_length_hidden($mform);
+        return question::form_length_hidden($mform);
     }
 
+    /**
+     * Return the form precision.
+     * @param \MoodleQuickForm $mform
+     * @param string $helpname
+     * @return \MoodleQuickForm|void
+     */
     protected function form_precise(\MoodleQuickForm $mform, $helpname = '') {
-        return base::form_precise_hidden($mform);
+        return question::form_precise_hidden($mform);
+    }
+
+    /**
+     * Verify that the date provided is in the proper YYYY-MM-DD format.
+     * @param string $date
+     * @return bool
+     */
+    public function check_date_format($date) {
+        $datepieces = explode('-', $date);
+        $return = true;
+        if (count($datepieces) != 3) {
+            $return = false;
+        } else {
+            foreach ($datepieces as $piece => $datepiece) {
+                if (!is_numeric($datepiece)) {
+                    $return = false;
+                    break;
+                }
+                switch ($piece) {
+                    // Year check.
+                    case 0:
+                        if ((strlen($datepiece) != 4) || ($datepiece <= 0)) {
+                            $return = false;
+                            break 2;
+                        }
+                        break;
+                    // Month check.
+                    case 1:
+                        if ((strlen($datepiece) != 2) || ((int)$datepiece < 1) || ((int)$datepiece > 12)) {
+                            $return = false;
+                            break 2;
+                        }
+                        break;
+                    // Day check.
+                    case 2:
+                        if ((strlen($datepiece) != 2) || ((int)$datepiece < 1) || ((int)$datepiece > 31)) {
+                            $return = false;
+                            break 2;
+                        }
+                        break;
+                }
+            }
+        }
+        return $return;
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return true;
+    }
+
+    /**
+     * Does the question support mobile display.
+     * @param int $qnum
+     * @param bool $autonum
+     * @return \stdClass
+     */
+    public function mobile_question_display($qnum, $autonum = false) {
+        $mobiledata = parent::mobile_question_display($qnum, $autonum);
+        $mobiledata->isdate = true;
+        return $mobiledata;
+    }
+
+    /**
+     * Does the question have mobile choices.
+     * @return mixed
+     */
+    public function mobile_question_choices_display() {
+        $choices = [];
+        $choices[0] = new \stdClass();
+        $choices[0]->id = 0;
+        $choices[0]->choice_id = 0;
+        $choices[0]->question_id = $this->id;
+        $choices[0]->content = '';
+        $choices[0]->value = null;
+        return $choices;
     }
 }

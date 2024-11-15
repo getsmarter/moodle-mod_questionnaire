@@ -17,9 +17,10 @@
 /**
  * Setting page for questionaire module
  *
- * @package    mod
- * @subpackage questionnaire
+ * @package    mod_questionnaire
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2016 onward Mike Churchward (mike.churchward@poetgroup.org)
+ * @author     Mike Churchward
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -42,9 +43,13 @@ if ($ADMIN->fulltree) {
         'group' => get_string('group'),
         'id' => get_string('id', 'questionnaire'),
         'fullname' => get_string('fullname'),
-        'username' => get_string('username')
+        'username' => get_string('username'),
+        'useridentityfields' => get_string('showuseridentity', 'admin')
     );
 
     $settings->add(new admin_setting_configmultiselect('questionnaire/downloadoptions',
             get_string('textdownloadoptions', 'questionnaire'), '', array_keys($choices), $choices));
+
+    $settings->add(new admin_setting_configcheckbox('questionnaire/allowemailreporting',
+        get_string('configemailreporting', 'questionnaire'), get_string('configemailreportinglong', 'questionnaire'), 0));
 }

@@ -14,23 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_questionnaire\question;
+
+use mod_questionnaire\feedback\section;
+
 /**
  * This file contains the parent class for sectiontext question types.
  *
  * @author Mike Churchward
+ * @copyright  2016 onward Mike Churchward (mike.churchward@poetopensource.org)
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questiontypes
+ * @package mod_questionnaire
  */
+class sectiontext extends question {
 
-namespace mod_questionnaire\question;
-defined('MOODLE_INTERNAL') || die();
-
-class sectiontext extends base {
-
+    /**
+     * Each question type must define its response class.
+     * @return object The response object based off of questionnaire_response_base.
+     */
     protected function responseclass() {
         return '';
     }
 
+    /**
+     * Short name for this question type - no spaces, etc..
+     * @return string
+     */
     public function helpname() {
         return 'sectiontext';
     }
@@ -47,7 +56,45 @@ class sectiontext extends base {
      * True if question type supports feedback options. False by default.
      */
     public function supports_feedback() {
+        return false;
+    }
+
+    /**
+     * True if question provides mobile support.
+     * @return bool
+     */
+    public function supports_mobile() {
         return true;
+    }
+
+    /**
+     * Display on mobile.
+     *
+     * @param int $qnum
+     * @param bool $autonum
+     */
+    public function mobile_question_display($qnum, $autonum = false) {
+        $options = ['noclean' => true, 'para' => false, 'filter' => true,
+            'context' => $this->context, 'overflowdiv' => true];
+        $mobiledata = (object)[
+            'id' => $this->id,
+            'name' => $this->name,
+            'type_id' => $this->type_id,
+            'length' => $this->length,
+            'content' => format_text(file_rewrite_pluginfile_urls($this->content, 'pluginfile.php', $this->context->id,
+                'mod_questionnaire', 'question', $this->id), FORMAT_HTML, $options),
+            'content_stripped' => strip_tags($this->content),
+            'required' => false,
+            'deleted' => $this->deleted,
+            'response_table' => $this->responsetable,
+            'fieldkey' => $this->mobile_fieldkey(),
+            'precise' => $this->precise,
+            'qnum' => '',
+            'errormessage' => get_string('required') . ': ' . $this->name
+        ];
+
+        $mobiledata->issectiontext = true;
+        return $mobiledata;
     }
 
     /**
@@ -61,7 +108,7 @@ class sectiontext extends base {
      * True if the question supports feedback and has valid settings for feedback. Override if the default logic is not enough.
      */
     public function valid_feedback() {
-        return true;
+        return false;
     }
 
     /**
@@ -72,23 +119,41 @@ class sectiontext extends base {
         return 'mod_questionnaire/question_sectionfb';
     }
 
-    protected function question_survey_display($data, $descendantsdata, $blankquestionnaire=false) {
+    /**
+     * Override and return false if a number should not be rendered for this question in any context.
+     * @return bool
+     */
+    public function is_numbered() {
+        return false;
+    }
+
+    /**
+     * Return the context tags for the check question template.
+     * @param \mod_questionnaire\responsetype\response\response $response
+     * @param array $descendantsdata Array of all questions/choices depending on this question.
+     * @param boolean $blankquestionnaire
+     * @return object The check question context tags.
+     *
+     */
+    protected function question_survey_display($response, $descendantsdata, $blankquestionnaire=false) {
         global $DB, $CFG, $PAGE;
         require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
 
         // If !isset then normal behavior as sectiontext question.
-        if (!isset($data->questionnaire_id)) {
+        if (!isset($response->questionnaireid)) {
             return '';
         }
 
-        $fbsections = $DB->get_records('questionnaire_fb_sections', ['surveyid' => $this->surveyid]);
         $filteredsections = [];
 
         // In which section(s) is this question?
-        foreach ($fbsections as $key => $fbsection) {
-            $scorecalculation = unserialize($fbsection->scorecalculation);
-            if (array_key_exists($this->id, $scorecalculation)) {
-                array_push($filteredsections, $fbsection->section);
+        if ($fbsections = $DB->get_records('questionnaire_fb_sections', ['surveyid' => $this->surveyid])) {
+            foreach ($fbsections as $key => $fbsection) {
+                if ($scorecalculation = section::decode_scorecalculation($fbsection->scorecalculation)) {
+                    if (array_key_exists($this->id, $scorecalculation)) {
+                        array_push($filteredsections, $fbsection->section);
+                    }
+                }
             }
         }
 
@@ -97,8 +162,8 @@ class sectiontext extends base {
             return '';
         }
 
-        list($cm, $course, $questionnaire) = questionnaire_get_standard_page_items(null, $data->questionnaire_id);
-        $questionnaire = new \questionnaire(0, $questionnaire, $course, $cm);
+        list($cm, $course, $questionnaire) = questionnaire_get_standard_page_items(null, $response->questionnaireid);
+        $questionnaire = new \questionnaire($course, $cm, 0, $questionnaire);
         $questionnaire->add_renderer($PAGE->get_renderer('mod_questionnaire'));
         $questionnaire->add_page(new \mod_questionnaire\output\reportpage());
 
@@ -106,8 +171,8 @@ class sectiontext extends base {
         $allresponses = false;
         $currentgroupid = 0;
         $isgroupmember = false;
-        $resps = [$data->rid => null];
-        $rid = $data->rid;
+        $rid = (isset($response->id) && !empty($response->id)) ? $response->id : 0;
+        $resps = [$rid => null];
         // For $filteredsections -> get the feedback messages only for this sections!
         $feedbackmessages = $questionnaire->response_analysis($rid, $resps, $compare, $isgroupmember, $allresponses,
             $currentgroupid, $filteredsections);
@@ -121,9 +186,13 @@ class sectiontext extends base {
 
         $questiontags->qelements->choice = $choice;
         return $questiontags;
-
     }
 
+    /**
+     * Question specific response display method.
+     * @param \stdClass $data
+     *
+     */
     protected function response_survey_display($data) {
         return '';
     }
@@ -138,22 +207,30 @@ class sectiontext extends base {
         return true;
     }
 
-    /*
-    //name is required for feedbacksections and better organization of different sectiontext questions
-    protected function form_name(\MoodleQuickForm $mform) {
-        return $mform;
-    }
-    */
-
+    /**
+     * Add the form required field.
+     * @param \MoodleQuickForm $mform
+     * @return \MoodleQuickForm
+     */
     protected function form_required(\MoodleQuickForm $mform) {
         return $mform;
     }
 
+    /**
+     * Return the length form element.
+     * @param \MoodleQuickForm $mform
+     * @param string $helpname
+     */
     protected function form_length(\MoodleQuickForm $mform, $helpname = '') {
-        return base::form_length_hidden($mform);
+        return question::form_length_hidden($mform);
     }
 
+    /**
+     * Return the precision form element.
+     * @param \MoodleQuickForm $mform
+     * @param string $helpname
+     */
     protected function form_precise(\MoodleQuickForm $mform, $helpname = '') {
-        return base::form_precise_hidden($mform);
+        return question::form_precise_hidden($mform);
     }
 }
