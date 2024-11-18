@@ -14,27 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * print the form to add or edit a questionnaire-instance
- *
- * @author Mike Churchward
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questionnaire
- */
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
 require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
 require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
 
+/**
+ * print the form to add or edit a questionnaire-instance
+ *
+ * @package mod_questionnaire
+ * @author Mike Churchward
+ * @copyright  2016 onward Mike Churchward (mike.churchward@poetgroup.org)
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+ */
 class mod_questionnaire_mod_form extends moodleform_mod {
 
+    /**
+     * Form definition.
+     */
     protected function definition() {
         global $COURSE;
         global $questionnairetypes, $questionnairerespondents, $questionnaireresponseviewers, $autonumbering;
 
-        $questionnaire = new questionnaire($this->_instance, null, $COURSE, $this->_cm);
+        $questionnaire = new questionnaire($COURSE, $this->_cm, $this->_instance, null);
 
         $mform    =& $this->_form;
 
@@ -46,21 +49,9 @@ class mod_questionnaire_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(get_string('description'));
 
-        $mform->addElement('header', 'timinghdr', get_string('timing', 'form'));
-
-        $enableopengroup = array();
-        $enableopengroup[] =& $mform->createElement('checkbox', 'useopendate', get_string('opendate', 'questionnaire'));
-        $enableopengroup[] =& $mform->createElement('date_time_selector', 'opendate', '');
-        $mform->addGroup($enableopengroup, 'enableopengroup', get_string('opendate', 'questionnaire'), ' ', false);
-        $mform->addHelpButton('enableopengroup', 'opendate', 'questionnaire');
-        $mform->disabledIf('enableopengroup', 'useopendate', 'notchecked');
-
-        $enableclosegroup = array();
-        $enableclosegroup[] =& $mform->createElement('checkbox', 'useclosedate', get_string('closedate', 'questionnaire'));
-        $enableclosegroup[] =& $mform->createElement('date_time_selector', 'closedate', '');
-        $mform->addGroup($enableclosegroup, 'enableclosegroup', get_string('closedate', 'questionnaire'), ' ', false);
-        $mform->addHelpButton('enableclosegroup', 'closedate', 'questionnaire');
-        $mform->disabledIf('enableclosegroup', 'useclosedate', 'notchecked');
+        $mform->addElement('header', 'availabilityhdr', get_string('availability'));
+        $mform->addElement('date_time_selector', 'opendate', get_string('opendate', 'questionnaire'), ['optional' => true]);
+        $mform->addElement('date_time_selector', 'closedate', get_string('closedate', 'questionnaire'), ['optional' => true]);
 
         $mform->addElement('header', 'questionnairehdr', get_string('responseoptions', 'questionnaire'));
 
@@ -93,6 +84,8 @@ class mod_questionnaire_mod_form extends moodleform_mod {
         $mform->addHelpButton('autonum', 'autonumbering', 'questionnaire');
         // Default = autonumber both questions and pages.
         $mform->setDefault('autonum', 3);
+
+        $mform->addElement('advcheckbox', 'progressbar', get_string('progressbar', 'questionnaire'));
 
         // Removed potential scales from list of grades. CONTRIB-3167.
         $grades[0] = get_string('nograde');
@@ -155,6 +148,10 @@ class mod_questionnaire_mod_form extends moodleform_mod {
         $this->add_action_buttons();
     }
 
+    /**
+     * Pre-process form data.
+     * @param array $defaultvalues
+     */
     public function data_preprocessing(&$defaultvalues) {
         global $DB;
         if (empty($defaultvalues['opendate'])) {
@@ -179,17 +176,49 @@ class mod_questionnaire_mod_form extends moodleform_mod {
         }
     }
 
+    /**
+     * Enforce validation rules here
+     * @param array $data array of ("fieldname"=>value) of submitted data
+     * @param array $files array of uploaded files "element_name"=>tmp_file_path
+     * @return array
+     **/
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+
+        // Check open and close times are consistent.
+        if ($data['opendate'] && $data['closedate'] &&
+            $data['closedate'] < $data['opendate']) {
+            $errors['closedate'] = get_string('closebeforeopen', 'questionnaire');
+        }
+
         return $errors;
     }
 
+    /**
+     * Add any completion rules for the form.
+     * @return string[]
+     */
     public function add_completion_rules() {
+        global $CFG;
+
+        // Changes for Moodle 4.3 - MDL-78516.
+        if ($CFG->branch < 403) {
+            $suffix = '';
+        } else {
+            $suffix = $this->get_suffix();
+        }
+
         $mform =& $this->_form;
-        $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'questionnaire'));
-        return array('completionsubmit');
+        $mform->addElement('checkbox', 'completionsubmit' . $suffix, '',
+            get_string('completionsubmit', 'questionnaire'));
+        return ['completionsubmit' . $suffix];
     }
 
+    /**
+     * True if the completion rule is enabled.
+     * @param array $data
+     * @return bool
+     */
     public function completion_rule_enabled($data) {
         return !empty($data['completionsubmit']);
     }

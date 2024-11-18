@@ -15,23 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Define all the backup steps that will be used by the backup_questionnaire_activity_task.
+ *
+ * Define the complete choice structure for backup, with file and id annotations.
+ *
  * @package mod_questionnaire
  * @copyright  2016 Mike Churchward (mike.churchward@poetgroup.org)
  * @author     Mike Churchward
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * Define all the backup steps that will be used by the backup_questionnaire_activity_task
- */
-
-/**
- * Define the complete choice structure for backup, with file and id annotations
- */
 class backup_questionnaire_activity_structure_step extends backup_activity_structure_step {
 
+    /**
+     * Defines the backup structure.
+     * @return backup_nested_element
+     */
     protected function define_structure() {
         global $DB;
         // To know if we are including userinfo.
@@ -53,7 +51,7 @@ class backup_questionnaire_activity_structure_step extends backup_activity_struc
         $questions = new backup_nested_element('questions');
 
         $question = new backup_nested_element('question', array('id'), array('surveyid', 'name', 'type_id', 'result_id',
-            'length', 'precise', 'position', 'content', 'required', 'deleted'));
+            'length', 'precise', 'position', 'content', 'required', 'deleted', 'extradata'));
 
         $questchoices = new backup_nested_element('quest_choices');
 
@@ -172,7 +170,7 @@ class backup_questionnaire_activity_structure_step extends backup_activity_struc
             $question->set_source_table('questionnaire_question', array('surveyid' => backup::VAR_PARENTID));
             $fbsection->set_source_table('questionnaire_fb_sections', array('surveyid' => backup::VAR_PARENTID));
             $feedback->set_source_table('questionnaire_feedback', array('sectionid' => backup::VAR_PARENTID));
-            $questchoice->set_source_table('questionnaire_quest_choice', array('question_id' => backup::VAR_PARENTID));
+            $questchoice->set_source_table('questionnaire_quest_choice', array('question_id' => backup::VAR_PARENTID), 'id ASC');
             $questdependency->set_source_table('questionnaire_dependency', array('questionid' => backup::VAR_PARENTID));
 
             // All the rest of elements only happen if we are including user info.
@@ -190,10 +188,10 @@ class backup_questionnaire_activity_structure_step extends backup_activity_struc
             // Define id annotations.
             $response->annotate_ids('user', 'userid');
         }
-        // Define file annotations
+        // Define file annotations.
         $questionnaire->annotate_files('mod_questionnaire', 'intro', null); // This file area hasn't itemid.
 
-        $survey->annotate_files('mod_questionnaire', 'info', 'id'); // By survey->id
+        $survey->annotate_files('mod_questionnaire', 'info', 'id'); // By survey->id.
         $survey->annotate_files('mod_questionnaire', 'thankbody', 'id'); // By survey->id.
 
         $question->annotate_files('mod_questionnaire', 'question', 'id'); // By question->id.

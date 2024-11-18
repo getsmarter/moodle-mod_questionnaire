@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Library of functions and constants for module questionnaire.
-
 /**
+ * Library of functions and constants for module questionnaire.
  * @package mod_questionnaire
- * @copyright  2016 Mike Churchward (mike.churchward@poetgroup.org)
+ * @copyright  2016 Mike Churchward (mike.churchward@poetopensource.org)
  * @author     Mike Churchward
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
+/** This may no longer be needed. */
 define('QUESTIONNAIRE_RESETFORM_RESET', 'questionnaire_reset_data_');
+
+/** This may no longer be needed. */
 define('QUESTIONNAIRE_RESETFORM_DROP', 'questionnaire_drop_questionnaire_');
 
+/**
+ * Library supports implementation.
+ * @param string $feature
+ * @return bool|null
+ */
 function questionnaire_supports($feature) {
     switch($feature) {
         case FEATURE_BACKUP_MOODLE2:
@@ -48,24 +53,36 @@ function questionnaire_supports($feature) {
             return true;
         case FEATURE_SHOW_DESCRIPTION:
             return true;
-
+        case FEATURE_MOD_PURPOSE:
+            return MOD_PURPOSE_COMMUNICATION;
         default:
             return null;
     }
 }
 
 /**
+ * Return any extra capabilities.
  * @return array all other caps used in module
  */
 function questionnaire_get_extra_capabilities() {
     return array('moodle/site:accessallgroups');
 }
 
-function get_questionnaire($questionnaireid) {
+/**
+ * Implementation of get_instance.
+ * @param int $questionnaireid
+ * @return false|mixed|stdClass
+ */
+function questionnaire_get_instance($questionnaireid) {
     global $DB;
     return $DB->get_record('questionnaire', array('id' => $questionnaireid));
 }
 
+/**
+ * Implementation of add_instance.
+ * @param stdClass $questionnaire
+ * @return bool|int
+ */
 function questionnaire_add_instance($questionnaire) {
     // Given an object containing all the necessary data,
     // (defined by the form in mod.html) this function
@@ -75,13 +92,14 @@ function questionnaire_add_instance($questionnaire) {
     require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
     require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
 
-    // Check the realm and set it to the survey if it's set.
+    $copyfiles = false;
 
+    // Check the realm and set it to the survey if it's set.
     if (empty($questionnaire->sid)) {
         // Create a new survey.
         $course = get_course($questionnaire->course);
         $cm = new stdClass();
-        $qobject = new questionnaire(0, $questionnaire, $course, $cm);
+        $qobject = new questionnaire($course, $cm, 0, $questionnaire);
 
         if ($questionnaire->create == 'new-0') {
             $sdata = new stdClass();
@@ -98,7 +116,7 @@ function questionnaire_add_instance($questionnaire) {
             $sdata->feedbacknotes = '';
             $sdata->courseid = $course->id;
             if (!($sid = $qobject->survey_update($sdata))) {
-                print_error('couldnotcreatenewsurvey', 'questionnaire');
+                throw new \moodle_exception('couldnotcreatenewsurvey', 'mod_questionnaire');
             }
         } else {
             $copyid = explode('-', $questionnaire->create);
@@ -116,6 +134,9 @@ function questionnaire_add_instance($questionnaire) {
                 // All new questionnaires should be created as "private".
                 // Even if they are *copies* of public or template questionnaires.
                 $DB->set_field('questionnaire_survey', 'realm', 'private', array('id' => $sid));
+
+                // Need to copy any files from the old questionnaire instance to the new one.
+                $questionnaire->copyid = $copyid;
             }
             // If the survey has dependency data, need to set the questionnaire to allow dependencies.
             if ($DB->count_records('questionnaire_dependency', ['surveyid' => $sid]) > 0) {
@@ -126,14 +147,6 @@ function questionnaire_add_instance($questionnaire) {
     }
 
     $questionnaire->timemodified = time();
-
-    // May have to add extra stuff in here.
-    if (empty($questionnaire->useopendate)) {
-        $questionnaire->opendate = 0;
-    }
-    if (empty($questionnaire->useclosedate)) {
-        $questionnaire->closedate = 0;
-    }
 
     if ($questionnaire->resume == '1') {
         $questionnaire->resume = 1;
@@ -154,9 +167,12 @@ function questionnaire_add_instance($questionnaire) {
     return $questionnaire->id;
 }
 
-// Given an object containing all the necessary data,
-// (defined by the form in mod.html) this function
-// will update an existing instance with new data.
+/**
+ * Given an object containing all the necessary data, (defined by the form in mod.html) this function will update an existing
+ * instance with new data.
+ * @param stdClass $questionnaire
+ * @return bool
+ */
 function questionnaire_update_instance($questionnaire) {
     global $DB, $CFG;
     require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
@@ -168,14 +184,6 @@ function questionnaire_update_instance($questionnaire) {
 
     $questionnaire->timemodified = time();
     $questionnaire->id = $questionnaire->instance;
-
-    // May have to add extra stuff in here.
-    if (empty($questionnaire->useopendate)) {
-        $questionnaire->opendate = 0;
-    }
-    if (empty($questionnaire->useclosedate)) {
-        $questionnaire->closedate = 0;
-    }
 
     if ($questionnaire->resume == '1') {
         $questionnaire->resume = 1;
@@ -195,9 +203,11 @@ function questionnaire_update_instance($questionnaire) {
     return $DB->update_record("questionnaire", $questionnaire);
 }
 
-// Given an ID of an instance of this module,
-// this function will permanently delete the instance
-// and any data that depends on it.
+/**
+ * Given an ID of an instance of this module, this function will permanently delete the instance and any data that depends on it.
+ * @param int $id
+ * @return bool
+ */
 function questionnaire_delete_instance($id) {
     global $DB, $CFG;
     require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
@@ -229,15 +239,54 @@ function questionnaire_delete_instance($id) {
     return $result;
 }
 
-// Return a small object with summary information about what a
-// user has done with a given particular instance of this module
-// Used for user activity reports.
-// $return->time = the time they did it
-// $return->info = a short text description.
 /**
- * $course and $mod are unused, but API requires them. Suppress PHPMD warning.
+ * Add a get_coursemodule_info function in case any questionnaire type wants to add 'extra' information
+ * for the course (see resource).
  *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * Given a course_module object, this function returns any "extra" information that may be needed
+ * when printing this activity in a course listing.  See get_array_of_activities() in course/lib.php.
+ *
+ * @param stdClass $coursemodule The coursemodule object (record).
+ * @return cached_cm_info An object on information that the courses
+ *                        will know about (most noticeably, an icon).
+ */
+function questionnaire_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $questionnaire = $DB->get_record('questionnaire',
+        array('id' => $coursemodule->instance), 'id, name, intro, introformat,
+             completionsubmit');
+    if (!$questionnaire) {
+        return null;
+    }
+
+    $info = new cached_cm_info();
+    $info->customdata = (object)[];
+
+    if ($coursemodule->showdescription) {
+        // Convert intro to html. Do not filter cached version, filters run at display time.
+        // Based on the function quiz_get_coursemodule_info() in the quiz module.
+        $info->content = format_module_intro('questionnaire', $questionnaire, $coursemodule->id, false);
+    }
+
+    // Populate the custom completion rules as key => value pairs, but only if the completion mode is 'automatic'.
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $info->customdata->customcompletionrules['completionsubmit'] = $questionnaire->completionsubmit;
+    }
+    return $info;
+}
+
+/**
+ * Return a small object with summary information about what a user has done with a given particular instance of this module.
+ * Used for user activity reports.
+ * $return->time = the time they did it
+ * $return->info = a short text description.
+ * $course and $mod are unused, but API requires them. Suppress PHPMD warning.
+ * @param stdClass $course
+ * @param stdClass $user
+ * @param stdClass $mod
+ * @param stdClass $questionnaire
+ * @return stdClass
  */
 function questionnaire_user_outline($course, $user, $mod, $questionnaire) {
     global $CFG;
@@ -259,12 +308,15 @@ function questionnaire_user_outline($course, $user, $mod, $questionnaire) {
     return $result;
 }
 
-// Print a detailed representation of what a  user has done with
-// a given particular instance of this module, for user activity reports.
 /**
+ * Print a detailed representation of what a  user has done with a given particular instance of this module, for user
+ * activity reports.
  * $course and $mod are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param stdClass $course
+ * @param stdClass $user
+ * @param stdClass $mod
+ * @param stdClass $questionnaire
+ * @return bool
  */
 function questionnaire_user_complete($course, $user, $mod, $questionnaire) {
     global $CFG;
@@ -285,24 +337,25 @@ function questionnaire_user_complete($course, $user, $mod, $questionnaire) {
     return true;
 }
 
-// Given a course and a time, this module should find recent activity
-// that has occurred in questionnaire activities and print it out.
-// Return true if there was output, or false is there was none.
 /**
+ * Given a course and a time, this module should find recent activity that has occurred in questionnaire activities and print it
+ * out.
+ * Return true if there was output, or false is there was none.
  * $course, $isteacher and $timestart are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param stdClass $course
+ * @param bool $isteacher
+ * @param int $timestart
+ * @return false
  */
 function questionnaire_print_recent_activity($course, $isteacher, $timestart) {
     return false;  // True if anything was printed, otherwise false.
 }
 
-// Must return an array of grades for a given instance of this module,
-// indexed by user.  It also returns a maximum allowed grade.
 /**
+ * Must return an array of grades for a given instance of this module, indexed by user.  It also returns a maximum allowed grade.
  * $questionnaireid is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param int $questionnaireid
+ * @return null
  */
 function questionnaire_grades($questionnaireid) {
     return null;
@@ -311,7 +364,7 @@ function questionnaire_grades($questionnaireid) {
 /**
  * Return grade for given user or all users.
  *
- * @param int $questionnaireid id of assignment
+ * @param stdClass $questionnaire
  * @param int $userid optional user id, 0 means all users
  * @return array array of grades, false if none
  */
@@ -327,18 +380,15 @@ function questionnaire_get_user_grades($questionnaire, $userid=0) {
     $sql = "SELECT r.id, u.id AS userid, r.grade AS rawgrade, r.submitted AS dategraded, r.submitted AS datesubmitted
             FROM {user} u, {questionnaire_response} r
             WHERE u.id = r.userid AND r.questionnaireid = $questionnaire->id AND r.complete = 'y' $usersql";
-    return $DB->get_records_sql($sql, $params);
+    return $DB->get_records_sql($sql, $params) ?? [];
 }
 
 /**
- * Update grades by firing grade_updated event
- *
- * @param object $assignment null means all assignments
- * @param int $userid specific user only, 0 mean all
- *
+ * Update grades by firing grade_updated event.
  * $nullifnone is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ * @param stdClass $questionnaire
+ * @param int $userid
+ * @param bool $nullifnone
  */
 function questionnaire_update_grades($questionnaire=null, $userid=0, $nullifnone=true) {
     global $CFG, $DB;
@@ -388,8 +438,8 @@ function questionnaire_update_grades($questionnaire=null, $userid=0, $nullifnone
 /**
  * Create grade item for given questionnaire
  *
- * @param object $questionnaire object with extra cmidnumber
- * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
+ * @param stdClass $questionnaire object with extra cmidnumber
+ * @param mixed $grades optional array/object of grade(s); 'reset' means reset grades in gradebook
  * @return int 0 if ok, error code otherwise
  */
 function questionnaire_grade_item_update($questionnaire, $grades = null) {
@@ -410,12 +460,12 @@ function questionnaire_grade_item_update($questionnaire, $grades = null) {
 
     if ($questionnaire->grade > 0) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax']  = $questionnaire->grade;
-        $params['grademin']  = 0;
+        $params['grademax'] = $questionnaire->grade;
+        $params['grademin'] = 0;
 
     } else if ($questionnaire->grade < 0) {
         $params['gradetype'] = GRADE_TYPE_SCALE;
-        $params['scaleid']   = -$questionnaire->grade;
+        $params['scaleid'] = -$questionnaire->grade;
 
     } else if ($questionnaire->grade == 0) { // No Grade..be sure to delete the grade item if it exists.
         $grades = null;
@@ -439,13 +489,11 @@ function questionnaire_grade_item_update($questionnaire, $grades = null) {
  * it it has support for grading and scales. Commented code should be
  * modified if necessary. See forum, glossary or journal modules
  * as reference.
- * @param $questionnaireid int
- * @param $scaleid int
+ * @param int $questionnaireid
+ * @param int $scaleid
  * @return boolean True if the scale is used by any questionnaire
  *
  * Function parameters are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 function questionnaire_scale_used ($questionnaireid, $scaleid) {
     return false;
@@ -455,672 +503,27 @@ function questionnaire_scale_used ($questionnaireid, $scaleid) {
  * Checks if scale is being used by any instance of questionnaire
  *
  * This is used to find out if scale used anywhere
- * @param $scaleid int
+ * @param int $scaleid
  * @return boolean True if the scale is used by any questionnaire
  *
  * Function parameters are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 function questionnaire_scale_used_anywhere($scaleid) {
     return false;
 }
 
 /**
- * Get questionnaire data
- * for mobile only kurvin hendricks
- *
- * @global object $DB
- * @param int $cmid
- * @param int|bool $userid
- * @return array
- * @throws moodle_exception
- */
-function get_questionnaire_data($cmid, $userid = false) {
-    global $DB, $USER;
-    if ($q = get_coursemodule_from_id('questionnaire', $cmid)) {
-        if (!$questionnaire = get_questionnaire($q->instance)) {
-            throw new \moodle_exception("invalidcoursemodule", "error");
-        }
-    }
-
-    $resumedsql = 'SELECT id FROM '
-    . '{questionnaire_response} '
-    . ' WHERE questionnaireid = ? AND userid = ? AND complete = ? AND submitted <= ?';
-    $params = ['userid' => $userid, 'questionnaireid' => $q->instance, 'complete' => 'y'];
-    $time = time();
-    $ret = [
-        'questionnaire' => [
-            'id' => $questionnaire->id,
-            'name' => format_string($questionnaire->name),
-            'intro' => $questionnaire->intro,
-            'userid' => intval($userid ? $userid : $USER->id),
-            'questionnaireid' => intval($questionnaire->sid),
-            'autonumpages' => in_array($questionnaire->autonum, [1, 2]),
-            'autonumquestions' => in_array($questionnaire->autonum, [1, 3])
-        ],
-        'response' => [
-            'id' => 0,
-            'questionnaireid' => 0,
-            'submitted' => 0,
-            'complete' => 'n',
-            'grade' => 0,
-            'userid' => 0,
-            'fullname' => '',
-            'userdate' => '',
-        ],
-        'answered' => [],
-        'fields' => [],
-        'responses' => [],
-        'questionscount' => 0,
-        'pagescount' => 1,
-        'resumed' => $DB->get_records_sql($resumedsql,
-            [$q->instance, $USER->id, 'n', ($time - (60 * 10))]),
-        'completed' => $DB->record_exists('questionnaire_response', $params),
-    ];
-    $sql = 'SELECT qq.*,qqt.response_table FROM '
-        . '{questionnaire_question} qq LEFT JOIN {questionnaire_question_type} qqt '
-        . 'ON qq.type_id = qqt.typeid WHERE qq.surveyid = ? AND qq.deleted = ? '
-        . 'ORDER BY qq.position';
-
-    // Building dataset here, will build uncomplete questions here.    
-    if ($questions = $DB->get_records_sql($sql, [$questionnaire->sid, 'n'])) {
-        require_once('classes/question/base.php');
-        $pagenum = 1;
-        $context = \context_module::instance($cmid);
-        $qnum = 0;
-        foreach ($questions as $question) {
-            $ret['questionscount']++;
-            $qnum++;
-            $fieldkey = 'response_'.$question->type_id.'_'.$question->id;
-            $options = ['noclean' => true, 'para' => false, 'filter' => true,
-                'context' => $context, 'overflowdiv' => true];
-            if ($question->type_id != QUESPAGEBREAK) {
-                $ret['questionsinfo'][$pagenum][$question->id] =
-                $ret['fields'][$fieldkey] = [
-                    'id' => $question->id,
-                    'surveyid' => $question->surveyid,
-                    'name' => $question->name,
-                    'type_id' => $question->type_id,
-                    'length' => $question->length,
-                    'content' => ($ret['questionnaire']['autonumquestions'] ? '' : '') . format_text(file_rewrite_pluginfile_urls(
-                            $question->content, 'pluginfile.php', $context->id,
-                            'mod_questionnaire', 'question', $question->id),
-                            FORMAT_HTML, $options),
-                    'content_stripped' => strip_tags($question->content),
-                    'required' => $question->required,
-                    'deleted' => $question->deleted,
-                    'response_table' => $question->response_table,
-                    'fieldkey' => $fieldkey,
-                    'precise' => $question->precise,
-                    'qnum' => $qnum,
-                    'errormessage' => get_string('required') . ': ' . $question->name,
-                ];
-            }
-            $std = new \stdClass();
-            $std->id = $std->choice_id = 0;
-            $std->question_id = $question->id;
-            $std->content = '';
-            $std->value = null;
-            switch ($question->type_id) {
-                case QUESYESNO: // Yes/No bool.
-                    $stdyes = new \stdClass();
-                    $stdyes->id = 1;
-                    $stdyes->choice_id = 'y';
-                    $stdyes->question_id = $question->id;
-                    $stdyes->value = null;
-                    $stdyes->content = get_string('yes');
-                    $stdyes->isbool = true;
-                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
-                        $stdyes->value = 'y';
-                        $stdyes->firstone = true;
-                    }
-                    $ret['questions'][$pagenum][$question->id][1] = $stdyes;
-                    $stdno = new \stdClass();
-                    $stdno->id = 0;
-                    $stdno->choice_id = 'n';
-                    $stdno->question_id = $question->id;
-                    $stdno->value = null;
-                    $stdno->content = get_string('no');
-                    $stdno->isbool = true;
-                    $ret['questions'][$pagenum][$question->id][0] = $stdno;
-                    $ret['questionsinfo'][$pagenum][$question->id]['isbool'] = true;
-                    break;
-                case QUESTEXT: // Text.
-                case QUESESSAY: // Essay.
-                    $ret['questions'][$pagenum][$question->id][0] = $std;
-                    $ret['questionsinfo'][$pagenum][$question->id]['istextessay'] = true;
-                    break;
-                case QUESRADIO: // Radiobutton.
-                    $ret['questionsinfo'][$pagenum][$question->id]['isradiobutton'] = true;
-                    $excludes = [];
-                    if ($items = $DB->get_records('questionnaire_quest_choice',
-                    ['question_id' => $question->id])) {
-
-                        foreach ($items as $item) {
-                            if (!in_array($item->id, $excludes)) {
-                                $item->choice_id = $item->id;
-                                if ($item->value == null) {
-                                    $item->value = '';
-                                }
-                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($question->type_id != 8) {
-                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
-                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
-                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case QUESCHECK: // Checkbox.
-                    $ret['questionsinfo'][$pagenum][$question->id]['ischeckbox'] = true;
-                    $excludes = [];
-                    if ($items = $DB->get_records('questionnaire_quest_choice',
-                    ['question_id' => $question->id])) {
-
-                        foreach ($items as $item) {
-                            if (!in_array($item->id, $excludes)) {
-                                $item->choice_id = $item->id;
-                                if ($item->value == null) {
-                                    $item->value = '';
-                                }
-                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($question->type_id != QUESRATE) {
-                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
-                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
-                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case QUESDROP: // Select.
-                    $ret['questionsinfo'][$pagenum][$question->id]['isselect'] = true;
-                    $excludes = [];
-                    if ($items = $DB->get_records('questionnaire_quest_choice',
-                    ['question_id' => $question->id])) {
-
-                        foreach ($items as $item) {
-                            if (!in_array($item->id, $excludes)) {
-                                $item->choice_id = $item->id;
-                                if ($item->value == null) {
-                                    $item->value = '';
-                                }
-                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($question->type_id != 9) {
-                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
-                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
-                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case QUESRATE: // Rate 1-NN.
-                    $excludes = [];
-                    if ($items = $DB->get_records('questionnaire_quest_choice',
-                        ['question_id' => $question->id])) {
-                            $ret['questionsinfo'][$pagenum][$question->id]['israte'] = true;
-                            $vals = $extracontents = [];
-                        foreach ($items as $item) {
-                            $item->na = false;
-                            if ($question->precise == 0) {
-                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($ret['questionsinfo'][$pagenum][$question->id]['required'] == 'y') {
-                                    $ret['questions'][$pagenum][$question->id][$item->id]->min
-                                        = $ret['questions'][$pagenum][$question->id][$item->id]->minstr = 1;
-                                } else {
-                                    $ret['questions'][$pagenum][$question->id][$item->id]->min
-                                        = $ret['questions'][$pagenum][$question->id][$item->id]->minstr = 0;
-                                }
-                                $ret['questions'][$pagenum][$question->id][$item->id]->max
-                                    = $ret['questions'][$pagenum][$question->id][$item->id]->maxstr
-                                    = intval($question->length);
-                            } else if ($question->precise == 1) {
-                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($ret['questionsinfo'][$pagenum][$question->id]['required'] == 'y') {
-                                    $ret['questions'][$pagenum][$question->id][$item->id]->min
-                                        = $ret['questions'][$pagenum][$question->id][$item->id]->minstr = 1;
-                                } else {
-                                    $ret['questions'][$pagenum][$question->id][$item->id]->min
-                                        = $ret['questions'][$pagenum][$question->id][$item->id]->minstr = 0;
-                                }
-                                $ret['questions'][$pagenum][$question->id][$item->id]->max = intval($question->length) + 1;
-                                $ret['questions'][$pagenum][$question->id][$item->id]->na = true;
-                            } else if ($question->precise > 1) {
-                                $excludes[$item->id] = $item->id;
-                                if ($item->value == null) {
-                                    if ($arr = explode('|', $item->content)) {
-                                        if (count($arr) == 2) {
-                                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->content = '';
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->minstr = $arr[0];
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->maxstr = $arr[1];
-                                        }
-                                    }
-                                } else {
-                                    $val = intval($item->value);
-                                    $vals[$val] = $val;
-                                    $extracontents[] = $item->content;
-                                }
-                            }
-                        }
-                        if ($vals) {
-                            if ($q = $ret['questions'][$pagenum][$question->id]) {
-                                foreach (array_keys($q) as $itemid) {
-                                    $ret['questions'][$pagenum][$question->id][$itemid]->min = min($vals);
-                                    $ret['questions'][$pagenum][$question->id][$itemid]->max = max($vals);
-                                }
-                            }
-                        }
-                        if ($extracontents) {
-                            $extracontents = array_unique($extracontents);
-                            $extrahtml = '<br><ul>';
-                            foreach ($extracontents as $extracontent) {
-                                $extrahtml .= '<li>'.$extracontent.'</li>';
-                            }
-                            $extrahtml .= '</ul>';
-                            $ret['questionsinfo'][$pagenum][$question->id]['content']
-                                .= format_text($extrahtml, FORMAT_HTML, $options);
-                        }
-                        foreach ($items as $item) {
-                            if (!in_array($item->id, $excludes)) {
-                                $item->choice_id = $item->id;
-                                if ($item->value == null) {
-                                    $item->value = '';
-                                }
-                                $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                                if ($question->type_id != QUESRATE) {
-                                    if ($ret['questionsinfo'][$pagenum][$question->id]['required']) {
-                                        if (!isset($ret['questionsinfo'][$pagenum][$question->id]['firstone'])) {
-                                            $ret['questionsinfo'][$pagenum][$question->id]['firstone'] = true;
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->value = intval($item->choice_id);
-                                            $ret['questions'][$pagenum][$question->id][$item->id]->firstone = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                    case QUESDATE: // Date 12/12/12.
-                        $ret['questionsinfo'][$pagenum][$question->id]['isdate'] = true;
-                        $excludes = [];
-
-                        if ($item = $DB->get_records('questionnaire_question',
-                        ['id' => $question->id])) {
-                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                        }
-                    break;
-                    case QUESNUMERIC: // Numeric 1 - 9.
-                        $ret['questionsinfo'][$pagenum][$question->id]['isnumeric'] = true;
-                        $excludes = [];
-
-                        if ($item = $DB->get_records('questionnaire_question',
-                        ['id' => $question->id])) {
-                            $ret['questions'][$pagenum][$question->id][$item->id] = $item;
-                        }
-                        break;
-                case QUESPAGEBREAK:
-                    $ret['questionscount']--;
-                    $ret['pagescount']++;
-                    $pagenum++;
-                    $qnum--;
-                    break;
-            }
-            $ret['questionsinfo'][$pagenum][$question->id]['qnum'] = $qnum;
-            if ($ret['questionnaire']['autonumquestions']) {
-                $ret['questionsinfo'][$pagenum][$question->id]['content'] =
-                    $qnum.'. '.$ret['questionsinfo'][$pagenum][$question->id]['content'];
-                $ret['questionsinfo'][$pagenum][$question->id]['content_stripped'] =
-                    $qnum.'. '.$ret['questionsinfo'][$pagenum][$question->id]['content_stripped'];
-            }
-        }
-
-        if ($userid) {
-            if ($response = $DB->get_record_sql('SELECT qr.* FROM {questionnaire_response} qr '
-                . 'LEFT JOIN {user} u ON qr.userid = u.id WHERE qr.questionnaireid = ? '
-                . 'AND qr.userid = ?', [$questionnaire->id, $userid])) {
-                $ret['response'] = (array) $response;
-                $ret['response']['submitted_userdate'] = '';
-                if (isset($ret['response']['submitted']) && !empty($ret['response']['submitted'])) {
-                    $ret['response']['submitted_userdate'] = userdate($ret['response']['submitted']);
-                }
-                $ret['response']['fullname'] = fullname($DB->get_record('user', ['id' => $userid]));
-                $ret['response']['userdate'] = userdate($ret['response']['submitted']);
-
-                foreach ($ret['questionsinfo'] as $pagenum => $data1) {
-                    foreach ($data1 as $questionid => $data2) {
-                        $ret['answered'][$questionid] = false;
-                        if (isset($data2['response_table']) && !empty($data2['response_table'])) {
-                            if ($values = $DB->get_records_sql('SELECT * FROM {questionnaire_'
-                            . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
-                            [$response->id, $questionid])) {
-                                foreach ($values as $value) {
-                                    switch($data2['type_id']) {
-                                        case QUESYESNO: // Yes/No bool.
-                                            if (isset($ret['questions'][$pagenum][$questionid])) {
-                                                if (isset($value->choice_id) && !empty($value->choice_id)) {
-                                                    $ret['answered'][$questionid] = true;
-                                                    if ($value->choice_id == 'y') {
-                                                        $ret['questions'][$pagenum][$questionid][1]->value = 'y';
-                                                        $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'y';
-                                                    } else {
-                                                        $ret['questions'][$pagenum][$questionid][0]->value = 'n';
-                                                        $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = 'n';
-                                                    }
-                                                }
-                                            }
-                                            break;
-                                        case QUESTEXT: // Text.
-                                            if (isset($value->response) && !empty($value->response)) {
-                                                $ret['answered'][$questionid] = true;
-                                                $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
-                                                $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
-                                            }
-                                            break;
-                                        case QUESESSAY: // Essay.
-                                            if (isset($value->response) && !empty($value->response)) {
-                                                $ret['answered'][$questionid] = true;
-                                                $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
-                                                $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
-                                            }
-                                            break;
-                                        case QUESRADIO: // Radiobutton.
-                                            if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
-                                                . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
-                                                [$response->id, $questionid])) {
-                                                foreach ($value as $row) {
-                                                    foreach ($ret['questions'][$pagenum][$questionid] as $k => $item) {
-                                                        if ($item->id == $row->choice_id) {
-                                                            $ret['answered'][$questionid] = true;
-                                                            $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
-                                                            $ret['responses']['response_'.$data2['type_id']
-                                                                .'_'.$questionid] = intval($item->id);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            break;
-                                        case QUESCHECK: // Checkbox.
-                                            if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
-                                                . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
-                                                [$response->id, $questionid])) {
-                                                foreach ($value as $row) {
-                                                    foreach ($ret['questions'][$pagenum][$questionid] as $k => $item) {
-                                                        if ($item->id == $row->choice_id) {
-                                                            $ret['answered'][$questionid] = true;
-                                                            $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
-                                                            $ret['responses']['response_'.$data2['type_id']
-                                                                .'_'.$questionid] = intval($item->id);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        case QUESDROP: // Select.
-                                            if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
-                                                . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
-                                                [$response->id, $questionid])) {
-                                                foreach ($value as $row) {
-                                                    foreach ($ret['questions'][$pagenum][$questionid] as $k => $item) {
-                                                        if ($item->id == $row->choice_id) {
-                                                            $ret['answered'][$questionid] = true;
-                                                            $ret['questions'][$pagenum][$questionid][$k]->value = intval($item->id);
-                                                            $ret['responses']['response_'.$data2['type_id']
-                                                                .'_'.$questionid] = intval($item->id);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            break;
-                                        case QUESRATE: // Rate 1-NN.
-                                            if ($value = $DB->get_records_sql('SELECT * FROM {questionnaire_'
-                                                . $data2['response_table'] . '} WHERE response_id = ? AND question_id = ?',
-                                                [$response->id, $questionid])) {
-                                                foreach ($value as $row) {
-                                                    if ($questionid == $row->question_id) {
-                                                        $ret['answered'][$questionid] = true;
-                                                        $v = $row->rankvalue + 1;
-                                                        if ($ret['questionsinfo'][$pagenum][$questionid]['precise'] == 1) {
-                                                            if ($row->rankvalue == -1) {
-                                                                $v = $ret['questions'][$pagenum][$questionid][$row->choice_id]->max;
-                                                            }
-                                                        }
-                                                        $ret['questions'][$pagenum][$questionid][$row->choice_id]->value
-                                                            = $ret['responses']['response_'.$data2['type_id']
-                                                            .'_'.$questionid.'_'.$row->choice_id] = $v;
-                                                        $ret['questions'][$pagenum][$questionid][$row->choice_id]->choice_id
-                                                            = $row->choice_id;
-                                                    }
-                                                }
-                                            }
-                                            break;
-                                            case QUESDATE: // Date 12/12/12.
-                                                if (isset($value->response) && !empty($value->response)) {
-                                                    $ret['answered'][$questionid] = true;
-                                                    $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
-                                                    $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
-                                                }
-                                            break;
-                                            case QUESNUMERIC: // Numeric 1 - 9.
-                                               if (isset($value->response) && !empty($value->response)) {
-                                                    $ret['answered'][$questionid] = true;
-                                                    $ret['questions'][$pagenum][$questionid][0]->value = $value->response;
-                                                    $ret['responses']['response_'.$data2['type_id'].'_'.$questionid] = $value->response;
-                                                }
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return $ret;
-}
-
-function save_questionnaire_data_branching($questionnaireid, $surveyid, $userid,
-    $cmid, $sec, $completed, $submit, array $responses) {
-
-    global $DB, $CFG;
-    $ret = [
-        'responses' => [],
-        'warnings' => []
-    ];
-    if (!$completed) {
-        require_once('questionnaire.class.php');
-        $cm = get_coursemodule_from_id('questionnaire', $cmid);
-        $questionnaire = new \questionnaire($questionnaireid, null,
-            $DB->get_record('course', ['id' => $cm->course]), $cm);
-        $rid = $questionnaire->delete_insert_response(
-            $DB->get_field('questionnaire_response', 'id',
-                ['questionnaireid' => $surveyid, 'complete' => 'n',
-                    'userid' => $userid]), $sec, $userid);
-        $questionnairedata = get_questionnaire_data($cmid, $userid);
-        $pagequestions = isset($questionnairedata['questions'][$sec]) ? $questionnairedata['questions'][$sec] : [];
-        if (!empty($pagequestions)) {
-            $pagequestionsids = array_keys($pagequestions);
-            $missingquestions = $warningmessages = [];
-            foreach ($pagequestionsids as $questionid) {
-                $missingquestions[$questionid] = $questionid;
-            }
-            foreach ($pagequestionsids as $questionid) {
-                foreach ($responses as $response) {
-                    $args = explode('_', $response['name']);
-                    if (count($args) >= 3) {
-                        $typeid = intval($args[1]);
-                        $rquestionid = intval($args[2]);
-                        unset($missingquestions[$rquestionid]);
-                        if ($typeid == $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id']) {
-                            if ($rquestionid > 0 && !in_array($response['value'], array(-9999, 'undefined'))) {
-
-                                if ($typeid == QUESCHECK) {
-                                    if(!empty($response['value'])) {
-                                        // If checkbox handle differently because we need to check if question value is set to true.
-                                        if (isset($args[3]) && !empty($args[3])) {
-                                            $choiceid = intval($args[3]);
-                                            $rec = new \stdClass();
-                                            $rec->response_id = $rid;
-                                            $rec->question_id = intval($rquestionid);
-                                            $rec->choice_id = $choiceid;
-
-                                            $dupecheck = $DB->get_record('questionnaire_resp_multiple',
-                                                ['response_id' => $rec->response_id,
-                                                'question_id' => $rec->question_id,
-                                                'choice_id' => $rec->choice_id]
-                                            );
-
-                                            if (empty($dupecheck)) {
-                                                $DB->insert_record('questionnaire_resp_multiple', $rec);
-                                            }
-                                        }
-                                    }
-                                } else if ($typeid == QUESRATE) { // Questionranking saving.
-                                    if (isset($args[3]) && !empty($args[3])) {
-                                        $choiceid = intval($args[3]);
-                                        $value = intval($response['value']) - 1;
-                                        $rec = new \stdClass();
-                                        $rec->response_id = $rid;
-                                        $rec->question_id = intval($rquestionid);
-                                        $rec->choice_id = $choiceid;
-                                        $rec->rankvalue = $value;
-                                        if ($questionnairedata['questionsinfo'][$sec][$rquestionid]['precise'] == 1) {
-                                            if ($value == $questionnairedata['questions'][$sec][$rquestionid][$choiceid]->max - 1) {
-                                                $rec->rankvalue = -1;
-                                            }
-                                        }
-
-                                        $dupecheck = $DB->get_record('questionnaire_response_rank',
-                                            ['response_id' => $rec->response_id,
-                                            'question_id' => $rec->question_id,
-                                            'choice_id' => $rec->choice_id]
-                                        );
-
-                                        if (empty($dupecheck)) {
-                                            $DB->insert_record('questionnaire_response_rank', $rec);
-                                        }
-                                    }
-                                } else if ($typeid == QUESRADIO) {
-                                    if (isset($args[2]) && !empty($args[2])) {
-                                        $choiceid = intval($args[2]);
-                                        $rec = new \stdClass();
-                                        $rec->response_id = $rid;
-                                        $rec->question_id = intval($rquestionid);
-                                        $rec->choice_id = $response['value'];
-
-                                        $dupecheck = $DB->get_record('questionnaire_resp_single',
-                                            ['response_id' => $rec->response_id,
-                                            'question_id' => $rec->question_id,
-                                            'choice_id' => $rec->choice_id]
-                                        );
-
-                                        if (empty($dupecheck)) {
-                                            $DB->insert_record('questionnaire_resp_single', $rec);
-                                        }
-                                    }
-                                } else if ($typeid == QUESDATE) {
-                                    if (isset($args[2]) && !empty($args[2])) {
-                                        $choiceid = intval($args[2]);
-                                        $rec = new \stdClass();
-                                        $rec->response_id = $rid;
-                                        $rec->question_id = intval($rquestionid);
-                                        $rec->response = $response['value'];
-
-                                        $responsetable = 'questionnaire_';
-                                        $responsetable = $responsetable .
-                                        $questionnairedata['questionsinfo'][$sec][$rquestionid]['response_table'];
-
-                                        $dupecheck = $DB->get_record($responsetable,
-                                            ['response_id' => $rid,
-                                            'question_id' => $rquestionid]
-                                        );
-
-                                        if (empty($dupecheck)) {
-                                            $DB->insert_record($responsetable, $rec);
-                                        }
-                                    }
-                                } else {
-                                    $questionobj = \mod_questionnaire\question\base::question_builder(
-                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]['type_id'],
-                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]);
-
-                                    $responsetable = 'questionnaire_';
-                                    $responsetable = $responsetable .
-                                    $questionnairedata['questionsinfo'][$sec][$rquestionid]['response_table'];
-
-                                    $dupecheck = $DB->get_record($responsetable,
-                                        ['response_id' => $rid,
-                                        'question_id' => $rquestionid]
-                                    );
-
-                                    if (empty($dupecheck)) {
-                                        if ($questionobj->insert_response($rid, $response['value'])) {
-                                            $ret['responses'][$rid][$questionid] = $response['value'];
-                                        }
-                                    }
-                                }
-                            } else {
-                                $missingquestions[$rquestionid] = $rquestionid;
-                            }
-                        }
-                    }
-                }
-            }
-            if ($missingquestions) {
-                foreach ($missingquestions as $questionid) {
-                    if ($questionnairedata['questionsinfo'][$sec][$questionid]['required'] == 'y') {
-                        $ret['warnings'][] = [
-                            'item' => 'mod_questionnaire_question',
-                            'itemid' => $questionid,
-                            'warningcode' => 'required',
-                            'message' => s(get_string('required') . ': '
-                                . $questionnairedata['questionsinfo'][$sec][$questionid]['name'])
-                        ];
-                    }
-                }
-            }
-        }
-    }
-
-    if ($submit && (!isset($ret['warnings']) || empty($ret['warnings']))) {
-        $questionnaire->commit_submission_response(
-            $DB->get_field('questionnaire_response', 'id',
-                ['questionnaireid' => $surveyid, 'complete' => 'n',
-                    'userid' => $userid]), $userid);
-    }
-    return $ret;
-}
-
-/**
  * Serves the questionnaire attachments. Implements needed access control ;-)
  *
- * @param object $course
- * @param object $cm
- * @param object $context
+ * @param stdClass $course
+ * @param stdClass $cm
+ * @param stdClass $context
  * @param string $filearea
  * @param array $args
  * @param bool $forcedownload
  * @return bool false if file not found, does not return if found - justsend the file
  *
  * $forcedownload is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 function questionnaire_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
     global $DB;
@@ -1177,30 +580,27 @@ function questionnaire_pluginfile($course, $cm, $context, $filearea, $args, $for
  * @param navigation_node $questionnairenode The node to add module settings to
  *
  * $settings is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
-function questionnaire_extend_settings_navigation(settings_navigation $settings,
-        navigation_node $questionnairenode) {
+function questionnaire_extend_settings_navigation(settings_navigation $settings, navigation_node $questionnairenode) {
+    global $DB, $USER, $CFG;
 
-    global $PAGE, $DB, $USER, $CFG;
     $individualresponse = optional_param('individualresponse', false, PARAM_INT);
     $rid = optional_param('rid', false, PARAM_INT); // Response id.
     $currentgroupid = optional_param('group', 0, PARAM_INT); // Group id.
 
     require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
 
-    $context = $PAGE->cm->context;
-    $cmid = $PAGE->cm->id;
-    $cm = $PAGE->cm;
-    $course = $PAGE->course;
+    $cm = $settings->get_page()->cm;
+    $context = $cm->context;
+    $cmid = $cm->id;
+    $course = $settings->get_page()->course;
 
     if (! $questionnaire = $DB->get_record("questionnaire", array("id" => $cm->instance))) {
-        print_error('invalidcoursemodule');
+        throw new \moodle_exception('invalidcoursemodule', 'mod_questionnaire');
     }
 
     $courseid = $course->id;
-    $questionnaire = new questionnaire(0, $questionnaire, $course, $cm);
+    $questionnaire = new questionnaire($course, $cm, 0, $questionnaire);
 
     if ($owner = $DB->get_field('questionnaire_survey', 'courseid', ['id' => $questionnaire->sid])) {
         $owner = (trim($owner) == trim($courseid));
@@ -1391,16 +791,35 @@ function questionnaire_extend_settings_navigation(settings_navigation $settings,
 // Any other questionnaire functions go here.  Each of them must have a name that
 // starts with questionnaire_.
 
+/**
+ * Return the view actions.
+ * @return string[]
+ */
 function questionnaire_get_view_actions() {
     return array('view', 'view all');
 }
 
+/**
+ * Return the post actions.
+ * @return string[]
+ */
 function questionnaire_get_post_actions() {
     return array('submit', 'update');
 }
 
+/**
+ * Return the recent activity.
+ * @param array $activities
+ * @param int $index
+ * @param int $timestart
+ * @param int $courseid
+ * @param int $cmid
+ * @param int $userid
+ * @param int $groupid
+ * @return mixed|void
+ */
 function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart,
-                $courseid, $cmid, $userid = 0, $groupid = 0) {
+                                               $courseid, $cmid, $userid = 0, $groupid = 0) {
 
     global $CFG, $COURSE, $USER, $DB;
     require_once($CFG->dirroot . '/mod/questionnaire/locallib.php');
@@ -1416,7 +835,7 @@ function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart
 
     $cm = $modinfo->cms[$cmid];
     $questionnaire = $DB->get_record('questionnaire', ['id' => $cm->instance]);
-    $questionnaire = new questionnaire(0, $questionnaire, $course, $cm);
+    $questionnaire = new questionnaire($course, $cm, 0, $questionnaire);
 
     $context = context_module::instance($cm->id);
     $grader = has_capability('mod/questionnaire:viewsingleresponse', $context);
@@ -1453,11 +872,11 @@ function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart
 
     if ($groupid) {
         $groupselect = 'AND gm.groupid = :groupid';
-        $groupjoin   = 'JOIN {groups_members} gm ON  gm.userid=u.id';
+        $groupjoin = 'JOIN {groups_members} gm ON  gm.userid=u.id';
         $params['groupid'] = $groupid;
     } else {
         $groupselect = '';
-        $groupjoin   = '';
+        $groupjoin = '';
     }
 
     $params['timestart'] = $timestart;
@@ -1479,8 +898,8 @@ function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart
     }
 
     $accessallgroups = has_capability('moodle/site:accessallgroups', $context);
-    $viewfullnames   = has_capability('moodle/site:viewfullnames', $context);
-    $groupmode       = groups_get_activity_groupmode($cm, $course);
+    $viewfullnames = has_capability('moodle/site:viewfullnames', $context);
+    $groupmode = groups_get_activity_groupmode($cm, $course);
 
     $usersgroups = null;
     $aname = format_string($cm->name, true);
@@ -1517,19 +936,19 @@ function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart
 
         $tmpactivity = new stdClass();
 
-        $tmpactivity->type       = 'questionnaire';
-        $tmpactivity->cmid       = $cm->id;
+        $tmpactivity->type = 'questionnaire';
+        $tmpactivity->cmid = $cm->id;
         $tmpactivity->cminstance = $cm->instance;
         // Current user is admin - or teacher enrolled in original public course.
         if (isset($cmoriginal)) {
             $tmpactivity->cminstance = $cmoriginal->instance;
         }
         $tmpactivity->cannotview = false;
-        $tmpactivity->anonymous  = false;
-        $tmpactivity->name       = $aname;
+        $tmpactivity->anonymous = false;
+        $tmpactivity->name = $aname;
         $tmpactivity->sectionnum = $cm->sectionnum;
-        $tmpactivity->timestamp  = $attempt->submitted;
-        $tmpactivity->groupid    = $groupid;
+        $tmpactivity->timestamp = $attempt->submitted;
+        $tmpactivity->groupid = $groupid;
         if (isset($userattempts[$attempt->lastname])) {
             $tmpactivity->nbattempts = $userattempts[$attempt->lastname];
         }
@@ -1551,7 +970,7 @@ function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart
             }
         }
         if ($questionnaire->respondenttype != 'anonymous') {
-            $tmpactivity->user->fullname  = fullname($attempt, $viewfullnames);
+            $tmpactivity->user->fullname = fullname($attempt, $viewfullnames);
         } else {
             $tmpactivity->user = '';
             unset ($tmpactivity->user);
@@ -1564,16 +983,13 @@ function questionnaire_get_recent_mod_activity(&$activities, &$index, $timestart
 /**
  * Prints all users who have completed a specified questionnaire since a given time
  *
- * @global object
- * @param object $activity
+ * @param stdClass $activity
  * @param int $courseid
  * @param string $detail not used but needed for compability
  * @param array $modnames
  * @return void Output is echo'd
  *
  * $details and $modenames are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 function questionnaire_print_recent_mod_activity($activity, $courseid, $detail, $modnames) {
     global $OUTPUT;
@@ -1642,10 +1058,6 @@ function questionnaire_print_recent_mod_activity($activity, $courseid, $detail, 
  * questionnaires that have a deadline that has not already passed
  * and it is available for taking.
  *
- * @global object
- * @global stdClass
- * @global object
- * @uses CONTEXT_MODULE
  * @param array $courses An array of course objects to get questionnaire instances from
  * @param array $htmlarray Store overview output array( course ID => 'questionnaire' => HTML output )
  * @return void
@@ -1660,9 +1072,9 @@ function questionnaire_print_overview($courses, &$htmlarray) {
     }
 
     // Get Necessary Strings.
-    $strquestionnaire       = get_string('modulename', 'questionnaire');
+    $strquestionnaire = get_string('modulename', 'questionnaire');
     $strnotattempted = get_string('noattempts', 'questionnaire');
-    $strattempted    = get_string('attempted', 'questionnaire');
+    $strattempted = get_string('attempted', 'questionnaire');
     $strsavedbutnotsubmitted = get_string('savedbutnotsubmitted', 'questionnaire');
 
     $now = time();
@@ -1686,7 +1098,7 @@ function questionnaire_print_overview($courses, &$htmlarray) {
             // Deadline.
             $str .= $OUTPUT->box(get_string('closeson', 'questionnaire', userdate($questionnaire->closedate)), 'info');
             $attempts = $DB->get_records('questionnaire_response',
-                ['questionnaireid' => $questionnaire->id, 'userid' => $USER->id, 'complete' => 'y']);
+                ['questionnaireid' => $questionnaire->id, 'userid' => $USER->id, 'complete' => 'y']) ?? [];
             $nbattempts = count($attempts);
 
             // Do not display a questionnaire as due if it can only be sumbitted once and it has already been submitted!
@@ -1730,7 +1142,7 @@ function questionnaire_print_overview($courses, &$htmlarray) {
  * Implementation of the function for printing the form elements that control
  * whether the course reset functionality affects the questionnaire.
  *
- * @param $mform the course reset form that is being built.
+ * @param stdClass $mform the course reset form that is being built.
  */
 function questionnaire_reset_course_form_definition($mform) {
     $mform->addElement('header', 'questionnaireheader', get_string('modulenameplural', 'questionnaire'));
@@ -1740,11 +1152,10 @@ function questionnaire_reset_course_form_definition($mform) {
 
 /**
  * Course reset form defaults.
+ * @param stdClass $course
  * @return array the defaults.
  *
  * Function parameters are unused, but API requires them. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 function questionnaire_reset_course_form_defaults($course) {
     return array('reset_questionnaire' => 1);
@@ -1754,7 +1165,7 @@ function questionnaire_reset_course_form_defaults($course) {
  * Actual implementation of the reset course functionality, delete all the
  * questionnaire responses for course $data->courseid.
  *
- * @param object $data the data submitted from the reset course.
+ * @param stdClass $data the data submitted from the reset course.
  * @return array status array
  */
 function questionnaire_reset_userdata($data) {
@@ -1810,17 +1221,13 @@ function questionnaire_reset_userdata($data) {
  * Obtains the automatic completion state for this questionnaire based on the condition
  * in questionnaire settings.
  *
- * @param object $course Course
  * @param object $cm Course-module
  * @param int $userid User ID
  * @param bool $type Type of comparison (or/and; can be used as return value if no conditions)
  * @return bool True if completed, false if not, $type if conditions not set.
  *
- * $course is unused, but API requires it. Suppress PHPMD warning.
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
-function questionnaire_get_completion_state($course, $cm, $userid, $type) {
+function questionnaire_get_completion_state($cm, $userid, $type) {
     global $DB;
 
     // Get questionnaire details.
@@ -1867,155 +1274,40 @@ function mod_questionnaire_core_calendar_provide_event_action(calendar_event $ev
 }
 
 /**
- * custom version of functions required for mobile
+ * Called after the activity and module have been created. Use this to copy any images if the questionnaire was created from another
+ * questionnaire survey.
+ *
+ * @param stdClass $data
+ * @param stdClass $course
+ * @throws coding_exception
  */
-function get_mobile_response($userid, $rid = 0, $qid = 0) {
+function mod_questionnaire_coursemodule_edit_post_actions($data, $course) {
     global $DB;
 
-    $rid = intval($rid);
-    if ($rid != 0) {
-        // Check for valid rid.
-        $fields = 'id, userid';
-        $params = ['id' => $rid, 'questionnaireid' => $qid, 'userid' => $userid, 'complete' => 'n'];
-        return ($DB->get_record('questionnaire_response', $params, $fields) !== false) ? $rid : '';
-
-    } else {
-        // Find latest in progress rid.
-        $params = ['questionnaireid' => $qid, 'userid' => $userid, 'complete' => 'n'];
-        if ($records = $DB->get_records('questionnaire_response', $params, 'submitted DESC', 'id,questionnaireid', 0, 1)) {
-            $rec = reset($records);
-            return $rec->id;
-        } else {
-            return '';
-        }
-    }
-}
-
-function get_mobile_questionnaire($questionnaire, $pagenum, $branching = 0) {
-    global $DB;
-    // Need to change the page num based on.
-    // The check for required questions.
-    // That's the logic I am thinking about.
-    // Eg page num is 3 if you have never done a course.
-
-    if (!empty($questionnaire['questionsinfo'][1])) {
-        $surveyinfo = $questionnaire['questionsinfo'][1];
-        $surveyinfo = array_shift($surveyinfo);
-        $sid = $surveyinfo['surveyid'];
-
-    }
-    // Logic for resuming questionnaire for mobile.
-    $prevpage = 1;
-    $responses = $questionnaire['responses'];
-    foreach ($responses as $key => $response) {
-        $args = explode('_', $key);
-        if ($args[1] == 1 || $args[1] != $pagenum) {
-            $prevpage = (int)$args[1];
-        }
-    }
-
-    $questionnairedependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
-    $nondependentquestions = array();
-
-    foreach ($questionnaire['fields'] as $question) {
-        $nondependentquestions[$question['id']] = array(
-            'id' => $question['id'],
-            'qnum' => $question['qnum']
-        );
-    }
-
-    foreach ($questionnairedependency as $dependency) {
-        if ($dependency->dependchoiceid == '0') {
-            unset($nondependentquestions[$dependency->questionid]);
-        }
-
-        foreach ($nondependentquestions as $nondependent) {
-            if ($questionnaire['answered'][$nondependent['id']] === true
-                && !empty($questionnaire['resumed'])) { // Resuming questionnaire here.
-                unset($nondependentquestions[$nondependent['id']]);
-            } else {
-                array_shift($nondependentquestions);
-                break;
-            }
-        }
-    }
-
-    if (count($questionnairedependency) > 0) {
-        foreach ($questionnaire['fields'] as $question) {
-            if ($question['qnum'] == $pagenum) {
-                foreach ($questionnairedependency as $dependency) {
-                    if ($dependency->questionid == $question['id']) {
-                        $answereddependency = (array_shift($questionnaire['responses']) == 'n' ? 1 : 0); //yes = 0, no = 1
-
-                        if ($answereddependency == $dependency->dependchoiceid) {
-                            // Find next question that does not have dependency.
-                            $pagenums = array(
-                                'prevpage' => $pagenum - 1,
-                                'pagenum' => $pagenum,
-                                'nextpage' => $pagenum + 1
-                            );
-                            return $pagenums;
-                        } else {
-
-                            $nextpage = array_shift(array_slice($nondependentquestions, 1, 1, true));
-                            $pagenum = array_shift($nondependentquestions);
-
-                            if ($pagenum['qnum'] == 1) {
-                                $prevpage = null;
-                                $pagenum = 1;
-                                $nextpage = $nextpage['qnum'] - 1;
-                            } else {
-                                $pagenum = $pagenum['qnum'];
-                                $nextpage = $pagenum + 1;
-                                $prevpage = $pagenum - 1;
-                            }
-
-                            $pagenums = array(
-                                'prevpage' => $prevpage,
-                                'pagenum' => $pagenum,
-                                'nextpage' => $nextpage,
-                            );
-
-                            return $pagenums;
-                            // Need to get page next page num without any dependencies.
-                        }
-                    } else {
-                        $pagenums = array(
-                            'prevpage' => $prevpage,
-                            'pagenum' => $pagenum,
-                            'nextpage' => $pagenum + 1,
-                        );
-                        return $pagenums;
-                    }
+    if (!empty($data->copyid)) {
+        $cm = (object)['id' => $data->coursemodule];
+        $questionnaire = new questionnaire($course, $cm, 0, $data);
+        $oldquestionnaireid = $DB->get_field('questionnaire', 'id', ['sid' => $data->copyid]);
+        $oldcm = get_coursemodule_from_instance('questionnaire', $oldquestionnaireid);
+        $oldquestionnaire = new questionnaire($course, $oldcm, $oldquestionnaireid, null);
+        $oldcontext = context_module::instance($oldcm->id);
+        $newcontext = context_module::instance($data->coursemodule);
+        $areas = $questionnaire->get_all_file_areas();
+        $oldareas = $oldquestionnaire->get_all_file_areas();
+        $fs = new \mod_questionnaire\file_storage();
+        foreach ($areas as $area => $ids) {
+            if (is_array($ids)) {
+                $oldid = current($oldareas[$area]);
+                foreach ($ids as $id) {
+                    $fs->copy_area_files_to_new_context($oldcontext->id, $newcontext->id, 'mod_questionnaire', $area, $oldid, $id);
+                    $oldid = next($oldareas[$area]);
                 }
+            } else {
+                $fs->copy_area_files_to_new_context($oldcontext->id, $newcontext->id, 'mod_questionnaire', $area,
+                    $oldareas[$area], $ids);
             }
         }
-    } else {
-        $pagenums = array(
-            'prevpage' => $pagenum - 1,
-            'pagenum' => $pagenum,
-            'nextpage' => $pagenum + 1,
-        );
-        return $pagenums;
-    }
-}
-
-function check_mobile_branching_logic($questionnaire) {
-    global $DB;
-
-    $surveyinfo = [];
-    $sid = 0;
-
-    if (!empty($questionnaire['questionsinfo'][1])) {
-        $surveyinfo = $questionnaire['questionsinfo'][1];
-        $surveyinfo = array_shift($surveyinfo);
-        $sid = $surveyinfo['surveyid'];
     }
 
-    $questionnairedependency = $DB->get_records('questionnaire_dependency', ['surveyid' => $sid]);
-
-    if (!empty($questionnairedependency)) {
-        return true;
-    }
-    return false;
+    return $data;
 }

@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $DB, $SESSION;
 $tabs = array();
-$row  = array();
+$row = array();
 $inactive = array();
 $activated = array();
 if (!isset($SESSION->questionnaire)) {
@@ -38,7 +38,7 @@ $currenttab = $SESSION->questionnaire->current_tab;
 // In a questionnaire instance created "using" a PUBLIC questionnaire, prevent anyone from editing settings, editing questions,
 // viewing all responses...except in the course where that PUBLIC questionnaire was originally created.
 
-$owner = !empty($questionnaire->sid) && ($questionnaire->survey->courseid == $questionnaire->course->id);
+$owner = $questionnaire->is_survey_owner();
 if ($questionnaire->capabilities->manage  && $owner) {
     $row[] = new tabobject('settings', $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/qsettings.php?'.
             'id='.$questionnaire->cm->id), get_string('advancedsettings'));
@@ -89,7 +89,7 @@ if ($questionnaire->capabilities->readownresponses && ($usernumresp > 0)) {
                                 get_string('myresponses', 'questionnaire'));
         if ($questionnaire->capabilities->downloadresponses) {
             $argstr2 = $argstr.'&action=dwnpg';
-            $link  = $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/report.php?'.$argstr2);
+            $link = $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/report.php?'.$argstr2);
             $row2[] = new tabobject('mydownloadcsv', $link, get_string('downloadtextformat', 'questionnaire'));
         }
     } else if (in_array($currenttab, array('mybyresponse', 'mysummary'))) {
@@ -114,9 +114,10 @@ if ($groupmode == 1) {
     $canviewgroups = groups_has_membership($cm, $USER->id);
 }
 $canviewallgroups = has_capability('moodle/site:accessallgroups', $context);
+$grouplogic = $canviewallgroups || $canviewgroups;
+$resplogic = ($numresp > 0) && ($numselectedresps > 0);
 
-if (($canviewallgroups || ($canviewgroups && $questionnaire->capabilities->readallresponseanytime))
-                && $numresp > 0 && $owner && $numselectedresps > 0) {
+if ($questionnaire->can_view_all_responses_anytime($grouplogic, $resplogic)) {
     $argstr = 'instance='.$questionnaire->id;
     $row[] = new tabobject('allreport', $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/report.php?'.
                            $argstr.'&action=vall'), get_string('viewallresponses', 'questionnaire'));
@@ -165,7 +166,7 @@ if (($canviewallgroups || ($canviewgroups && $questionnaire->capabilities->reada
 
         if ($questionnaire->capabilities->downloadresponses) {
             $argstr2 = $argstr.'&action=dwnpg&group='.$currentgroupid;
-            $link  = $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/report.php?'.$argstr2);
+            $link = $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/report.php?'.$argstr2);
             $row3[] = new tabobject('downloadcsv', $link, get_string('downloadtextformat', 'questionnaire'));
         }
     }
@@ -182,14 +183,7 @@ if (($canviewallgroups || ($canviewgroups && $questionnaire->capabilities->reada
         }
 
     }
-} else if ($canviewgroups && $questionnaire->capabilities->readallresponses && ($numresp > 0) && $canviewgroups &&
-           // If resp_view is set to QUESTIONNAIRE_STUDENTVIEWRESPONSES_NEVER, then this will always be false.
-           ($questionnaire->resp_view == QUESTIONNAIRE_STUDENTVIEWRESPONSES_ALWAYS ||
-            ($questionnaire->resp_view == QUESTIONNAIRE_STUDENTVIEWRESPONSES_WHENCLOSED
-                && $questionnaire->is_closed()) ||
-            ($questionnaire->resp_view == QUESTIONNAIRE_STUDENTVIEWRESPONSES_WHENANSWERED
-                && $usernumresp > 0 )) &&
-           $questionnaire->is_survey_owner()) {
+} else if ($questionnaire->can_view_all_responses_with_restrictions($usernumresp, $grouplogic, $resplogic)) {
     $argstr = 'instance='.$questionnaire->id.'&sid='.$questionnaire->sid;
     $row[] = new tabobject('allreport', $CFG->wwwroot.htmlspecialchars('/mod/questionnaire/report.php?'.
                            $argstr.'&action=vall&group='.$currentgroupid), get_string('viewallresponses', 'questionnaire'));
@@ -220,7 +214,7 @@ if (($canviewallgroups || ($canviewgroups && $questionnaire->capabilities->reada
 
         if ($questionnaire->capabilities->downloadresponses) {
             $argstr2 = $argstr.'&action=dwnpg';
-            $link  = htmlspecialchars('/mod/questionnaire/report.php?'.$argstr2);
+            $link = htmlspecialchars('/mod/questionnaire/report.php?'.$argstr2);
             $row2[] = new tabobject('downloadcsv', $link, get_string('downloadtextformat', 'questionnaire'));
         }
         if (count($row2) <= 1) {
