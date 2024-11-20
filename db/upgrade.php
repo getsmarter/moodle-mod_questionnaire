@@ -15,14 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * The file containing the upgrade functions.
  * @package mod_questionnaire
- * @copyright  2016 Mike Churchward (mike.churchward@poetgroup.org)
+ * @copyright  2016 Mike Churchward (mike.churchward@poetopensource.org)
  * @author     Mike Churchward
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * The module upgrade function.
+ * @param int $oldversion
+ * @return bool
+ */
 function xmldb_questionnaire_upgrade($oldversion=0) {
     global $CFG, $DB;
 
@@ -724,11 +728,10 @@ function xmldb_questionnaire_upgrade($oldversion=0) {
         }
 
         // Get all of the attempts records, and add the questionnaire id to the corresponding response record.
-        $rs = $DB->get_recordset('questionnaire_attempts');
-        foreach ($rs as $attempt) {
-            $DB->set_field('questionnaire_response', 'questionnaireid', $attempt->qid, ['id' => $attempt->rid]);
-        }
-        $rs->close();
+        $sql = 'UPDATE {questionnaire_response} qr ' .
+               'INNER JOIN {questionnaire_attempts} qa ON qr.id = qa.rid ' .
+               'SET qr.questionnaireid = qa.qid';
+        $DB->execute($sql, []);
 
         // Get all of the response records with a '0' questionnaireid, and extract the questionnaireid from the survey_id field.
         $rs = $DB->get_recordset('questionnaire_response', ['questionnaireid' => 0]);
@@ -808,10 +811,204 @@ function xmldb_questionnaire_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2018050106, 'questionnaire');
     }
 
-    return $result;
+    if ($oldversion < 2018110103) {
+
+        // Define field id to be added to questionnaire_question.
+        $table = new xmldb_table('questionnaire_question');
+        $field = new xmldb_field('extradata', XMLDB_TYPE_TEXT, null, null, null, null, null, 'deleted');
+
+        // Conditionally launch add field id.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Need to move rank named degree choices to the new field.
+        \mod_questionnaire\question\rate::move_all_nameddegree_choices();
+
+        // Questionnaire savepoint reached.
+        upgrade_mod_savepoint(true, 2018110103, 'questionnaire');
+    }
+
+    if ($oldversion < 2020011507) {
+        // This operation might take a while. Cancel PHP timeouts for this.
+        \core_php_time_limit::raise();
+
+        // Making the database tables standard across the board.
+        $table = new xmldb_table('questionnaire');
+        $field1 = new xmldb_field('course', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $field2 = new xmldb_field('sid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Changing fields that are used in indexes and keys generates errors (sometimes). Drop all foreign keys and indexes first;
+        // recreate them after. And, the might be a key or an index, so drop both and fix after.
+        $key1 = new xmldb_key('course', XMLDB_KEY_FOREIGN, ['course'], 'course', ['id']);
+        $dbman->drop_key($table, $key1);
+        $index1 = new xmldb_index('course', XMLDB_INDEX_NOTUNIQUE, ['course']);
+        if ($dbman->index_exists($table, $index1)) {
+            $dbman->drop_index($table, $index1);
+        }
+        $key2 = new xmldb_key('sid', XMLDB_KEY_FOREIGN, ['sid'], 'questionnaire_survey', ['id']);
+        $dbman->drop_key($table, $key2);
+        $index2 = new xmldb_index('sid', XMLDB_INDEX_NOTUNIQUE, ['sid']);
+        if ($dbman->index_exists($table, $index2)) {
+            $dbman->drop_index($table, $index2);
+        }
+        $index3 = new xmldb_index('respview', XMLDB_INDEX_NOTUNIQUE, ['resp_view']);
+        if ($dbman->index_exists($table, $index3)) {
+            $dbman->drop_index($table, $index3);
+        }
+        $dbman->change_field_type($table, $field1);
+        $dbman->change_field_type($table, $field2);
+        $dbman->add_key($table, $key1);
+        $dbman->add_key($table, $key2);
+        $dbman->add_index($table, $index3);
+
+        $table = new xmldb_table('questionnaire_survey');
+        $index = new xmldb_index('courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $key = new xmldb_key('courseid', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
+        $dbman->drop_key($table, $key);
+        $dbman->add_key($table, $key);
+
+        $table = new xmldb_table('questionnaire_question');
+        $field = new xmldb_field('surveyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $index = new xmldb_index('quest_question_sididx', XMLDB_INDEX_NOTUNIQUE, ['surveyid', 'deleted']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $dbman->change_field_type($table, $field);
+        $dbman->add_index($table, $index);
+        $field = new xmldb_field('length', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $dbman->change_field_type($table, $field);
+        $field = new xmldb_field('precise', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $dbman->change_field_type($table, $field);
+
+        $table = new xmldb_table('questionnaire_quest_choice');
+        $index = new xmldb_index('questionid', XMLDB_INDEX_NOTUNIQUE, ['question_id']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $key = new xmldb_key('questionid', XMLDB_KEY_FOREIGN, ['question_id'], 'questionnaire_question', ['id']);
+        $dbman->drop_key($table, $key);
+        $dbman->add_key($table, $key);
+
+        $table = new xmldb_table('questionnaire_response');
+        $index = new xmldb_index('questionnaireid', XMLDB_INDEX_NOTUNIQUE, ['questionnaireid']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $key = new xmldb_key('questionnaireid', XMLDB_KEY_FOREIGN, ['questionnaireid'], 'questionnaire', ['id']);
+        $dbman->drop_key($table, $key);
+        $dbman->add_key($table, $key);
+
+        // Postgres and MSSQL have a bug that impacts changing fields with a sequence defined (see bug MDL-68799), so don't change
+        // this for Postgres or MSSQL.
+        if (($DB->get_dbfamily() !== 'postgres') && ($DB->get_dbfamily() !== 'mssql')) {
+            $idfield = new xmldb_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+
+            $table = new xmldb_table('questionnaire_response_bool');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_response_date');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_response_other');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_response_rank');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_resp_single');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_response_text');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_fb_sections');
+            $dbman->change_field_type($table, $idfield);
+
+            $table = new xmldb_table('questionnaire_feedback');
+            $dbman->change_field_type($table, $idfield);
+        }
+
+        $table = new xmldb_table('questionnaire_response_rank');
+        $field = new xmldb_field('rankvalue', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $dbman->change_field_type($table, $field);
+
+        $table = new xmldb_table('questionnaire_fb_sections');
+        $field = new xmldb_field('surveyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $key = new xmldb_key('surveyid', XMLDB_KEY_FOREIGN, ['surveyid'], 'questionnaire_survey', ['id']);
+        $dbman->drop_key($table, $key);
+        $dbman->change_field_type($table, $field);
+        $dbman->add_key($table, $key);
+
+        $table = new xmldb_table('questionnaire_feedback');
+        $field = new xmldb_field('sectionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $key = new xmldb_key('sectionid', XMLDB_KEY_FOREIGN, ['sectionid'], 'questionnaire_fb_sections', ['id']);
+        $dbman->drop_key($table, $key);
+        $dbman->change_field_type($table, $field);
+        $dbman->add_key($table, $key);
+
+        $table = new xmldb_table('questionnaire_survey');
+        $field = new xmldb_field('feedbacksections', XMLDB_TYPE_INTEGER, '2', null, null, null, '0');
+        $dbman->change_field_type($table, $field);
+
+        $table = new xmldb_table('questionnaire_dependency');
+        $index = new xmldb_index('questionid', XMLDB_INDEX_NOTUNIQUE, ['questionid']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $key = new xmldb_key('questionid', XMLDB_KEY_FOREIGN, ['questionid'], 'questionnaire_question', ['id']);
+        $dbman->drop_key($table, $key);
+        $dbman->add_key($table, $key);
+        $key = new xmldb_key('surveyid', XMLDB_KEY_FOREIGN, ['surveyid'], 'questionnaire_survey', ['id']);
+        $dbman->add_key($table, $key);
+
+        // Questionnaire savepoint reached.
+        upgrade_mod_savepoint(true, 2020011507, 'questionnaire');
+    }
+
+    if ($oldversion < 2020062301) {
+        // Add show progress bar setting.
+        $table = new xmldb_table('questionnaire');
+        $field = new xmldb_field('progressbar', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, 'autonum');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Questionnaire savepoint reached.
+        upgrade_mod_savepoint(true, 2020062301, 'questionnaire');
+    }
+
+    if ($oldversion < 2022092200) {
+        // Add new slider question type.
+        $exist = $DB->record_exists('questionnaire_question_type', ['typeid' => 11]);
+        if (!$exist) {
+            $questiontype = new stdClass();
+            $questiontype->typeid = 11;
+            $questiontype->type = 'Slider';
+            $questiontype->has_choices = 'n';
+            $questiontype->response_table = 'response_text';
+            $DB->insert_record('questionnaire_question_type', $questiontype);
+        }
+        upgrade_mod_savepoint(true, 2022092200, 'questionnaire');
+    }
+
+    if ($oldversion < 2022121600.02) {
+        // Upgrade for downloadoptions - useridentityfields setting.
+        upgrade_mod_savepoint(true, 2022121600.02, 'questionnaire');
+    }
+
+    return true;
 }
 
-// Supporting functions used once.
+/**
+ * Supporting functions used once.
+ * @return bool
+ */
 function questionnaire_upgrade_2007120101() {
     global $DB;
 

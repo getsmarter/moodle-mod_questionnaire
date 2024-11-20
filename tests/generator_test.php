@@ -23,13 +23,22 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace mod_questionnaire;
 
 /**
- * Unit tests for {@link questionnaire_generator_testcase}.
+ * Unit tests for questionnaire_generator_testcase.
  * @group mod_questionnaire
  */
-class mod_questionnaire_generator_testcase extends advanced_testcase {
+class generator_test extends \advanced_testcase {
+    /**
+     * Test generator create_instance function.
+     *
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
+     *
+     * @covers \mod_questionnaire\generator\
+     */
     public function test_create_instance() {
         global $DB;
 
@@ -51,7 +60,7 @@ class mod_questionnaire_generator_testcase extends advanced_testcase {
         $this->assertEquals('questionnaire', $cm->modname);
         $this->assertEquals($course->id, $cm->course);
 
-        $context = context_module::instance($cm->id);
+        $context = \context_module::instance($cm->id);
         $this->assertEquals($questionnaire->cmid, $context->instanceid);
 
         $survey = $DB->get_record('questionnaire_survey', array('id' => $questionnaire->sid));
@@ -64,6 +73,15 @@ class mod_questionnaire_generator_testcase extends advanced_testcase {
         // Should test event creation if open dates and close dates are specified?
     }
 
+    /**
+     * Test generator create_content function.
+     *
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
+     *
+     * @covers \mod_questionnaire\generator\
+     */
     public function test_create_content() {
         global $DB;
 
@@ -73,16 +91,16 @@ class mod_questionnaire_generator_testcase extends advanced_testcase {
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_questionnaire');
         $questionnaire = $generator->create_instance(array('course' => $course->id));
         $cm = get_coursemodule_from_instance('questionnaire', $questionnaire->id);
-        $questionnaire = new questionnaire($questionnaire->id, null, $course, $cm, false);
+        $questionnaire = new \questionnaire($course, $cm, $questionnaire->id, null, false);
 
         $newcontent = array(
-            'title'         => 'New title',
-            'email'         => 'test@email.com',
-            'subtitle'      => 'New subtitle',
-            'info'          => 'New info',
-            'thanks_page'   => 'http://thankurl.com',
-            'thank_head'    => 'New thank header',
-            'thank_body'    => 'New thank body',
+            'title' => 'New title',
+            'email' => 'test@email.com',
+            'subtitle' => 'New subtitle',
+            'info' => 'New info',
+            'thanks_page' => 'http://thankurl.com',
+            'thank_head' => 'New thank header',
+            'thank_body' => 'New thank body',
         );
         $sid = $generator->create_content($questionnaire, $newcontent);
         $this->assertEquals($sid, $questionnaire->sid);

@@ -45,22 +45,20 @@
     }
     }}
 <!-- Begin HTML generated from response_check template. -->
-<div class="questionnaire_response questionnaire_check">
-{{#choices}}
-    {{#selected}}
-    <span class="selected">
-        <input type="checkbox" aria-label="{{name}}" name="{{name}}" checked="checked" onclick="this.checked=true;" />
-        {{{content}}}
-    </span>
+<div class="questionnaire_response questionnaire_check">{{!
+}}{{#choices}}{{!
+    }}{{#selected}}{{!
+    }}<span class="selected">{{^pdf}}
+    <input type="checkbox" name="{{name}}" checked="checked" disabled="disabled" aria-label="{{alabel}}"/>{{/pdf}}
+    {{{content}}}{{#pdf}} &#10003;{{/pdf}}</span>
     {{#othercontent}}<span class="response text">{{{.}}}</span>{{/othercontent}}
-    {{/selected}}
+{{/selected}}
     {{^selected}}
-    <span class="unselected">
-        <input type="checkbox" aria-label="{{name}}" name="{{name}}" onclick="this.checked=true;" />
-        {{{content}}}
-    </span>
+        <span class="unselected"{{#pdf}} color="gray"{{/pdf}}>{{^pdf}}
+            <input type="checkbox" name="{{name}}" disabled="disabled" aria-label="{{alabel}}"/>{{/pdf}}
+            {{{content}}}</span>
     {{/selected}}
-    <br />
+    <br/>
 {{/choices}}
 </div>
 <!-- End HTML generated from response_check template. -->

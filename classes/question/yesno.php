@@ -14,30 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_questionnaire\question;
+
 /**
  * This file contains the parent class for yesno question types.
  *
  * @author Mike Churchward
+ * @copyright  2016 onward Mike Churchward (mike.churchward@poetopensource.org)
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questiontypes
+ * @package mod_questionnaire
  */
+class yesno extends question {
 
-namespace mod_questionnaire\question;
-defined('MOODLE_INTERNAL') || die();
-
-class yesno extends base {
-
+    /**
+     * Each question type must define its response class.
+     * @return object The response object based off of questionnaire_response_base.
+     */
     protected function responseclass() {
-        return '\\mod_questionnaire\\response\\boolean';
+        return '\\mod_questionnaire\\responsetype\\boolean';
     }
 
+    /**
+     * Short name for this question type - no spaces, etc..
+     * @return string
+     */
     public function helpname() {
         return 'yesno';
     }
 
     /**
      * Override and return a form template if provided. Output of question_survey_display is iterpreted based on this.
-     * @return boolean | string
+     * @return string
      */
     public function question_template() {
         return 'mod_questionnaire/question_yesno';
@@ -45,7 +52,7 @@ class yesno extends base {
 
     /**
      * Override and return a response template if provided. Output of question_survey_display is iterpreted based on this.
-     * @return boolean | string
+     * @return string
      */
     public function response_template() {
         return 'mod_questionnaire/response_yesno';
@@ -53,7 +60,7 @@ class yesno extends base {
 
     /**
      * Override this and return true if the question type allows dependent questions.
-     * @return boolean
+     * @return bool
      */
     public function allows_dependents() {
         return true;
@@ -61,6 +68,7 @@ class yesno extends base {
 
     /**
      * True if question type supports feedback options. False by default.
+     * @return bool
      */
     public function supports_feedback() {
         return true;
@@ -68,6 +76,7 @@ class yesno extends base {
 
     /**
      * True if the question supports feedback and has valid settings for feedback. Override if the default logic is not enough.
+     * @return bool
      */
     public function valid_feedback() {
         return $this->required();
@@ -102,13 +111,13 @@ class yesno extends base {
 
     /**
      * Return the context tags for the check question template.
-     * @param object $data
+     * @param \mod_questionnaire\responsetype\response\response $response
      * @param array $dependants Array of all questions/choices depending on this question.
      * @param boolean $blankquestionnaire
      * @return object The check question context tags.
-     *
+     * @throws \coding_exception
      */
-    protected function question_survey_display($data, $dependants=[], $blankquestionnaire=false) {
+    protected function question_survey_display($response, $dependants=[], $blankquestionnaire=false) {
         global $idcounter;  // To make sure all radio buttons have unique ids. // JR 20 NOV 2007.
 
         $stryes = get_string('yes');
@@ -124,7 +133,7 @@ class yesno extends base {
 
         $options = [$val1 => $stryes, $val2 => $strno];
         $name = 'q'.$this->id;
-        $checked = (isset($data->{'q'.$this->id}) ? $data->{'q'.$this->id} : '');
+        $checked = (isset($response->answers[$this->id][0]) ? $response->answers[$this->id][0]->value : '');
         $ischecked = false;
 
         $choicetags = new \stdClass();
@@ -145,6 +154,9 @@ class yesno extends base {
             if ($blankquestionnaire) {
                 $option->disabled = true;
             }
+            if (!empty($this->qlegend)) {
+                $option->alabel = strip_tags("{$this->qlegend} {$option->label}");
+            }
             $choicetags->qelements->choice[] = $option;
         }
         // CONTRIB-846.
@@ -160,6 +172,9 @@ class yesno extends base {
             if (!$ischecked && !$blankquestionnaire) {
                 $option->checked = true;
             }
+            if (!empty($this->qlegend)) {
+                $option->alabel = strip_tags("{$this->qlegend} {$option->label}");
+            }
             $choicetags->qelements->choice[] = $option;
         }
         // End CONTRIB-846.
@@ -169,11 +184,11 @@ class yesno extends base {
 
     /**
      * Return the context tags for the text response template.
-     * @param object $data
+     * @param \mod_questionnaire\responsetype\response\response $response
      * @return object The radio question response context tags.
-     *
+     * @throws \coding_exception
      */
-    protected function response_survey_display($data) {
+    protected function response_survey_display($response) {
         static $uniquetag = 0;  // To make sure all radios have unique names.
 
         $resptags = new \stdClass();
@@ -182,21 +197,104 @@ class yesno extends base {
         $resptags->noname = 'q'.$this->id.$uniquetag++.'n';
         $resptags->stryes = get_string('yes');
         $resptags->strno = get_string('no');
-        if (isset($data->{'q'.$this->id}) && ($data->{'q'.$this->id} == 'y')) {
+        if (!isset($response->answers[$this->id])) {
+            $response->answers[$this->id][] = new \mod_questionnaire\responsetype\answer\answer();
+        }
+        $answer = reset($response->answers[$this->id]);
+        if ($answer->value == 'y') {
             $resptags->yesselected = 1;
         }
-        if (isset($data->{'q'.$this->id}) && ($data->{'q'.$this->id} == 'n')) {
+        if ($answer->value == 'n') {
             $resptags->noselected = 1;
+        }
+        if (!empty($this->qlegend)) {
+            $resptags->alabelyes = strip_tags("{$this->qlegend} {$resptags->stryes}");
+            $resptags->alabelno = strip_tags("{$this->qlegend} {$resptags->strno}");
         }
 
         return $resptags;
     }
 
+    /**
+     * Return the length form element.
+     * @param \MoodleQuickForm $mform
+     * @param string $helpname
+     */
     protected function form_length(\MoodleQuickForm $mform, $helpname = '') {
-        return base::form_length_hidden($mform);
+        return question::form_length_hidden($mform);
     }
 
+    /**
+     * Return the precision form element.
+     * @param \MoodleQuickForm $mform
+     * @param string $helpname
+     */
     protected function form_precise(\MoodleQuickForm $mform, $helpname = '') {
-        return base::form_precise_hidden($mform);
+        return question::form_precise_hidden($mform);
+    }
+
+    /**
+     * True if question provides mobile support.
+     *
+     * @return bool
+     */
+    public function supports_mobile() {
+        return true;
+    }
+
+    /**
+     * Override and return false if not supporting mobile app.
+     * @param int $qnum
+     * @param bool $autonum
+     * @return \stdClass
+     */
+    public function mobile_question_display($qnum, $autonum = false) {
+        $mobiledata = parent::mobile_question_display($qnum, $autonum);
+        $mobiledata->isbool = true;
+        return $mobiledata;
+    }
+
+    /**
+     * Override and return false if not supporting mobile app.
+     * @return array
+     */
+    public function mobile_question_choices_display() {
+        $choices = [];
+        $choices[0] = new \stdClass();
+        $choices[0]->id = 0;
+        $choices[0]->choice_id = 'n';
+        $choices[0]->question_id = $this->id;
+        $choices[0]->value = null;
+        $choices[0]->content = get_string('no');
+        $choices[0]->isbool = true;
+        $choices[1] = new \stdClass();
+        $choices[1]->id = 1;
+        $choices[1]->choice_id = 'y';
+        $choices[1]->question_id = $this->id;
+        $choices[1]->value = null;
+        $choices[1]->content = get_string('yes');
+        $choices[1]->isbool = true;
+        if ($this->required()) {
+            $choices[1]->value = 'y';
+            $choices[1]->firstone = true;
+        }
+
+        return $choices;
+    }
+
+    /**
+     * Return the mobile response data.
+     * @param response $response
+     * @return array
+     */
+    public function get_mobile_response_data($response) {
+        $resultdata = [];
+        if (isset($response->answers[$this->id][0]) && ($response->answers[$this->id][0]->value == 'n')) {
+            $resultdata[$this->mobile_fieldkey()] = 0;
+        } else if (isset($response->answers[$this->id][0]) && ($response->answers[$this->id][0]->value == 'y')) {
+            $resultdata[$this->mobile_fieldkey()] = 1;
+        }
+
+        return $resultdata;
     }
 }

@@ -13,22 +13,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+use mod_questionnaire\feedback\section;
 
 /**
+ * Define all the restore steps that will be used by the restore_questionnaire_activity_task.
+ *
+ * Structure step to restore one questionnaire activity.
+ *
  * @package mod_questionnaire
  * @copyright  2016 Mike Churchward (mike.churchward@poetgroup.org)
  * @author     Mike Churchward
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * Define all the restore steps that will be used by the restore_questionnaire_activity_task
- */
-
-/**
- * Structure step to restore one questionnaire activity
  */
 class restore_questionnaire_activity_structure_step extends restore_activity_structure_step {
 
@@ -47,6 +42,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
      */
     protected $olddependencies = [];
 
+    /**
+     * Implementation of define_structure.
+     * @return mixed
+     */
     protected function define_structure() {
 
         $paths = array();
@@ -110,6 +109,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         return $this->prepare_activity_structure($paths);
     }
 
+    /**
+     * Implementation of process_questionnaire.
+     * @param array $data
+     */
     protected function process_questionnaire($data) {
         global $DB;
 
@@ -126,6 +129,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $this->apply_activity_instance($newitemid);
     }
 
+    /**
+     * Process the survey table.
+     * @param array $data
+     */
     protected function process_questionnaire_survey($data) {
         global $DB;
 
@@ -146,6 +153,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->set_field('questionnaire', 'sid', $newitemid, array('id' => $this->get_new_parentid('questionnaire')));
     }
 
+    /**
+     * Process the questions.
+     * @param array $data
+     */
     protected function process_questionnaire_question($data) {
         global $DB;
 
@@ -166,9 +177,9 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
     }
 
     /**
+     * Process the feedback sections.
      * $qid is unused, but is needed in order to get the $key elements of the array. Suppress PHPMD warning.
-     *
-     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     * @param array $data
      */
     protected function process_questionnaire_fb_sections($data) {
         global $DB;
@@ -179,7 +190,7 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
 
         // If this questionnaire has separate sections feedbacks.
         if (isset($data->scorecalculation)) {
-            $scorecalculation = unserialize($data->scorecalculation);
+            $scorecalculation = section::decode_scorecalculation($data->scorecalculation);
             $newscorecalculation = array();
             foreach ($scorecalculation as $qid => $val) {
                 $newqid = $this->get_mappingid('questionnaire_question', $qid);
@@ -193,6 +204,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $this->set_mapping('questionnaire_fb_sections', $oldid, $newitemid, true);
     }
 
+    /**
+     * Process feedback.
+     * @param array $data
+     */
     protected function process_questionnaire_feedback($data) {
         global $DB;
 
@@ -205,15 +220,24 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $this->set_mapping('questionnaire_feedback', $oldid, $newitemid, true);
     }
 
+    /**
+     * Process question choices.
+     * @param array $data
+     */
     protected function process_questionnaire_quest_choice($data) {
         global $CFG, $DB;
 
         $data = (object)$data;
 
-        // Replace the = separator with :: separator in quest_choice content.
-        // This fixes radio button options using old "value"="display" formats.
         require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
 
+        // Some old systems had '' instead of NULL. Change it to NULL.
+        if ($data->value === '') {
+            $data->value = null;
+        }
+
+        // Replace the = separator with :: separator in quest_choice content.
+        // This fixes radio button options using old "value"="display" formats.
         if (($data->value == null || $data->value == 'NULL') && !preg_match("/^([0-9]{1,3}=.*|!other=.*)$/", $data->content)) {
             $content = questionnaire_choice_values($data->content);
             if (strpos($content->text, '=')) {
@@ -229,6 +253,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $this->set_mapping('questionnaire_quest_choice', $oldid, $newitemid);
     }
 
+    /**
+     * Process dependencies.
+     * @param array $data
+     */
     protected function process_questionnaire_dependency($data) {
         $data = (object)$data;
 
@@ -240,11 +268,20 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         }
     }
 
+    /**
+     * Process attempts (these are no longer used).
+     * @param array $data
+     * @return bool
+     */
     protected function process_questionnaire_attempt($data) {
         // New structure will be completed in process_questionnaire_response. Nothing to do here any more.
         return true;
     }
 
+    /**
+     * Process responses.
+     * @param array $data
+     */
     protected function process_questionnaire_response($data) {
         global $DB;
 
@@ -264,6 +301,11 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $this->set_mapping('questionnaire_response', $oldid, $newitemid);
     }
 
+    /**
+     * Process boolean responses.
+     * @param array $data
+     * @throws dml_exception
+     */
     protected function process_questionnaire_response_bool($data) {
         global $DB;
 
@@ -275,6 +317,11 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_response_bool', $data);
     }
 
+    /**
+     * Process date responses.
+     * @param array $data
+     * @throws dml_exception
+     */
     protected function process_questionnaire_response_date($data) {
         global $DB;
 
@@ -286,6 +333,11 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_response_date', $data);
     }
 
+    /**
+     * Process multiple responses.
+     * @param array $data
+     * @throws dml_exception
+     */
     protected function process_questionnaire_response_multiple($data) {
         global $DB;
 
@@ -298,6 +350,11 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_resp_multiple', $data);
     }
 
+    /**
+     * Process other responses.
+     * @param array $data
+     * @throws dml_exception
+     */
     protected function process_questionnaire_response_other($data) {
         global $DB;
 
@@ -310,6 +367,11 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_response_other', $data);
     }
 
+    /**
+     * Process rank responses.
+     * @param array $data
+     * @throws dml_exception
+     */
     protected function process_questionnaire_response_rank($data) {
         global $DB;
 
@@ -328,6 +390,11 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_response_rank', $data);
     }
 
+    /**
+     * Process single responses.
+     * @param array $data
+     * @throws dml_exception
+     */
     protected function process_questionnaire_response_single($data) {
         global $DB;
 
@@ -340,6 +407,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_resp_single', $data);
     }
 
+    /**
+     * Process text answers.
+     * @param array $data
+     */
     protected function process_questionnaire_response_text($data) {
         global $DB;
 
@@ -351,6 +422,9 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $DB->insert_record('questionnaire_response_text', $data);
     }
 
+    /**
+     * Stuff to do after execution.
+     */
     protected function after_execute() {
         global $DB;
 
@@ -396,5 +470,10 @@ class restore_questionnaire_activity_structure_step extends restore_activity_str
         $this->add_related_files('mod_questionnaire', 'question', 'questionnaire_question');
         $this->add_related_files('mod_questionnaire', 'sectionheading', 'questionnaire_fb_sections');
         $this->add_related_files('mod_questionnaire', 'feedback', 'questionnaire_feedback');
+
+        // Process any old rate question named degree choices after all questions and choices have been restored.
+        if ($this->task->get_old_moduleversion() < 2018110103) {
+            \mod_questionnaire\question\rate::move_all_nameddegree_choices($this->get_new_parentid('questionnaire_survey'));
+        }
     }
 }

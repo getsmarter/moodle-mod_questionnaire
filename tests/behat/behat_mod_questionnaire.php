@@ -19,7 +19,7 @@
  *
  * @package    mod_questionnaire
  * @category   test
- * @copyright  2016 Mike Churchward - The POET Group
+ * @copyright  2016 Mike Churchward - Poet Open Source
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,16 +32,72 @@ use Behat\Behat\Context\Step\Given as Given,
     Behat\Gherkin\Node\TableNode as TableNode,
     Behat\Gherkin\Node\PyStringNode as PyStringNode,
     Behat\Mink\Exception\ExpectationException as ExpectationException;
-;
+
+#[\AllowDynamicProperties]
 /**
  * Questionnaire-related steps definitions.
  *
  * @package    mod_questionnaire
  * @category   test
- * @copyright  2016 Mike Churchward - The POET Group
+ * @copyright  2016 Mike Churchward - Poet Open Source
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_mod_questionnaire extends behat_base {
+
+    /**
+     * Convert page names to URLs for steps like 'When I am on the "[page name]" page'.
+     *
+     * Recognised page names are:
+     * | None so far!      |                                                              |
+     *
+     * @param string $page name of the page, with the component name removed e.g. 'Admin notification'.
+     * @return moodle_url the corresponding URL.
+     * @throws Exception with a meaningful error message if the specified page cannot be found.
+     */
+    protected function resolve_page_url(string $page): moodle_url {
+        switch (strtolower($page)) {
+            default:
+                throw new Exception('Unrecognised quiz page type "' . $page . '."');
+        }
+    }
+
+    /**
+     * Convert page names to URLs for steps like 'When I am on the "[identifier]" "[page type]" page'.
+     *
+     * Recognised page names are:
+     * | pagetype          | name meaning                                | description                                           |
+     * | view              | Questionnaire name                          | The questionnaire info page (view.php)                |
+     * | preview           | Questionnaire name                          | The questionnaire preview page (preview.php)          |
+     * | questions         | Questionnaire name                          | The questionnaire questions page (questions.php)      |
+     * | advsettings       | Questionnaire name                          | The advanced settings page (questions.php)            |
+     *
+     * @param string $type identifies which type of page this is, e.g. 'preview'.
+     * @param string $identifier identifies the particular page, e.g. 'Test questionnaire > preview > Attempt 1'.
+     * @return moodle_url the corresponding URL.
+     * @throws Exception with a meaningful error message if the specified page cannot be found.
+     */
+    protected function resolve_page_instance_url(string $type, string $identifier): moodle_url {
+        switch (strtolower($type)) {
+            case 'view':
+                return new moodle_url('/mod/questionnaire/view.php',
+                    ['id' => $this->get_cm_by_questionnaire_name($identifier)->id]);
+
+            case 'preview':
+                return new moodle_url('/mod/questionnaire/preview.php',
+                    ['id' => $this->get_cm_by_questionnaire_name($identifier)->id]);
+
+            case 'questions':
+                return new moodle_url('/mod/questionnaire/questions.php',
+                    ['id' => $this->get_cm_by_questionnaire_name($identifier)->id]);
+
+            case 'advsettings':
+                return new moodle_url('/mod/questionnaire/qsettings.php',
+                    ['id' => $this->get_cm_by_questionnaire_name($identifier)->id]);
+
+            default:
+                throw new Exception('Unrecognised questionnaire page type "' . $type . '."');
+        }
+    }
 
     /**
      * Adds a question to the questionnaire with the provided data.
@@ -63,7 +119,8 @@ class behat_mod_questionnaire extends behat_base {
             'Radio Buttons',
             'Rate (scale 1..5)',
             'Text Box',
-            'Yes/No');
+            'Yes/No',
+            'Slider');
 
         if (!in_array($questiontype, $validtypes)) {
             throw new ExpectationException('Invalid question type specified.', $this->getSession());
@@ -78,6 +135,18 @@ class behat_mod_questionnaire extends behat_base {
             // first is an identifier and the second is the value.
             foreach ($rows as $key => $row) {
                 if ($row[0] == 'Possible answers') {
+                    $row[1] = str_replace(',', "\n", $row[1]);
+                    $rows[$key] = $row;
+                    break;
+                }
+            }
+            $fielddata = new TableNode($rows);
+        }
+        if (isset($hashrows['Named degrees'])) {
+            // Find the row that contained multiline data and add line breaks. Rows are two item arrays where the
+            // first is an identifier and the second is the value.
+            foreach ($rows as $key => $row) {
+                if ($row[0] == 'Named degrees') {
                     $row[1] = str_replace(',', "\n", $row[1]);
                     $rows[$key] = $row;
                     break;
@@ -103,7 +172,7 @@ class behat_mod_questionnaire extends behat_base {
      *
      * @Given /^I click the "([^"]*)" radio button$/
      *
-     * @param string $radiogroupname The "id" attribute of the radio button.
+     * @param int $radioid
      */
     public function i_click_the_radio_button($radioid) {
         $session = $this->getSession();
@@ -345,7 +414,7 @@ class behat_mod_questionnaire extends behat_base {
      * @param array $data Array of data record row arrays. The first row contains the field names.
      * @param string $datatable The name of the data table to insert records into.
      * @param string $mapvar The name of the object variable to store oldid / newid mappings (optional).
-     * @param string $replvars Array of key/value pairs where key is the mapvar and value is the record field
+     * @param array|null $replvars Array of key/value pairs where key is the mapvar and value is the record field
      *                         to replace with mapped values.
      * @return null
      */
@@ -374,6 +443,26 @@ class behat_mod_questionnaire extends behat_base {
                 $this->{$mapvar}[$oldid] = $newid;
             }
         }
+    }
+    /**
+     * Get a questionnaire by name.
+     *
+     * @param string $name questionnaire name.
+     * @return stdClass the corresponding DB row.
+     */
+    protected function get_questionnaire_by_name(string $name): stdClass {
+        global $DB;
+        return $DB->get_record('questionnaire', ['name' => $name], '*', MUST_EXIST);
+    }
 
+    /**
+     * Get a questionnaire cmid from the quiz name.
+     *
+     * @param string $name questionnaire name.
+     * @return stdClass cm from get_coursemodule_from_instance.
+     */
+    protected function get_cm_by_questionnaire_name(string $name): stdClass {
+        $questionnaire = $this->get_questionnaire_by_name($name);
+        return get_coursemodule_from_instance('questionnaire', $questionnaire->id, $questionnaire->course);
     }
 }

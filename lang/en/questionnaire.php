@@ -23,6 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['accessibility:rate:choice'] = 'Row {$a->rowposition}, {$a->choicetitle}: Column {$a->colposition}, {$a->choiceanswer}.';
 $string['action'] = 'Action';
 $string['activityoverview'] = 'You have questionnaires that are due';
 $string['additionalinfo'] = 'Additional Info';
@@ -37,6 +38,8 @@ $string['alignment'] = 'Radio buttons Alignment';
 $string['alignment_help'] = 'Select buttons alignment: vertical (default) or horizontal.';
 $string['alignment_link'] = 'mod/questionnaire/questions#Radio_Buttons';
 $string['all'] = 'All';
+$string['allnameddegrees'] = 'Named degrees';
+$string['allnameddegrees_help'] = 'Specify text to display for rate values instead of the number. Leave a value blank to not use.';
 $string['alreadyfilled'] = 'You have already filled out this questionnaire for us{$a}. Thank you.';
 $string['andaveragevalues'] = 'and average values';
 $string['anonymous'] = 'Anonymous';
@@ -55,8 +58,9 @@ $string['autonumberquestions'] = 'Auto number questions';
 $string['autonumberpages'] = 'Auto number pages';
 $string['autonumberpagesandquestions'] = 'Auto number pages and questions';
 $string['average'] = 'Average';
-$string['averagerank'] = 'Average rank';
 $string['averageposition'] = 'Average position';
+$string['averagerank'] = 'Average rank';
+$string['averagesrow'] = 'Averages (where applicable):';
 $string['bodytext'] = 'Body text';
 $string['boxesnbexact'] = 'exactly {$a} box(es).';
 $string['boxesnbmax'] = 'a maximum of {$a} box(es).';
@@ -84,14 +88,15 @@ $string['checkbreaksremoved'] = 'Removed {$a} extra Page break(s).';
 $string['checknotstarted'] = 'Select not started';
 $string['checkstarted'] = 'Select started';
 $string['clicktoswitch'] = '(click to switch)';
+$string['closebeforeopen'] = 'You have specified a close date before the open date.';
 $string['closed'] = 'The questionnaire was closed on {$a}. Thanks.';
-$string['closedate'] = 'Use Close Date';
+$string['closedate'] = 'Allow responses until';
 $string['closeson'] = 'Questionnaire closes on {$a}';
-$string['closedate_help'] = 'You can specify a date to close the questionnaire here. Check the check box, and select the date and time you want.
- Users will not be able to fill out the questionnaire after that date. If this is not selected, it will never be closed.';
 $string['completionsubmit'] = 'Student must submit this questionnaire to complete it';
 $string['condition'] = 'Condition';
 $string['confalts'] = '- OR - <br />Confirmation page';
+$string['configemailreporting'] = 'Allow reports by email';
+$string['configemailreportinglong'] = 'Enables options for some reports to be emailed directly to specified email addresses.';
 $string['configusergraph'] = 'Display charts for "Personality Test" feedback';
 $string['configusergraphlong'] = 'Use the <a href="http://www.rgraph.net/">Rgraph</a> library to display "Personality Test" feedback charts.';
 $string['configmaxsections'] = 'Maximum feedback sections';
@@ -113,10 +118,14 @@ $string['createcontent'] = 'Define New Content';
 $string['createcontent_help'] = 'Select one of the radio button options. \'Create new\' is the default.';
 $string['createcontent_link'] = 'mod/questionnaire/mod#Content_Options';
 $string['createnew'] = 'Create new';
+$string['centerlabel'] = 'Centre label';
 $string['date'] = 'Date';
 $string['date_help'] = 'Use this question type if you expect the response to be a correctly formatted date.';
 $string['date_link'] = 'mod/questionnaire/questions#Date';
-$string['dateformatting'] = 'Use the day/month/year format, e.g. for March 14th, 1945:&nbsp; <strong>14/3/1945</strong>';
+$string['dateformatting'] = 'Use the year-month-day format, e.g. for March 4th, 1945:&nbsp; <strong>1945-03-04</strong>';
+// Prior to release 3.6.0, you could specify an input date format in the above string. Now, the format must be as below. This
+// string is used now in case sites modified the above string.
+$string['strictdateformatting'] = 'Enter the date using the date picker below.';
 $string['deleteallresponses'] = 'Delete ALL Responses';
 $string['deletecurrentquestion'] = 'Delete question {$a}';
 $string['deletedallgroupresp'] = 'Deleted ALL Responses in group {$a}';
@@ -135,10 +144,12 @@ $string['didnotrespondtoquestion'] = 'Did not respond to question';
 $string['directwarnings'] = 'Direct dependencies to this question will be removed. This will affect:';
 $string['displaymethod'] = 'Display method not defined for question.';
 $string['download'] = 'Download';
-$string['downloadtextformat'] = 'Download as CSV';
-$string['downloadtextformat_help'] = 'This feature enables you to save all the responses of a questionnaire to a text file (CSV).
- This file can then be imported into a spreadsheet (e.g. MS Excel or Open Office Calc) or a statistical package for further processing the data.';
+$string['downloadpdf'] = 'Download PDF';
+$string['downloadtextformat'] = 'Download';
+$string['downloadtextformat_help'] = 'This feature enables you to download questionnaire responses in a file format of your choice.
+ The file can then be opened in a spreadsheet program (e.g. MS Excel or Open Office Calc) or a statistical package for further processing.';
 $string['downloadtextformat_link'] = 'mod/questionnaire/report#Download_in_text_format';
+$string['downloadtypes'] = 'Report type';
 $string['dropdown'] = 'Dropdown Box';
 $string['dropdown_help'] = 'There is no real advantage to using the Dropdown Box over using the Radio Buttons
  except perhaps for longish lists of options, to save screen space.';
@@ -148,6 +159,15 @@ $string['editingfeedback'] = 'Editing feedback settings';
 $string['editingquestionnaire'] = 'Editing Questionnaire Settings';
 $string['editquestion'] = 'Editing {$a} question';
 $string['email'] = 'Email';
+$string['emailextra'] = 'Send download to emails';
+$string['emailextra_help'] = 'Will send the download file to the listed email addresses, separated by commas. Note that NO security or privacy checking is done.
+ \'allowemailreporting\' must be enabled in module settings to access this.';
+$string['emailsnotspecified'] = 'No email(s) were specified.';
+$string['emailroles'] = 'Send download to roles';
+$string['emailroles_help'] = 'Will send the download file to all roles with "mod/questionnaire:submissionnotification" capability via email.
+ \'allowemailreporting\' must be enabled in module settings to access this.';
+$string['emailsend'] = 'Send reports';
+$string['emailssent'] = 'Downloads sent to specified email(s).';
 $string['errnewname'] = 'Sorry, name already in use. Pick a new name.';
 $string['erroropening'] = 'Error opening questionnaire.';
 $string['errortable'] = 'Error system table corrupt.';
@@ -196,7 +216,8 @@ $string['feedbacknotes'] = 'Feedback notes';
 $string['feedbacknotes_help'] = 'Text entered here will be displayed to the respondents at the end of their Feedback Report';
 $string['feedbackoptions'] = 'Feedback options';
 $string['feedbackoptions_help'] = 'Feedback options are available if your questionnaire contains the following question types and question settings:
-Radio buttons; Dropdown box; Yes/No; or Rate (normal or Osgood scale). Those questions must be set as Required, their Question Name field must NOT be empty and the Possible answers choices must contain a value.';
+Radio buttons; Dropdown box; Yes/No; Rate (normal or Osgood scale) or Slider. Those questions must be set as Required, their Question Name field must NOT be empty and the Possible answers choices must contain a value.
+Slider questions must NOT use a negative value for the Minimum slider range.';
 $string['feedbackoptions_link'] = 'mod/questionnaire/personality_test';
 $string['feedbackremovequestionfromsection'] = 'This question is part of feedback section [{$a}]';
 $string['feedbackremovesection'] = 'Removing this question will completely remove feedback section [{$a}]';
@@ -234,6 +255,7 @@ $string['gradesdeleted'] = 'Questionnaire grades deleted';
 $string['headingtext'] = 'Heading text';
 $string['horizontal'] = 'Horizontal';
 $string['id'] = 'ID';
+$string['includerankaverages'] = 'Include rank question averages';
 $string['includechoicecodes'] = 'Include choice codes';
 $string['includechoicetext'] = 'Include choice text';
 $string['includeincomplete'] = "Include incomplete responses";
@@ -244,12 +266,19 @@ $string['invalidresponse'] = 'Invalid response specified.';
 $string['invalidresponserecord'] = 'Invalid response record specified.';
 $string['invalidsurveyid'] = 'Invalid questionnaire ID.';
 $string['invalidsectionid'] = 'Invalid feedback section specified.';
+$string['invalidrange'] = 'The maximum slider value must be greater than the minimum slider value.';
+$string['invalidstartingvalue'] = 'The starting value must be equal to or between the minimum and maximum values. For example, if using a scale of 1-10, the starting value could be 5.';
+$string['invalidminmaxrange'] = 'This question type supports an absolute maximum range of -100 to +100. We expect the vast majority of questionnaire designs to use a range of 1-10 or -10 to +10.';
+$string['invalidincrement'] = 'Note that the value increments must be lower than the maximum value. For example, if a scale of 1-10, the increment value would probably be 1.';
 $string['indirectwarnings'] = 'This list shows the indirect dependent questions and the remaining dependencies for direct dependent questions:';
 $string['kindofratescale'] = 'Type of rate scale';
 $string['kindofratescale_help'] = 'Right-click on the More Help link below.';
 $string['kindofratescale_link'] = 'mod/questionnaire/questions#Type_of_rate_scale';
 $string['lastrespondent'] = 'Last Respondent';
 $string['length'] = 'Length';
+$string['leftlabel'] = 'Left label';
+$string['leftpart'] = '{$a->min} is {$a->leftlabel}';
+$string['leftpartdefault'] = '{$a->min} is minimum slider range';
 $string['managequestions'] = 'Manage questions';
 $string['managequestions_help'] = 'In the Manage questions section of the Edit Questions page, you can conduct a number of operations on a Questionnaire\'s questions.';
 $string['managequestions_link'] = 'mod/questionnaire/questions#Manage_questions';
@@ -269,6 +298,10 @@ $string['maxtextlength_help'] = 'For the Text Box question type, enter the Input
 Default values are 20 characters for the Input Box width and 25 characters for the maximum length of text entered.';
 $string['messageprovider:message'] = 'Questionnaire reminder';
 $string['messageprovider:notification'] = 'Questionnaire submission';
+$string['middlepart'] = ', {$a->centreval} is {$a->middlelabel}';
+$string['middlepartdefault'] = ', {$a->centreval} is average';
+$string['middlepartwithtwovalues'] = ', {$a->centreval1} and {$a->centreval2} are {$a->middlelabel}';
+$string['middlepartwithtwovaluesdefault'] = ', {$a->centreval1} and {$a->centreval2} are average';
 $string['minforcedresponses'] = 'Min. forced responses';
 $string['minforcedresponses_help'] = 'Use these parameters to force respondent to tick a minimum of **Min.** boxes and a maximum of **Max.** check boxes. To
 force an exact number of check boxes to be ticked, set **Min.** and **Max.** to the same value. If only a min or a max value is desired, just leave the other
@@ -276,15 +309,20 @@ value to its default **0** value. If you set **Min.** or **Max.** to values othe
 respondent does not comply with your requirements. Obviously you should make any requirements clear to the respondent either in the general instructions of
 your Questionnaire or in the text of relevant questions.';
 $string['misconfigured'] = 'Course is misconfigured';
-$string['missingquestion'] = 'Please answer Required question ';
-$string['missingquestions'] = 'Please answer Required questions: ';
+$string['missingquestion'] = 'Please answer required question ';
+$string['missingquestions'] = 'Please answer required questions: ';
 $string['modulename'] = 'Questionnaire';
 $string['modulename_help'] = 'The questionnaire module allows you to construct surveys using a variety of question types, for the purpose of gathering data from users.';
+$string['modulename_link'] = 'mod/questionnaire/view';
 $string['modulenameplural'] = 'Questionnaires';
 $string['movedisabled'] = 'This item cannot be moved';
 $string['myresponses'] = 'All your responses';
 $string['myresponsetitle'] = 'Your {$a} response(s)';
 $string['myresults'] = 'Your Results';
+$string['minrange'] = 'Minimum slider range (left)';
+$string['minrange_help'] = 'Set the minimum value of the range on the left-hand side. It defaults to 1, but can set as low as -100. If you use a negative number (-100 to -1), the right-hand maximum will be expressed with a positive (+) sign.';
+$string['maxrange'] = 'Maximum slider range (right)';
+$string['maxrange_help'] = 'Set the maximum value of the range on the right-hand side. It defaults to 100, but it could be  any number between 1-100. If the minimum value for the left-hand is a negative value, the maximum range will be expressed with a positive (+) sign.';
 $string['name'] = 'Name';
 $string['navigate'] = 'Allow branching questions';
 $string['navigate_help'] = 'Enable Yes/No and Radio Buttons questions to have Child questions dependent on their choices in your questionnaire.';
@@ -332,9 +370,8 @@ $string['numberscaleitems_help'] = 'Nb of scale items is the *number of items* t
 $string['numeric'] = 'Numeric';
 $string['numeric_help'] = 'Use this question type if you expect the response to be a correctly formatted number.';
 $string['of'] = 'of';
-$string['opendate'] = 'Use Open Date';
-$string['opendate_help'] = 'You can specify a date to open the questionnaire here. Check the check box, and select the date and time you want.
- Users will not be able to fill out the questionnaire before that date. If this is not selected, it will be open immediately.';
+$string['openafterclose'] = 'You have specified an open date after the close date';
+$string['opendate'] = 'Allow responses from';
 $string['option'] = 'option {$a}';
 $string['optional'] = 'Optional - At least one of this dependencies has to be fulfilled.';
 $string['optionalname'] = 'Question Name';
@@ -431,6 +468,10 @@ $string['privacy:metadata:questionnaire_resp_single:question_id'] = 'The ID of t
 $string['privacy:metadata:questionnaire_resp_single:choice_id'] = 'The ID of the choice record for this response.';
 
 $string['private'] = 'Private';
+$string['progressbar'] = 'Show progress bar';
+$string['progresshelp'] = 'Progress Bar';
+$string['progresshelp_help'] = 'Move on to the next page to fill up the progress bar';
+$string['progressbar_info'] = 'Questionnaire {$a} complete.';
 $string['public'] = 'Public';
 $string['publiccopy'] = 'Copy:';
 $string['publicoriginal'] = 'Original:';
@@ -525,7 +566,11 @@ $string['resume_help'] = 'Setting this option allows users to save their answers
 $string['resume_link'] = 'mod/questionnaire/mod#Save/Resume_answers';
 $string['resumesurvey'] = 'Resume questionnaire';
 $string['return'] = 'Return';
+$string['rightlabel'] = 'Right label';
+$string['rightpart'] = ' and {$a->max} is {$a->rightlabel}';
+$string['rightpartdefault'] = ' and {$a->max} is maximum slider range';
 $string['save'] = 'Save';
+$string['save_and_exit'] = 'Save and exit';
 $string['saveasnew'] = 'Save as New Question';
 $string['savedbutnotsubmitted'] = 'This questionnaire has been saved but not yet submitted.';
 $string['savedprogress'] = 'Your progress has been saved.  You may return at any time to complete this questionnaire.';
@@ -546,7 +591,7 @@ $string['send_message'] = 'Send message to selected users';
 $string['send_message_to'] = 'Send message to:';
 $string['sendemail_help'] = 'Sends a copy of each submission to the specified address or addresses.
 You can provide more than one address by separating them with commas.
-Leave blank for no email backup.';
+Leave blank for no email backup. \'allowemailreporting\' must be enabled in module settings to access this.';
 $string['set'] = 'set';
 $string['settings'] = 'Settings';
 $string['settingssaved'] = 'Settings saved';
@@ -568,9 +613,16 @@ $string['subtitle'] = 'Subtitle';
 $string['subtitle_help'] = 'Subtitle of this questionnaire. Appears below the title on the first page only.';
 $string['subject'] = 'Subject';
 $string['summary'] = 'Summary';
+$string['summaryreportattached'] = 'Questionnaire summary report attached';
 $string['surveynotexists'] = 'questionnaire does not exist.';
 $string['surveyowner'] = 'You must be a questionnaire owner to perform this operation.';
 $string['surveyresponse'] = 'Response from questionnaire';
+$string['slider'] = 'Slider';
+$string['slider_help'] = 'The slider question allows respondents to select a value from a continuous range by dragging a slider between two extremes. A centre value can also be set.';
+$string['startingvalue'] = 'Slider starting value';
+$string['startingvalue_help'] = 'The slider starting value specifies where the slider should first appear for respondents. It defaults to 1 because the range is unknown. You may wish to start it in the centre of the range by giving a central value (a range of 1-100 has a centre value of 50).';
+$string['stepvalue'] = 'Slider increment value';
+$string['stepvalue_help'] = 'The slider increment value specifies how finely you wish respondents to indicate their response in the range. The question defaults to a range of 1-100 with an increment of one, allowing respondents to give values of 70, 71, 72, 73, 74 etc. But you could instead set increments of five, allowing respondents to give values of 60, 65, 70, 75, 80 etc., or even just a range of 1-10 with increments of 1.';
 $string['template'] = 'Template';
 $string['templatenotviewable'] = 'Template questionnaires are not viewable.';
 $string['text'] = 'Question Text';
@@ -607,7 +659,7 @@ $string['usepublic'] = 'Use public';
 $string['usetemplate'] = 'Use template';
 $string['vertical'] = 'Vertical';
 $string['view'] = 'View';
-$string['viewallresponses'] = 'View All Responses';
+$string['viewallresponses'] = 'View all responses';
 $string['viewallresponses_help'] = 'If the questionnaire is set to **Group Mode**: *Visible groups*, or is set to *Separate groups* and the current user
  has the *moodle/site:accessallgroups* capability (in the current context), and groups have been defined in the current course,
  then the user has access to a dropdown list of groups. This dropdown list enables the user to "filter" the questionnaire responses by groups.
@@ -618,8 +670,9 @@ $string['viewbyresponse'] = 'List of responses';
 $string['viewindividualresponse'] = 'Individual responses';
 $string['viewindividualresponse_help'] = 'Click on the respondents\' names in the list below to view their individual responses.';
 $string['viewresponses'] = 'All responses ({$a})';
-$string['viewyourresponses'] = 'Your responses- view {$a}';
+$string['viewyourresponses'] = 'View your response(s)';
 $string['warning'] = 'Warning, error encountered.';
+$string['where'] = 'where ';
 $string['wronganswers'] = 'There is something wrong with your answers (see below)';
 $string['wrongdateformat'] = 'The date entered: <strong>{$a}</strong> does not correspond to the format shown in the example.';
 $string['wrongdaterange'] = 'ERROR! The year must be set in the 1902 to 2037 range.';
@@ -627,7 +680,8 @@ $string['wrongformat'] = 'There is something wrong with your answer to question:
 $string['wrongformats'] = 'There is something wrong with your answer to questions:&nbsp;';
 $string['yesno'] = 'Yes/No';
 $string['yesno_help'] = 'Simple Yes/No question.';
-$string['yourresponse'] = 'Your response';
-$string['yourresponses'] = 'Your responses';
+$string['yourresponse'] = 'View your response(s)';
+$string['yourresponses'] = 'View your response(s)';
 $string['crontask'] = 'Questionnaire cleanup job';
-$string['selectdropdowntext'] = 'Select One';
+$string['nopermissions'] = 'Sorry, but you do not currently have permissions to view this page or perform this action.';
+$string['unanswered'] = 'Unanswered';

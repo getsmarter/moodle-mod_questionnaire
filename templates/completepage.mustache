@@ -62,14 +62,16 @@
     {{{respondentinfo}}}
     {{#title}}<h3 class="surveyTitle">{{.}}</h3>{{/title}}{{{printblank}}}
     {{#subtitle}}<h4 class="surveySubTitle">{{.}}</h4>{{/subtitle}}
+    {{#progressbar}}<div class="progressbar">{{{.}}}</div>{{/progressbar}}
     {{#addinfo}}<div class="addInfo">{{{.}}}</div>{{/addinfo}}
     {{#message}}<div class="message">{{{.}}}</div>{{/message}}
+    {{#continue}}{{{continue}}}{{/continue}}
     <div class="generalbox">
         {{{formstart}}}
         {{#questions}}{{{.}}}{{/questions}}
         {{#pageinfo}}{{{.}}}{{/pageinfo}}
-        <div class="notice" style="padding: 0.5em 0 0.5em 0.2em;">
-            <div class="buttons">
+        <div class="notice">
+            <div class="buttons mod_questionnaire_controlbuttons">
                 {{{controlbuttons}}}
             </div>
         </div>

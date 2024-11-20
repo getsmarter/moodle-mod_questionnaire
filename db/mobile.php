@@ -29,17 +29,23 @@ $addons = [
         'handlers' => [
             'questionsview' => [
                 'displaydata' => [
-                    'icon' => $CFG->wwwroot . '/mod/questionnaire/pix/icon.gif',
-                    'class' => '',
+                    'icon' => $CFG->wwwroot . '/mod/questionnaire/pix/icon.svg',
+                    'class' => 'core-course-module-questionnaire-handler',
                 ],
                 'delegate' => 'CoreCourseModuleDelegate',
-                'method' => 'mobile_view_activity'
+                'method' => 'mobile_view_activity',
+                'styles' => [
+                    'url' => $CFG->wwwroot . '/mod/questionnaire/styles_app.css',
+                    'version' => '1.5'
+                ]
             ]
         ],
         'lang' => [
             ['yourresponse', 'questionnaire'],
             ['submitted', 'questionnaire'],
+            ['answerquestions', 'questionnaire'],
             ['areyousure', 'moodle'],
+            ['resumesurvey', 'questionnaire'],
             ['success', 'moodle'],
             ['savechanges', 'moodle'],
             ['nextpage', 'questionnaire'],

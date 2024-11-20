@@ -4,7 +4,7 @@ Feature: Rate scale questions can use names for degrees
   As a teacher
   I need to enter a rate and specify specific named degrees
 
-@javascript
+  @javascript
   Scenario: Specify names for the degrees
     Given the following "users" exist:
       | username | firstname | lastname | email |
@@ -30,7 +30,8 @@ Feature: Rate scale questions can use names for degrees
       | Nb of scale items | 3 |
       | Type of rate scale | Normal |
       | Question Text | What did you think of these movies? |
-      | Possible answers | 1=I did not like,2=Ehhh,3=I liked,Star Wars,Casablanca,Airplane |
+      | Possible answers | Star Wars,Casablanca,Airplane |
+      | Named degrees    | 1=I did not like,2=Ehhh,3=I liked |
     Then I should see "position 1"
     And I should see "[Rate (scale 1..5)] (Q1)"
     And I should see "What did you think of these movies?"
@@ -45,7 +46,22 @@ Feature: Rate scale questions can use names for degrees
     And I should see "I did not like"
     And I should see "Ehhh"
     And I should see "I liked"
-    And I click on "Choice I liked for row Star Wars" "radio"
-    And I click on "Choice I liked for row Casablanca" "radio"
-    And I click on "Choice I liked for row Airplane" "radio"
+    # Check Row 2 with correct labels.
+    And "Row 2, Star Wars: Column 2, Unanswered." "radio" should exist
+    And "Row 2, Star Wars: Column 3, I did not like." "radio" should exist
+    And "Row 2, Star Wars: Column 4, Ehhh." "radio" should exist
+    And "Row 2, Star Wars: Column 5, I liked." "radio" should exist
+    # Check Row 3 with correct labels.
+    And "Row 3, Casablanca: Column 2, Unanswered." "radio" should exist
+    And "Row 3, Casablanca: Column 3, I did not like." "radio" should exist
+    And "Row 3, Casablanca: Column 4, Ehhh." "radio" should exist
+    And "Row 3, Casablanca: Column 5, I liked." "radio" should exist
+    # Check Row 4 with correct labels.
+    And "Row 4, Airplane: Column 2, Unanswered." "radio" should exist
+    And "Row 4, Airplane: Column 3, I did not like." "radio" should exist
+    And "Row 4, Airplane: Column 4, Ehhh." "radio" should exist
+    And "Row 4, Airplane: Column 5, I liked." "radio" should exist
+    And I click on "Row 2, Star Wars: Column 5, I liked." "radio"
+    And I click on "Row 3, Casablanca: Column 5, I liked." "radio"
+    And I click on "Row 4, Airplane: Column 5, I liked." "radio"
     And I press "Submit questionnaire"

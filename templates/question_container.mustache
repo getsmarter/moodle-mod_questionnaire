@@ -45,13 +45,18 @@
 <fieldset id="qn-{{fieldset.id}}" class="{{fieldset.class}}">
     {{{dependencylist}}}
     {{#qnum}}
-    <legend class="accesshide">{{# str }}questionnum, mod_questionnaire{{/ str}}{{{qnum}}}</legend>
+    <legend class="accesshide">{{# str }}questionnum, mod_questionnaire{{/ str}}{{{qnum}}} {{qlegend}}</legend>
     <div class="qn-legend">
         <div class="qn-info">
             <h2 class="qn-number">{{{qnum}}}</h2>
         </div>
         {{{required}}}
     </div>
+    {{/qnum}}
+    {{^qnum}}
+        <div class="qn-legend">
+            {{{required}}}
+        </div>
     {{/qnum}}
     <div class="qn-content">
         <div class="qn-question {{skippedclass}}">

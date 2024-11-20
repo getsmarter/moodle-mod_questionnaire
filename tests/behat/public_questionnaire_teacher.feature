@@ -41,33 +41,22 @@ Feature: Public questionnaires gather all instance responses in one master cours
     And I log out
 
     And I log in as "teacher2"
-    And I am on "Course 2" course homepage with editing mode on
-    And I follow "Add an activity or resource"
-    And I click on "Questionnaire" "radio"
-    And I click on "Add" "button" in the "Add an activity or resource" "dialogue"
-    And I set the field "Name" to "Questionnaire instance 1"
-    And I expand all fieldsets
-    Then I should see "Content options"
-    And I click on "Public questionnaire [Course 1]" "radio"
-    And I press "Save and display"
+    And I add a questionnaire activity to course "Course 2" section "1" and I fill the form with:
+      | Name | Questionnaire instance 1 |
+      | Description | Description |
+      | Use public | Public questionnaire [Course 1] |
     Then I should see "Questionnaire instance 1"
     And I log out
 
     And I log in as "teacher3"
-    And I am on "Course 3" course homepage with editing mode on
-    And I follow "Add an activity or resource"
-    And I click on "Questionnaire" "radio"
-    And I click on "Add" "button" in the "Add an activity or resource" "dialogue"
-    And I set the field "Name" to "Questionnaire instance 2"
-    And I expand all fieldsets
-    Then I should see "Content options"
-    And I click on "Public questionnaire [Course 1]" "radio"
-    And I press "Save and display"
+    And I add a questionnaire activity to course "Course 3" section "1" and I fill the form with:
+      | Name | Questionnaire instance 2 |
+      | Description | Description |
+      | Use public | Public questionnaire [Course 1] |
     Then I should see "Questionnaire instance 2"
     And I log out
 
-    And I log in as "student1"
-    And I am on "Course 2" course homepage
+    And I am on the "Questionnaire instance 1" "mod_questionnaire > view" page logged in as "student1"
     And I follow "Questionnaire instance 1"
     And I navigate to "Answer the questions..." in current page administration
     Then I should see "Questionnaire instance 1"
@@ -76,9 +65,7 @@ Feature: Public questionnaires gather all instance responses in one master cours
     Then I should see "Thank you for completing this Questionnaire."
     And I log out
 
-    And I log in as "student2"
-    And I am on "Course 3" course homepage
-    And I follow "Questionnaire instance 2"
+    And I am on the "Questionnaire instance 2" "mod_questionnaire > view" page logged in as "student2"
     And I should see "Answer the questions..."
     And I navigate to "Answer the questions..." in current page administration
     Then I should see "Questionnaire instance 2"
@@ -89,17 +76,13 @@ Feature: Public questionnaires gather all instance responses in one master cours
 
   @javascript
   Scenario: Teacher should not see responses for a questionnaire using a public instance
-    And I log in as "teacher2"
-    And I am on "Course 2" course homepage with editing mode on
-    And I follow "Questionnaire instance 1"
-    And I should not see "Your response"
-    And I should not see "View All Responses"
+    And I am on the "Questionnaire instance 1" "mod_questionnaire > view" page logged in as "teacher2"
+    And I should not see "View your response(s)"
+    And I should not see "View all responses"
     And I log out
 
   # Scenario: Teacher in course with main public questionnaire should see all responses
-    And I log in as "teacher1"
-    And I am on "Course 1" course homepage
-    And I follow "Public questionnaire"
-    Then I should see "View All Responses"
-    And I navigate to "View All Responses" in current page administration
+    And I am on the "Public questionnaire" "mod_questionnaire > view" page logged in as "teacher1"
+    Then I should see "View all responses"
+    And I navigate to "View all responses" in current page administration
     Then I should see "Responses: 2"

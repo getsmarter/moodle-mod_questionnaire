@@ -46,6 +46,7 @@
                         }
                     ]
                 },
+                "caption": "text",
                 "rows": [
                     {
                         "cols": [
@@ -122,9 +123,11 @@
     }}
 <!-- Begin HTML generated from question_rate template. -->
 {{#qelements}}
-<table style="width:{{qelements.twidth}}" role="grid">
-  <tbody role="rowgroup">
+<table style="width:{{twidth}}">
+  <caption class="accesshide">{{caption}}</caption>
+  <tbody>
     {{#qelements.headerrow}}
+    <tr>
       <td style="width:{{col1width}}"></td>
       {{#colnya}}<td title="nya"></td>{{/colnya}}
       {{#cols}}
@@ -132,15 +135,14 @@
       {{/cols}}
     {{/qelements.headerrow}}
     {{#qelements.rows}}
-    <tr class="raterow" role="row" aria-label="{{title}}" >
+    <tr class="raterow">
       {{#cols}}
       <td {{#colstyle}}style="{{.}}"{{/colstyle}}{{#colclass}} class="{{.}}"{{/colclass}}{{#coltitle}} title="{{.}}"{{/coltitle}}
-			{{#colinput}} onclick="if('{{id}}'.length>0) document.getElementById('{{id}}').checked = true"{{/colinput}}>
+			{{#colinput}} onclick="if('{{id}}'.length>0) document.getElementById('{{id}}').click()"{{/colinput}}>
         {{#coltext}}{{{.}}}{{/coltext}}
         {{#colhiddentext}}<span class="accesshide">{{{.}}}</span>{{/colhiddentext}}
-          {{#colinput}}
-              <input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}}  checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
-          {{/colinput}}
+        {{#colinput}}<input type="radio" name="{{name}}" id="{{id}}" value="{{value}}"{{#checked}} checked="checked"{{/checked}}{{#disabled}} disabled="disabled"{{/disabled}}{{#onclick}} onclick="{{.}}"{{/onclick}}>
+        {{#label}}<label for="{{id}}" class="accesshide">{{{.}}}</label>{{/label}}{{/colinput}}
       </td>
       {{/cols}}
     </tr>

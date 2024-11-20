@@ -21,16 +21,15 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
     And the following "activities" exist:
       | activity | name | description | course | idnumber | resume | navigate |
       | questionnaire | Test questionnaire | Test questionnaire description | C1 | questionnaire0 | 1 | 1 |
-    And I log in as "teacher1"
-    And I am on "Course 1" course homepage
-    And I follow "Test questionnaire"
-    And I navigate to "Questions" in current page administration
+    And the "multilang" filter is "on"
+    And the "multilang" filter applies to "content and headings"
+    And I am on the "Test questionnaire" "mod_questionnaire > questions" page logged in as "teacher1"
     Then I should see "Add questions"
     And I add a "Dropdown Box" question and I fill the form with:
       | Question Name | Q1 |
       | Yes | y |
       | Question Text | Select one dropdown |
-      | Possible answers | 1=One,2=Two,3=Three,4=Four |
+      | Possible answers | 1=One,2=Two,3=<span lang="en" class="multilang">Three</span>,4=Four |
     Then I should see "[Dropdown Box] (Q1)"
     And I add a "Radio Buttons" question and I fill the form with:
       | Question Name | Q2 |
@@ -45,7 +44,8 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
       | Nb of scale items | 4 |
       | Type of rate scale | Normal |
       | Question Text | Rate these |
-      | Possible answers | 1=One,2=Two,3=Three,4=Four,Cheese,Bread,Meat,Fruit |
+      | Possible answers | Cheese,Bread,Meat,Fruit |
+      | Named degrees    | 1=One,2=Two,3=Three,4=Four |
     Then I should see "[Rate (scale 1..5)] (Q3)"
     And I add a "Yes/No" question and I fill the form with:
       | Question Name | Q4 |
@@ -58,7 +58,8 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
       | Nb of scale items | 5 |
       | Type of rate scale | Normal |
       | Question Text | Rate these |
-      | Possible answers | 0=Zero,2=Two,4=Four,8=Eight,16=Sixteen,Clubs,Diamonds,Hearts,Spades |
+      | Possible answers | Clubs,Diamonds,Hearts,Spades |
+      | Named degrees    | 0=Zero,2=Two,4=Four,8=Eight,16=Sixteen |
     Then I should see "[Rate (scale 1..5)] (Q5)"
     And I follow "Feedback"
     And I should see "Feedback options"
@@ -114,20 +115,21 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
     And I navigate to "Answer the questions..." in current page administration
     Then I should see "Select one dropdown"
     And I set the field "dropQ1" to "Three"
+    Then I should not see "<span lang=\"en\" class=\"multilang\">Three</span>" in the "//select[@id='dropQ1']//option[4]" "xpath_element"
     And I click on "Three" "radio"
-    And I click on "Choice Three for row Cheese" "radio"
-    And I click on "Choice Three for row Bread" "radio"
-    And I click on "Choice Three for row Meat" "radio"
-    And I click on "Choice Three for row Fruit" "radio"
+    And I click on "Row 2, Cheese: Column 5, Three." "radio"
+    And I click on "Row 3, Bread: Column 5, Three." "radio"
+    And I click on "Row 4, Meat: Column 5, Three." "radio"
+    And I click on "Row 5, Fruit: Column 5, Three." "radio"
     And I click on "Yes" "radio"
-    And I click on "Choice Two for row Clubs" "radio"
-    And I click on "Choice Four for row Diamonds" "radio"
-    And I click on "Choice Zero for row Hearts" "radio"
-    And I click on "Choice Sixteen for row Spades" "radio"
+    And I click on "Row 2, Clubs: Column 4, Two." "radio"
+    And I click on "Row 3, Diamonds: Column 5, Four." "radio"
+    And I click on "Row 4, Hearts: Column 3, Zero." "radio"
+    And I click on "Row 5, Spades: Column 7, Sixteen." "radio"
     And I press "Submit questionnaire"
     Then I should see "Thank you for completing this Questionnaire."
-    And I follow "Continue"
-    Then I should see "Your response"
+    And I press "Continue"
+    Then I should see "View your response(s)"
     And I should see "These are the main Feedback notes"
     And I should see "Section 1 label"
     And I should see "39%"
@@ -145,18 +147,18 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
     Then I should see "Select one dropdown"
     And I set the field "dropQ1" to "One"
     And I click on "One" "radio"
-    And I click on "Choice Two for row Cheese" "radio"
-    And I click on "Choice Two for row Bread" "radio"
-    And I click on "Choice Two for row Meat" "radio"
-    And I click on "Choice Two for row Fruit" "radio"
+    And I click on "Row 2, Cheese: Column 4, Two." "radio"
+    And I click on "Row 3, Bread: Column 4, Two." "radio"
+    And I click on "Row 4, Meat: Column 4, Two." "radio"
+    And I click on "Row 5, Fruit: Column 4, Two." "radio"
     And I click on "Yes" "radio"
-    And I click on "Choice Zero for row Clubs" "radio"
-    And I click on "Choice Two for row Diamonds" "radio"
-    And I click on "Choice Four for row Hearts" "radio"
-    And I click on "Choice Eight for row Spades" "radio"
+    And I click on "Row 2, Clubs: Column 3, Zero." "radio"
+    And I click on "Row 3, Diamonds: Column 4, Two." "radio"
+    And I click on "Row 4, Hearts: Column 5, Four." "radio"
+    And I click on "Row 5, Spades: Column 6, Eight." "radio"
     And I press "Submit questionnaire"
     Then I should see "Thank you for completing this Questionnaire."
-    And I follow "Continue"
+    And I press "Continue"
     And I should see "These are the main Feedback notes"
     And I should see "Section 1 label"
     And I should see "22%"

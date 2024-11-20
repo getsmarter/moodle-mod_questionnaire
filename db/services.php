@@ -26,12 +26,20 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+$services = [
+    'mod_questionnaire_ws' => [
+        'functions' => ['mod_questionnaire_submit_questionnaire_response'],
+        'requiredcapability' => '',
+        'enabled' => 1
+    ]
+];
+
 $functions = [
-    'mod_questionnaire_submit_questionnaire_branching' => [
-        'classname' => 'mod_questionnaire_external',
-        'methodname' => 'submit_questionnaire_branching',
+    'mod_questionnaire_submit_questionnaire_response' => [
+        'classname' => 'mod_questionnaire\external',
+        'methodname' => 'submit_questionnaire_response',
         'classpath' => 'mod/questionnaire/externallib.php',
-        'description' => 'Questionnaire Branching submit',
+        'description' => 'Questionnaire submit',
         'type' => 'write',
         'capabilities' => 'mod/questionnaire:submit',
         'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE]

@@ -46,7 +46,8 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
       | Nb of scale items | 4 |
       | Type of rate scale | Normal |
       | Question Text | Rate these |
-      | Possible answers | 1=One,2=Two,3=Three,4=Four,Cheese,Bread,Meat,Fruit |
+      | Possible answers | Cheese,Bread,Meat,Fruit |
+      | Named degrees    | 1=One,2=Two,3=Three,4=Four |
     Then I should see "[Rate (scale 1..5)] (Q3)"
     And I add a "Yes/No" question and I fill the form with:
       | Question Name | Q4 |
@@ -78,15 +79,15 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
     Then I should see "Select one dropdown"
     And I set the field "Select one dropdown" to "Three"
     And I click on "Three" "radio"
-    And I click on "Choice Three for row Cheese" "radio"
-    And I click on "Choice Three for row Bread" "radio"
-    And I click on "Choice Three for row Meat" "radio"
-    And I click on "Choice Three for row Fruit" "radio"
+    And I click on "Row 2, Cheese: Column 5, Three." "radio"
+    And I click on "Row 3, Bread: Column 5, Three." "radio"
+    And I click on "Row 4, Meat: Column 5, Three." "radio"
+    And I click on "Row 5, Fruit: Column 5, Three." "radio"
     And I click on "Yes" "radio"
     And I press "Submit questionnaire"
     Then I should see "Thank you for completing this Questionnaire."
-    And I follow "Continue"
-    Then I should see "Your response"
+    And I press "Continue"
+    Then I should see "View your response(s)"
     And I should see "These are the main Feedback notes"
     And I should see "Global feedback label"
     And I should see "76%"
@@ -101,15 +102,15 @@ Feature: In questionnaire, personality tests can be constructed using feedback o
     Then I should see "Select one dropdown"
     And I set the field "Select one dropdown" to "One"
     And I click on "One" "radio"
-    And I click on "Choice Two for row Cheese" "radio"
-    And I click on "Choice Two for row Bread" "radio"
-    And I click on "Choice Two for row Meat" "radio"
-    And I click on "Choice Two for row Fruit" "radio"
+    And I click on "Row 2, Cheese: Column 4, Two." "radio"
+    And I click on "Row 3, Bread: Column 4, Two." "radio"
+    And I click on "Row 4, Meat: Column 4, Two." "radio"
+    And I click on "Row 5, Fruit: Column 4, Two." "radio"
     And I click on "Yes" "radio"
     And I press "Submit questionnaire"
     Then I should see "Thank you for completing this Questionnaire."
-    And I follow "Continue"
-    Then I should see "Your response"
+    And I press "Continue"
+    Then I should see "View your response(s)"
     And I should see "These are the main Feedback notes"
     And I should see "Global feedback label"
     And I should see "44%"

@@ -14,26 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @package mod_questionnaire
- * @copyright  2016 Mike Churchward (mike.churchward@poetgroup.org)
- * @author Mike Churchward & Joseph Rézeau
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_questionnaire;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
 
+#[\AllowDynamicProperties]
+/**
+ * The form definition class for questions.
+ *
+ * @package mod_questionnaire
+ * @copyright  2016 Mike Churchward (mike.churchward@poetgroup.org)
+ * @author Mike Churchward & Joseph Rézeau
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class questions_form extends \moodleform {
 
+    /**
+     * The constructor.
+     * @param mixed $action
+     * @param bool $moveq
+     */
     public function __construct($action, $moveq=false) {
         $this->moveq = $moveq;
         return parent::__construct($action);
     }
 
+    /**
+     * Form definition.
+     */
     public function definition() {
         global $CFG, $questionnaire, $SESSION;
         global $DB;
@@ -137,7 +147,7 @@ class questions_form extends \moodleform {
                 redirect($CFG->wwwroot.'/mod/questionnaire/questions.php?id='.$questionnaire->cm->id);
             }
 
-            if ($tid != QUESPAGEBREAK && $tid != QUESSECTIONTEXT) {
+            if ($question->is_numbered()) {
                 $qnum++;
             }
 
@@ -158,7 +168,13 @@ class questions_form extends \moodleform {
             $spacer = $questionnaire->renderer->image_url('spacer');
 
             if (!$this->moveq) {
-                $mform->addElement('html', '<div class="qn-container">'); // Begin div qn-container.
+                if ($dependencies) {
+                    // Begin div qn-container with indent if questionnaire has child.
+                    $mform->addElement('html', '<div class="qn-container qn-indent">');
+                } else {
+                    $mform->addElement('html', '<div class="qn-container">'); // Begin div qn-container.
+                }
+
                 $mextra = array('value' => $question->id,
                                 'alt' => $strmove,
                                 'title' => $strmove);
@@ -241,7 +257,7 @@ class questions_form extends \moodleform {
                 $manageqgroup[] =& $mform->createElement('image', 'editbutton['.$question->id.']', $esrc, $eextra);
                 $manageqgroup[] =& $mform->createElement('image', 'removebutton['.$question->id.']', $rsrc, $rextra);
 
-                if ($tid != QUESPAGEBREAK && $tid != QUESSECTIONTEXT) {
+                if ($tid != QUESPAGEBREAK && $tid != QUESSECTIONTEXT  && $tid != QUESSLIDER) {
                     if ($required == 'y') {
                         $reqsrc = $questionnaire->renderer->image_url('t/stop');
                         $strrequired = get_string('required', 'questionnaire');
@@ -315,12 +331,10 @@ class questions_form extends \moodleform {
                 $mform->addElement('static', 'qdepend_' . $question->id, '', $dependencies);
             }
 
-            if ($tid != QUESPAGEBREAK) {
-                if ($tid != QUESSECTIONTEXT) {
+            if ($question->is_numbered()) {
                     $qnumber = '<div class="qn-info"><h2 class="qn-number">'.$qnum.'</h2></div>';
-                } else {
+            } else {
                     $qnumber = '';
-                }
             }
 
             if ($this->moveq && $pos < $moveqposition) {
@@ -361,9 +375,14 @@ class questions_form extends \moodleform {
         $mform->addElement('html', '</div>');
     }
 
+    /**
+     * Form validation.
+     * @param array $data
+     * @param array $files
+     * @return array
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         return $errors;
     }
-
 }

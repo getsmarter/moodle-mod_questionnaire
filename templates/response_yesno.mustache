@@ -34,30 +34,32 @@
         "stryes": "Yes",
         "noselected": 0,
         "noname": "id4102n",
-        "strno": "No"
+        "strno": "No",
+        "alabelyes": "Some question Yes",
+        "alabelno": "Some question No"
     }
     }}
 <!-- Begin HTML generated from response_yesno template. -->
 <div class="questionnaire_response questionnaire_yesno">
     {{#yesselected}}
-    <span class="selected">
-        <input type="radio" aria-label="{{yesname}}" name="{{yesname}}" checked="checked" /> {{{stryes}}}
-    </span>
+        {{#pdf}}&#10003;{{/pdf}}<span class="selected">{{^pdf}}
+        <input type="radio" name="{{yesname}}" checked="checked" disabled="disabled"
+               aria-label="{{alabelyes}}"/>{{/pdf}} {{{stryes}}}</span>
     {{/yesselected}}
     {{^yesselected}}
-    <span class="unselected">
-        <input type="radio" aria-label="{{yesname}}" name="{{yesname}}" onclick="this.checked=false;" /> {{{stryes}}}
-    </span>
+        <span class="unselected"{{#pdf}} color="gray"{{/pdf}}>{{^pdf}}
+            <input type="radio" name="{{yesname}}" disabled="disabled"
+                   aria-label="{{alabelyes}}"/>{{/pdf}} {{{stryes}}}</span>
     {{/yesselected}}
     {{#noselected}}
-    <span class="selected">
-        <input type="radio" aria-label="{{noname}}" name="{{noname}}" checked="checked" /> {{{strno}}}
-    </span>
+        {{#pdf}}&nbsp; &#10003;{{/pdf}}<span class="selected">{{^pdf}}
+        <input type="radio" name="{{noname}}" checked="checked" disabled="disabled"
+               aria-label="{{alabelno}}"/>{{/pdf}} {{{strno}}}</span>
     {{/noselected}}
     {{^noselected}}
-    <span class="unselected">
-        <input type="radio" aria-label="{{noname}}" name="{{noname}}" onclick="this.checked=false;" /> {{{strno}}}
-    </span>
+        <span class="unselected"{{#pdf}} color="gray"{{/pdf}}>{{^pdf}}
+            <input type="radio" name="{{noname}}" disabled="disabled"
+                   aria-label="{{alabelno}}"/>{{/pdf}} {{{strno}}}</span>
     {{/noselected}}
 </div>
 <!-- End HTML generated from response_yesno template. -->
